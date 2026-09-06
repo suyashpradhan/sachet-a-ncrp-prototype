@@ -16,16 +16,16 @@ async function loadLocalEnvironment() {
 
 const narrations = [
   {
-    file: "anil-bank-otp.mp3",
+    file: "rajesh-bank-otp-en.mp3",
     languageCode: "en-IN",
     speaker: "shubh",
-    text: "Someone claiming to be from my bank called me and said an urgent verification was needed. I shared the OTP during the call. Minutes later, three debit alerts appeared for twelve thousand, eighteen thousand and six thousand rupees. I first thought thirty six thousand rupees was gone, but the bank records show that the six thousand rupee debit was reversed.",
+    text: "I received a call in the evening. The caller said he was from my bank's card-security team and that my account needed urgent verification. He asked me to share an OTP. Soon after, I received messages showing twelve thousand and eighteen thousand rupees had been debited. I did not make those payments. I did not know where I should report this or what information I needed to provide.",
   },
   {
-    file: "anil-bank-otp-hi.mp3",
+    file: "rajesh-bank-otp-hi.mp3",
     languageCode: "hi-IN",
     speaker: "shubh",
-    text: "मेरे बैंक से होने का दावा करने वाले व्यक्ति ने फोन करके कहा कि तुरंत सत्यापन करना जरूरी है। मैंने कॉल पर ओ टी पी साझा कर दिया। कुछ मिनट बाद बारह हजार, अठारह हजार और छह हजार रुपये के तीन डेबिट संदेश आए। मुझे पहले लगा कि छत्तीस हजार रुपये चले गए, लेकिन बैंक रिकॉर्ड में छह हजार रुपये का डेबिट वापस हुआ दिखता है।",
+    text: "मुझे शाम को एक फोन आया। सामने वाले ने कहा कि वह मेरे बैंक की कार्ड सिक्योरिटी टीम से बोल रहा है और मेरे खाते की वेरिफिकेशन तुरंत करनी है। उसने मुझसे एक ओ टी पी बताने को कहा। उसके थोड़ी देर बाद मेरे फोन पर बारह हज़ार और अठारह हज़ार रुपये कटने के मैसेज आए। मैंने ये पेमेंट नहीं किए। मुझे समझ नहीं आ रहा था कि अब मुझे कहाँ शिकायत करनी है और क्या-क्या जानकारी देनी है।",
   },
   {
     file: "sneha-task-scam.mp3",

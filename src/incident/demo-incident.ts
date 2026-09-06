@@ -33,6 +33,8 @@ export type DemoCaseDefinition = {
   selectorLabelHi: string;
   bannerTitle?: string;
   bannerTitleHi?: string;
+  personaSummary?: string;
+  personaSummaryHi?: string;
   incidentTrail?: string;
   incidentTrailHi?: string;
   citizen: ReporterProfile;
@@ -80,6 +82,7 @@ function narration(
   originalTranscript: string,
   durationSeconds: number,
   audioPath: string,
+  englishTranscript = originalTranscript,
 ): DemoNarration {
   return {
     label: languageCode === "hi-IN" ? "Hindi" : "English",
@@ -88,7 +91,7 @@ function narration(
     durationSeconds,
     languageCode,
     originalTranscript,
-    englishTranscript: originalTranscript,
+    englishTranscript,
   };
 }
 
@@ -126,12 +129,12 @@ const emptyAdaptiveFacts = {
   sensitiveEvidenceRedacted: null,
 };
 
-const anilBankOtpStatement =
-  "Someone claiming to be from my bank called me and said an urgent verification was needed. I shared the OTP during the call. Minutes later, three debit alerts appeared for ₹12,000, ₹18,000 and ₹6,000. I first thought ₹36,000 was gone, but the bank records show that the ₹6,000 debit was reversed.";
-const anilBankOtpHindi =
-  "मेरे बैंक से होने का दावा करने वाले व्यक्ति ने फोन करके कहा कि तुरंत सत्यापन करना जरूरी है। मैंने कॉल पर OTP साझा कर दिया। कुछ मिनट बाद ₹12,000, ₹18,000 और ₹6,000 के तीन डेबिट संदेश आए। मुझे पहले लगा कि ₹36,000 चले गए, लेकिन बैंक रिकॉर्ड में ₹6,000 का डेबिट वापस हुआ दिखता है।";
+const rajeshBankOtpHindi =
+  "मुझे शाम को एक फोन आया। सामने वाले ने कहा कि वह मेरे बैंक की कार्ड सिक्योरिटी टीम से बोल रहा है और मेरे खाते की वेरिफिकेशन तुरंत करनी है। उसने मुझसे एक OTP बताने को कहा। उसके थोड़ी देर बाद मेरे फोन पर बारह हज़ार और अठारह हज़ार रुपये कटने के मैसेज आए। मैंने ये पेमेंट नहीं किए। मुझे समझ नहीं आ रहा था कि अब मुझे कहाँ शिकायत करनी है और क्या-क्या जानकारी देनी है।";
+const rajeshBankOtpEnglish =
+  "I received a call in the evening. The caller said he was from my bank’s card-security team and that my account needed urgent verification. He asked me to share an OTP. Soon after, I received messages showing ₹12,000 and ₹18,000 had been debited. I did not make those payments. I did not know where I should report this or what information I needed to provide.";
 
-const anilBankOtpDraft: IncidentDraft = {
+const rajeshBankOtpDraft: IncidentDraft = {
   classification: {
     reportFamily: "FINANCIAL_FRAUD",
     category: "Financial Fraud",
@@ -141,7 +144,7 @@ const anilBankOtpDraft: IncidentDraft = {
     platform: "Phone call and bank SMS",
     ambiguity: "NONE",
     explanation:
-      "A caller claiming to represent the bank obtained an OTP before unauthorized debits appeared.",
+      "A caller claiming to represent the bank's card-security team obtained an OTP before two unauthorized debits appeared.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -151,7 +154,7 @@ const anilBankOtpDraft: IncidentDraft = {
     platformType: "OTHER",
     credentialExposure: true,
     impersonation: true,
-    impersonatedEntity: "Bank representative",
+    impersonatedEntity: "Bank representative / card-security team",
     communicationChannels: ["Phone call", "Bank SMS"],
     requestedSensitiveInfo: ["OTP"],
     sharedSensitiveInfo: ["OTP"],
@@ -160,7 +163,7 @@ const anilBankOtpDraft: IncidentDraft = {
   citizenSummary: {
     incidentLabel: "Bank impersonation and OTP fraud",
     shortSummary:
-      "Anil shared an OTP with a caller claiming to represent his bank. Three debit alerts totalled ₹36,000, but evidence shows ₹6,000 was reversed, leaving an evidence-supported loss of ₹30,000.",
+      "Rajesh shared an OTP with a caller claiming to represent his bank's card-security team. Two unauthorized debits of ₹12,000 and ₹18,000 resulted in a total confirmed loss of ₹30,000.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -171,19 +174,19 @@ const anilBankOtpDraft: IncidentDraft = {
   incident: {
     financialLossState: "YES",
     moneyLost: true,
-    statedTotalLoss: 36_000,
-    citizenConfirmedLoss: 30_000,
+    statedTotalLoss: 30_000,
+    citizenConfirmedLoss: null,
     reportedAmount: 30_000,
     openingBalance: null,
     intermediateBalances: [],
     closingBalance: null,
     incidentDate: "2026-09-03",
     incidentDateWithoutYear: null,
-    approximateTime: "Around 3 PM",
+    approximateTime: "Evening",
     delayInReporting: false,
     delayReason: null,
     occurredOn: "Phone call",
-    narrative: anilBankOtpStatement,
+    narrative: rajeshBankOtpHindi,
   },
   financialExposure: {
     bankDetailsRequested: null,
@@ -195,103 +198,72 @@ const anilBankOtpDraft: IncidentDraft = {
   mentionedInstitutions: ["Synthetic bank"],
   transactions: [
     {
-      id: "anil-debit-12000",
+      id: "rajesh-debit-12000",
       direction: "DEBIT",
       evidenceId: "demo-evidence-1",
       institution: "Synthetic bank",
       currency: "INR",
-      paymentMethod: "Unauthorized bank debit",
-      accountOrUpiId: "Synthetic account ending 1930",
-      transactionIdOrUtr: "SYN-ANIL-12000-01",
+      paymentMethod: "Unauthorized debit",
+      accountOrUpiId: "Synthetic account ending 6400",
+      transactionIdOrUtr: "SYN-RAJESH-12000-01",
       amount: 12_000,
       transactionDate: "2026-09-03",
-      approximateTime: "15:07",
-      referenceNumber: "SYN-ANIL-12000-01",
+      approximateTime: "18:47",
+      referenceNumber: "SYN-RAJESH-12000-01",
       status: "KNOWN",
     },
     {
-      id: "anil-debit-18000",
+      id: "rajesh-debit-18000",
       direction: "DEBIT",
-      evidenceId: "demo-evidence-1",
-      institution: "Synthetic bank",
-      currency: "INR",
-      paymentMethod: "Unauthorized bank debit",
-      accountOrUpiId: "Synthetic account ending 1930",
-      transactionIdOrUtr: "SYN-ANIL-18000-02",
-      amount: 18_000,
-      transactionDate: "2026-09-03",
-      approximateTime: "15:09",
-      referenceNumber: "SYN-ANIL-18000-02",
-      status: "KNOWN",
-    },
-    {
-      id: "anil-debit-6000",
-      direction: "DEBIT",
-      evidenceId: "demo-evidence-1",
-      institution: "Synthetic bank",
-      currency: "INR",
-      paymentMethod: "Unauthorized bank debit",
-      accountOrUpiId: "Synthetic account ending 1930",
-      transactionIdOrUtr: "SYN-ANIL-6000-03",
-      amount: 6_000,
-      transactionDate: "2026-09-03",
-      approximateTime: "15:11",
-      referenceNumber: "SYN-ANIL-6000-03",
-      status: "KNOWN",
-    },
-    {
-      id: "anil-credit-6000-reversal",
-      direction: "CREDIT",
       evidenceId: "demo-evidence-2",
       institution: "Synthetic bank",
       currency: "INR",
-      paymentMethod: "Reversal",
-      accountOrUpiId: "Synthetic account ending 1930",
-      transactionIdOrUtr: "SYN-ANIL-REV-6000",
-      amount: 6_000,
+      paymentMethod: "Unauthorized debit",
+      accountOrUpiId: "Synthetic account ending 6400",
+      transactionIdOrUtr: "SYN-RAJESH-18000-02",
+      amount: 18_000,
       transactionDate: "2026-09-03",
-      approximateTime: "15:18",
-      referenceNumber: "SYN-ANIL-REV-6000",
+      approximateTime: "18:50",
+      referenceNumber: "SYN-RAJESH-18000-02",
       status: "KNOWN",
     },
   ],
-  suspectIdentifiers: [{ type: "PHONE", value: "98XX XX1930" }],
+  suspectIdentifiers: [{ type: "PHONE", value: "98XX XX6400" }],
   evidence: [
     {
       type: "OTHER",
       extractedFacts: [
-        "Incoming call from synthetic number 98XX XX1930",
-        "Caller claimed to represent the bank",
+        "Incoming call from synthetic number 98XX XX6400 at about 6:40 PM",
+        "Caller claimed to represent the bank's card-security team",
+        "Caller used Rajesh's name and basic banking context",
         "Caller identity was not independently verified",
       ],
     },
     {
       type: "TRANSACTION_SCREENSHOT",
       extractedFacts: [
-        "Debit alerts for ₹12,000, ₹18,000 and ₹6,000",
-        "Total debit alerts: ₹36,000",
-      ],
-    },
-    {
-      type: "OTHER",
-      extractedFacts: [
-        "Statement shows a ₹6,000 reversal",
-        "Current evidence-supported loss: ₹30,000",
+        "₹12,000 unauthorized debit alert",
+        "Reference SYN-RAJESH-12000-01",
       ],
     },
     {
       type: "TRANSACTION_SCREENSHOT",
       extractedFacts: [
-        "Synthetic transaction references preserved for all entries",
-        "No verified identity record is available for the caller",
+        "₹18,000 unauthorized debit alert",
+        "Reference SYN-RAJESH-18000-02",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "Statement shows two unauthorized debits of ₹12,000 and ₹18,000",
+        "Total confirmed loss: ₹30,000",
       ],
     },
   ],
   citizenConfirmedFields: [],
   missingRequiredFields: [],
-  warnings: [
-    "The citizen initially reported ₹36,000. The available statement shows ₹6,000 was reversed, leaving ₹30,000 as the current evidence-supported loss.",
-  ],
+  warnings: [],
 };
 
 const taskScamStatement =
@@ -836,35 +808,46 @@ const extortionDraft: IncidentDraft = {
   warnings: [],
 };
 
-for (const draft of [anilBankOtpDraft, taskScamDraft, jobOfferDraft, amountMismatchDraft, accountCompromiseDraft, lotteryDraft, extortionDraft]) {
+for (const draft of [rajeshBankOtpDraft, taskScamDraft, jobOfferDraft, amountMismatchDraft, accountCompromiseDraft, lotteryDraft, extortionDraft]) {
   IncidentDraftSchema.parse(draft);
 }
 
 export const DEMO_CASES: readonly DemoCaseDefinition[] = [
   {
     id: "BANK_OTP",
-    selectorLabel: "Anil's bank OTP fraud",
-    selectorLabelHi: "अनिल का बैंक OTP फ्रॉड",
-    bannerTitle: "Anil received a call claiming to be from his bank",
-    bannerTitleHi: "अनिल को बैंक से होने का दावा करने वाली कॉल आई",
-    incidentTrail: "Bank impersonation call → OTP shared → debit alerts → one reversal",
-    incidentTrailHi: "बैंक के नाम पर कॉल → OTP साझा → डेबिट संदेश → एक राशि वापस",
-    citizen: demoProfile("Anil Kumar", "Male", "1930", "anil.demo"),
-    citizenNameHi: "अनिल",
-    sourceLanguage: "English / Hindi",
-    statement: anilBankOtpStatement,
+    selectorLabel: "Rajesh's bank OTP fraud",
+    selectorLabelHi: "राजेश का बैंक OTP फ्रॉड",
+    bannerTitle: "Rajesh received a call from someone claiming to be from his bank",
+    bannerTitleHi: "राजेश को बैंक से होने का दावा करने वाले व्यक्ति की कॉल आई",
+    personaSummary: "Rajesh · 64 · Retired",
+    personaSummaryHi: "राजेश · 64 वर्ष · सेवानिवृत्त",
+    incidentTrail: "Phone call → OTP shared → unauthorized debits",
+    incidentTrailHi: "फोन कॉल → OTP साझा → अनधिकृत डेबिट",
+    citizen: {
+      ...demoProfile("Rajesh Sharma", "Male", "6400", "rajesh.demo"),
+      dateOfBirth: "1962-04-18",
+    },
+    citizenNameHi: "राजेश",
+    sourceLanguage: "Hindi · English translation available",
+    statement: rajeshBankOtpHindi,
     narrations: {
-      "en-IN": narration("en-IN", anilBankOtpStatement, 18, "/demo/audio/anil-bank-otp.mp3"),
-      "hi-IN": narration("hi-IN", anilBankOtpHindi, 17, "/demo/audio/anil-bank-otp-hi.mp3"),
+      "en-IN": narration("en-IN", rajeshBankOtpEnglish, 19, "/demo/audio/rajesh-bank-otp-en.mp3"),
+      "hi-IN": narration(
+        "hi-IN",
+        rajeshBankOtpHindi,
+        20,
+        "/demo/audio/rajesh-bank-otp-hi.mp3",
+        rajeshBankOtpEnglish,
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/anil-call-details.svg", label: "Call details", labelHi: "कॉल की जानकारी", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },
-      { id: "demo-evidence-1", src: "/demo/evidence/anil-bank-alerts.svg", label: "Bank SMS alerts", labelHi: "बैंक SMS संदेश", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/anil-bank-statement.svg", label: "Bank statement", labelHi: "बैंक स्टेटमेंट", typeLabel: "Payment statement", typeLabelHi: "भुगतान विवरण" },
-      { id: "demo-evidence-3", src: "/demo/evidence/anil-transaction-references.svg", label: "Transaction references", labelHi: "लेन-देन संदर्भ", typeLabel: "Transaction record", typeLabelHi: "लेन-देन रिकॉर्ड" },
+      { id: "demo-evidence-0", src: "/demo/evidence/rajesh-call-details.svg", label: "Call details", labelHi: "कॉल की जानकारी", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },
+      { id: "demo-evidence-1", src: "/demo/evidence/rajesh-debit-12000.svg", label: "₹12,000 bank SMS alert", labelHi: "₹12,000 का बैंक SMS", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
+      { id: "demo-evidence-2", src: "/demo/evidence/rajesh-debit-18000.svg", label: "₹18,000 bank SMS alert", labelHi: "₹18,000 का बैंक SMS", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
+      { id: "demo-evidence-3", src: "/demo/evidence/rajesh-bank-statement.svg", label: "Bank statement", labelHi: "बैंक स्टेटमेंट", typeLabel: "Transaction evidence", typeLabelHi: "लेन-देन सबूत" },
     ],
-    draft: anilBankOtpDraft,
-    reference: "SACHET-DEMO-ANIL-001",
+    draft: rajeshBankOtpDraft,
+    reference: "SACHET-DEMO-RAJESH-001",
   },
   {
     id: "TASK_SCAM",

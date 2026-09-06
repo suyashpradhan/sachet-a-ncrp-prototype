@@ -64,7 +64,7 @@ export function LandingPage({
               type="button"
               onClick={onViewDemo}
             >
-              {hi ? "डेमो मामला देखें" : "View demo case"}
+              {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
             </button>
             <a className="landing-text-action" href="#how-sachet-works">
               {hi ? "यह कैसे काम करता है" : "How it works"}

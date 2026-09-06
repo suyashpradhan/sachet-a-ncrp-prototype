@@ -868,7 +868,11 @@ export function DemoJourney() {
   function useDemoIncident(caseId: DemoCaseId = DEFAULT_DEMO_CASE_ID) {
     const demoCase = getDemoCase(caseId);
     const selectedNarrationLanguage: DemoNarrationLanguage =
-      locale === "hi" ? "hi-IN" : "en-IN";
+      demoCase.id === DEFAULT_DEMO_CASE_ID
+        ? "hi-IN"
+        : locale === "hi"
+          ? "hi-IN"
+          : "en-IN";
     clearPersistedDemoSession();
     clearUnfinishedReport();
     setRecoverableReport(null);
@@ -1587,6 +1591,7 @@ export function DemoJourney() {
         }}
         onOrganizeReport={() => void buildComplaint()}
         onUseDemoIncident={() => useDemoIncident()}
+        onStartNewReport={startReport}
         onDemoCaseChange={useDemoIncident}
         onResetDemoCase={() => useDemoIncident(selectedDemoCaseId)}
         onMissingAnswerChange={(field, value) =>

@@ -148,6 +148,7 @@ type ReportWorkspaceProps = {
   onRemoveScreenshot: (index: number) => void;
   onOrganizeReport: () => void;
   onUseDemoIncident: () => void;
+  onStartNewReport: () => void;
   onDemoCaseChange: (caseId: DemoCaseId) => void;
   onResetDemoCase: () => void;
   onMissingAnswerChange: (
@@ -671,6 +672,12 @@ function SourceSummary({
     !isDemoIncident && narrative.trim() && !transcription;
   const displayedNarrative = narrative;
   const demoNarration = demoCase?.narrations[demoNarrationLanguage] ?? null;
+  const demoPlayLabel =
+    demoCase?.id === "BANK_OTP"
+      ? locale === "hi"
+        ? "राजेश की बात सुनें"
+        : "Listen to Rajesh’s story"
+      : t("workspace.playSample");
 
   useEffect(() => {
     const player = audioRef.current;
@@ -719,7 +726,7 @@ function SourceSummary({
               >
                 {isPlaying
                   ? t("workspace.pauseSample")
-                  : t("workspace.playSample")}
+                  : demoPlayLabel}
                 <span className="audio-progress" aria-hidden="true">
                   {formatPlayback(playbackSeconds)} /{" "}
                   {formatPlayback(demoNarration.durationSeconds)}
@@ -767,6 +774,9 @@ function SourceSummary({
               </button>
             ))}
           </div>
+          <p className="demo-language-label">
+            {locale === "hi" ? "प्रतिलिपि" : "Transcript"}
+          </p>
           <p className="source-transcript">
             {demoNarration.originalTranscript}
           </p>
@@ -3551,8 +3561,8 @@ function ReportStatusCard({
                     ? `${readiness.blockingItems.length} जरूरी जानकारी पर अभी ध्यान देना बाकी है।`
                     : `${readiness.blockingItems.length} required ${readiness.blockingItems.length === 1 ? "detail still needs" : "details still need"} your attention.`
                   : hi
-                    ? "शिकायत की जरूरी जानकारी आपस में मेल खाती है। जो जानकारी आपके पास नहीं है, वह अनुपलब्ध के रूप में ही रहेगी।"
-                    : "Important complaint details are consistent. Anything you don’t know stays marked as unavailable.";
+                    ? "आगे बढ़ने से पहले देखें कि शिकायत में कौन-सी जानकारी शामिल होगी।"
+                    : "Review what will be included in the complaint before it moves forward.";
   const actionLabel =
     props.mode === "PROCESSING"
       ? t("workspace.preparingReport")
@@ -3693,6 +3703,11 @@ function PreparedComplaintSummary({
                 ? "अन्य साइबर अपराध"
                 : "साइबर अपराध की घटना"
             : draft.citizenSummary.incidentLabel;
+  const hasUnauthorizedDebits = draft.transactions.some(
+    (transaction) =>
+      transaction.direction !== "CREDIT" &&
+      /unauthorized/i.test(transaction.paymentMethod ?? ""),
+  );
   const summaryItems = [
     { label: hi ? "घटना" : "Incident", value: incidentLabel },
     displayedLoss && !hasEvidenceReconciliation
@@ -3702,9 +3717,13 @@ function PreparedComplaintSummary({
               ? "लेन-देन का कुल"
               : "Payments add up to"
             : draft.transactions.length > 0
-              ? hi
-                ? "वास्तव में ट्रांसफर हुई राशि"
-                : "Actually transferred"
+              ? hasUnauthorizedDebits
+                ? hi
+                  ? "कुल नुकसान"
+                  : "Total loss"
+                : hi
+                  ? "वास्तव में ट्रांसफर हुई राशि"
+                  : "Actually transferred"
             : hi
               ? "रिपोर्ट की गई हानि"
               : "Reported loss",
@@ -3744,6 +3763,14 @@ function PreparedComplaintSummary({
             value: draft.adaptiveFacts.affectedPlatforms.join(", "),
           }
         : null,
+    draft.adaptiveFacts.impersonation && draft.adaptiveFacts.impersonatedEntity
+      ? {
+          label: hi ? "हम क्या पुष्टि कर सके" : "What we could confirm",
+          value: hi
+            ? "हम कॉल करने वाले की असली पहचान की पुष्टि नहीं कर सके।"
+            : "We could not confirm who the caller really was.",
+        }
+      : null,
     requestedAmount && amountClaims.length === 0
         ? {
             label: hi ? "बाद में मांगी गई राशि" : "Additional amount requested",
@@ -3797,6 +3824,36 @@ function PreparedComplaintSummary({
   const reconciliationEvidenceId = draft.transactions.find(
     (transaction) => transaction.evidenceId,
   )?.evidenceId;
+  const incidentFlowSteps = hasUnauthorizedDebits && draft.financialExposure.otpRequested
+    ? [
+        {
+          label: hi ? "फोन कॉल" : "Phone call",
+          detail: hi ? "पहला संपर्क" : "Initial contact",
+        },
+        {
+          label: hi ? "बैंक का प्रतिनिधि होने का दावा" : "Claimed to represent the bank",
+          detail: hi ? "पहचान की पुष्टि नहीं हुई" : "Identity not confirmed",
+        },
+        {
+          label: hi ? "OTP साझा किया" : "OTP shared",
+          detail: hi ? "कॉल के दौरान" : "During the call",
+        },
+        {
+          label: hi ? "अनधिकृत डेबिट संदेश" : "Unauthorized debit alerts",
+          detail: hi ? "दो बैंक संदेश" : "Two bank messages",
+        },
+      ]
+    : draft.adaptiveFacts.communicationChannels.map((channel, index) => ({
+        label: channel,
+        detail:
+          index === 0
+            ? hi
+              ? "पहला संपर्क"
+              : "Initial contact"
+            : hi
+              ? "बातचीत जारी रही"
+              : "Conversation continued",
+      }));
 
   return (
     <section id="prepared-complaint-summary" className="prepared-complaint-summary" aria-labelledby="prepared-summary-heading">
@@ -3875,21 +3932,21 @@ function PreparedComplaintSummary({
           </div>
         ))}
       </dl>
-      {draft.adaptiveFacts.communicationChannels.length > 1 ? (
+      {incidentFlowSteps.length > 1 ? (
         <div className="reconstruction-flow" aria-label={hi ? "घटना का क्रम" : "Incident flow"}>
-          <p className="report-field-label">{hi ? "कैसे शुरू हुआ" : "How it started"}</p>
+          <p className="report-field-label">
+            {hasUnauthorizedDebits
+              ? hi ? "क्या हुआ" : "What happened"
+              : hi ? "कैसे शुरू हुआ" : "How it started"}
+          </p>
           <div>
-            {draft.adaptiveFacts.communicationChannels.map((channel, index) => (
-              <div className="reconstruction-flow-step" key={channel}>
+            {incidentFlowSteps.map((step, index) => (
+              <div className="reconstruction-flow-step" key={`${step.label}-${index}`}>
                 <span>
-                  <strong>{channel}</strong>
-                  <small>
-                    {index === 0
-                      ? hi ? "पहला संपर्क" : "Initial contact"
-                      : hi ? "बातचीत जारी रही" : "Conversation continued"}
-                  </small>
+                  <strong>{step.label}</strong>
+                  <small>{step.detail}</small>
                 </span>
-                {index < draft.adaptiveFacts.communicationChannels.length - 1 ? <b aria-hidden="true">→</b> : null}
+                {index < incidentFlowSteps.length - 1 ? <b aria-hidden="true">→</b> : null}
               </div>
             ))}
           </div>
@@ -3900,7 +3957,9 @@ function PreparedComplaintSummary({
           <p className="report-field-label">
             {hasEvidenceReconciliation
               ? hi ? "प्रतिनिधि मिलान किए गए भुगतान" : "Representative matched payments"
-              : hi ? "वास्तव में किए गए भुगतान" : "Payments actually made"}
+              : hasUnauthorizedDebits
+                ? hi ? "पैसे का नुकसान" : "Money lost"
+                : hi ? "वास्तव में किए गए भुगतान" : "Payments actually made"}
           </p>
           {representativeDebits.map((transaction, index) => (
             <article key={transaction.id}>
@@ -3910,7 +3969,9 @@ function PreparedComplaintSummary({
                 <small className="reconstruction-source">
                   <b>{hi ? "स्रोत:" : "Source:"}</b>{" "}
                   {transaction.evidenceId
-                    ? hi ? "मिलान किया गया भुगतान सबूत" : "Matched payment evidence"
+                    ? hasUnauthorizedDebits
+                      ? hi ? "बैंक SMS / स्टेटमेंट" : "Bank SMS / statement"
+                      : hi ? "मिलान किया गया भुगतान सबूत" : "Matched payment evidence"
                     : transaction.amount && evidenceSupportsAmount(transaction.amount)
                     ? hi ? "भुगतान रसीद + घटना का बयान" : "Payment receipt + incident statement"
                     : hi ? "घटना का बयान" : "Incident statement"}
@@ -3924,11 +3985,21 @@ function PreparedComplaintSummary({
                   </button>
                 ) : null}
               </div>
-              <b>{hi ? "भुगतान किया" : "Paid"}</b>
+              <b>
+                {hasUnauthorizedDebits
+                  ? hi ? "अनधिकृत डेबिट" : "Unauthorized debit"
+                  : hi ? "भुगतान किया" : "Paid"}
+              </b>
             </article>
           ))}
           <div className="reconstruction-total">
-            <span>{hasEvidenceReconciliation ? (hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss") : (hi ? "वास्तव में ट्रांसफर" : "Actually transferred")}</span>
+            <span>
+              {hasEvidenceReconciliation
+                ? hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"
+                : hasUnauthorizedDebits
+                  ? hi ? "कुल नुकसान" : "Total loss"
+                  : hi ? "वास्तव में ट्रांसफर" : "Actually transferred"}
+            </span>
             <strong>{displayedLoss ? formatCurrency(displayedLoss) : "—"}</strong>
           </div>
         </div>
@@ -4674,10 +4745,12 @@ function DemoCaseSelector({
   activeCase,
   onChange,
   onReset,
+  onStartNewReport,
 }: {
   activeCase: DemoCaseDefinition;
   onChange: (caseId: DemoCaseId) => void;
   onReset: () => void;
+  onStartNewReport: () => void;
 }) {
   const { locale } = useI18n();
   const hi = locale === "hi";
@@ -4699,19 +4772,31 @@ function DemoCaseSelector({
             {hi ? "डेमो मामला · सिंथेटिक" : "Demo case · Synthetic"}
           </p>
           <h2 id="demo-case-selector-heading">{bannerTitle}</h2>
+          {activeCase.personaSummary ? (
+            <p className="demo-persona-summary">
+              {hi
+                ? activeCase.personaSummaryHi ?? activeCase.personaSummary
+                : activeCase.personaSummary}
+            </p>
+          ) : null}
           <p>{incidentTrail}</p>
         </div>
         <button className="text-button" type="button" onClick={onReset}>
           {hi ? "डेमो मामला रीसेट करें" : "Reset demo case"}
         </button>
       </div>
-      <button
-        type="button"
-        className="demo-primary-case"
-        onClick={() => onChange(activeCase.id)}
-      >
-        {hi ? "डेमो शुरू करें" : "Start demo"}
-      </button>
+      <div className="demo-case-actions">
+        <button
+          type="button"
+          className="demo-primary-case"
+          onClick={() => onChange(activeCase.id)}
+        >
+          {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
+        </button>
+        <button className="text-button" type="button" onClick={onStartNewReport}>
+          {hi ? "अपनी शिकायत शुरू करें" : "Start your own complaint"}
+        </button>
+      </div>
       <details className="demo-other-cases">
         <summary>{hi ? "दूसरे डेमो मामले" : "Other demo cases"}</summary>
         <div className="demo-case-options" role="radiogroup" aria-label={hi ? "दूसरा डेमो मामला चुनें" : "Choose another demo case"}>
@@ -4979,6 +5064,7 @@ export function ReportWorkspace(props: ReportWorkspaceProps) {
             activeCase={props.demoCase}
             onChange={props.onDemoCaseChange}
             onReset={props.onResetDemoCase}
+            onStartNewReport={props.onStartNewReport}
           />
         ) : null}
         {props.mode === "REVIEW" ? (
