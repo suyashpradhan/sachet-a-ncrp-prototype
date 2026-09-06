@@ -1,14 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
-  <title id="title">सचेत legacy mark</title>
-  <desc id="description">A protective shield with a calm warning symbol</desc>
-  <rect x="2" y="2" width="60" height="60" rx="17" fill="#FFF5F5"/>
-  <path
-    d="M32 10.5 49 17v13.2c0 10.9-6.7 19.2-17 23.3-10.3-4.1-17-12.4-17-23.3V17l17-6.5Z"
-    fill="#FBE5E7"
-    stroke="#861827"
-    stroke-width="3"
-    stroke-linejoin="round"
-  />
-  <path d="M32 21.5v12" fill="none" stroke="#9F1D2D" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="32" cy="40.5" r="2.4" fill="#9F1D2D"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="title description" role="img" viewBox="0 0 64 64"><title id="title">सचेत legacy mark</title><desc id="description">A protective shield with a calm warning symbol</desc><rect width="60" height="60" x="2" y="2" fill="#FFF5F5" rx="17"/><path fill="#FBE5E7" stroke="#861827" stroke-linejoin="round" stroke-width="3" d="M32 10.5 49 17v13.2c0 10.9-6.7 19.2-17 23.3-10.3-4.1-17-12.4-17-23.3V17l17-6.5Z"/><path fill="none" stroke="#9F1D2D" stroke-linecap="round" stroke-width="3.5" d="M32 21.5v12"/><circle cx="32" cy="40.5" r="2.4" fill="#9F1D2D"/></svg>
