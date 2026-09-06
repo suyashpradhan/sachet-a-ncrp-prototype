@@ -119,20 +119,25 @@ export function deriveIncidentTimeline(
       .map((item, evidenceIndex) => item.type === "TRANSACTION_SCREENSHOT" ? evidenceIndex : -1)
       .filter((evidenceIndex) => evidenceIndex >= 0);
     const transactionEvidenceIndex = transactionEvidenceIndexes[index] ?? -1;
+    const credit = transaction.direction === "CREDIT";
     events.push({
       id: `transaction-${transaction.id}`,
       timeLabel: displayTime(transaction.approximateTime, locale) ??
         (index > 0 ? (locale === "hi" ? "बाद में" : "Later") : null),
       title:
-        locale === "hi"
+        credit
+          ? locale === "hi"
+            ? `${formatCurrency(transaction.amount)} का क्रेडिट वापस मिला`
+            : `${formatCurrency(transaction.amount)} credit was received back`
+          : locale === "hi"
           ? `लेन-देन ${index + 1}: ${formatCurrency(transaction.amount)}${institution ? ` का ${institution} लेन-देन` : " का भुगतान"} दर्ज हुआ`
           : `Transaction ${index + 1}: ${formatCurrency(transaction.amount)} payment${institution ? ` using ${institution}` : ""} was recorded`,
       sourceRefs: [
-        transactionEvidenceIndex >= 0
+        transaction.evidenceId || transactionEvidenceIndex >= 0
           ? {
               type: "TRANSACTION",
               label: locale === "hi" ? "बैंक लेन-देन" : "Bank transaction",
-              evidenceId: uploadedScreenshotId(draft, transactionEvidenceIndex, isDemoIncident),
+              evidenceId: transaction.evidenceId ?? uploadedScreenshotId(draft, transactionEvidenceIndex, isDemoIncident),
             }
           : {
               type: "STATEMENT",

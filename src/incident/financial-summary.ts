@@ -8,6 +8,8 @@ export type ResolvedLossSource =
 
 export type FinancialLossSummary = {
   statedTotalLoss: number | null;
+  totalDebited: number | null;
+  totalCreditedBack: number | null;
   computedTransactionLoss: number | null;
   resolvedLoss: number | null;
   resolvedLossSource: ResolvedLossSource;
@@ -30,10 +32,26 @@ export function resolveFinancialLoss(
   citizenSelectedLoss?: number | null,
 ): FinancialLossSummary {
   const statedTotalLoss = positiveAmount(draft.incident.statedTotalLoss);
-  const computed = draft.transactions.reduce(
-    (total, transaction) => total + (positiveAmount(transaction.amount) ?? 0),
+  const knownTransactions = draft.transactions.filter(
+    (transaction) => transaction.status === "KNOWN",
+  );
+  const debited = knownTransactions.reduce(
+    (total, transaction) =>
+      transaction.direction === "CREDIT"
+        ? total
+        : total + (positiveAmount(transaction.amount) ?? 0),
     0,
   );
+  const credited = knownTransactions.reduce(
+    (total, transaction) =>
+      transaction.direction === "CREDIT"
+        ? total + (positiveAmount(transaction.amount) ?? 0)
+        : total,
+    0,
+  );
+  const computed = Math.max(0, debited - credited);
+  const totalDebited = debited > 0 ? debited : null;
+  const totalCreditedBack = credited > 0 ? credited : null;
   const computedTransactionLoss = computed > 0 ? computed : null;
   const hasExplicitTotalConflict = Boolean(
     statedTotalLoss &&
@@ -75,6 +93,8 @@ export function resolveFinancialLoss(
 
   return {
     statedTotalLoss,
+    totalDebited,
+    totalCreditedBack,
     computedTransactionLoss,
     resolvedLoss,
     resolvedLossSource,

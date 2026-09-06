@@ -68,6 +68,7 @@ const IncidentGroupSchema = z.object({
 });
 
 const TransactionSchema = z.object({
+  direction: ComplaintFieldSchema,
   institution: ComplaintFieldSchema,
   sourceAccountOrPaymentId: ComplaintFieldSchema,
   transactionIdOrUtr: ComplaintFieldSchema,
@@ -428,6 +429,7 @@ export function buildNcrpCompatibleComplaint({
     groups: {
       incident,
       transactions: draft.transactions.map((transaction, index) => ({
+        direction: valueField(transaction.direction ?? "DEBIT", ["SYSTEM_DERIVED"], true),
         institution: valueField(transaction.institution, [sourceFor(`transactions.${index}.institution`, structuredSource)], true),
         sourceAccountOrPaymentId: valueField(transaction.accountOrUpiId, [sourceFor(`transactions.${index}.accountOrUpiId`, profileSource)], true),
         transactionIdOrUtr: valueField(

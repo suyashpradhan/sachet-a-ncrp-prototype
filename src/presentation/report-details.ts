@@ -416,8 +416,17 @@ export function deriveReportGroups(
 
   const transactionSections: ReportFieldSection[] = draft.transactions.map((transaction, index) => ({
         id: `transaction-${index + 1}`,
-        title: copy("field.transaction", { number: index + 1 }),
+        title: transaction.direction === "CREDIT"
+          ? locale === "hi" ? `वापस मिला क्रेडिट ${index + 1}` : `Credit received ${index + 1}`
+          : copy("field.transaction", { number: index + 1 }),
         fields: ([
+          makeField(
+            `transaction-${index}-direction`,
+            locale === "hi" ? "लेन-देन का प्रकार" : "Transaction type",
+            transaction.direction === "CREDIT"
+              ? locale === "hi" ? "वापस मिला क्रेडिट" : "Credit received back"
+              : locale === "hi" ? "भुगतान / डेबिट" : "Payment / debit",
+          ),
           makeField(`transaction-${index}-amount`, copy("field.amount"), transaction.amount === null ? null : formatCurrency(transaction.amount), {
             source: evidenceSupportsTransactionAmount(index)
               ? locale === "hi" ? "बयान + सबूत, दोनों में मिला" : "Found in both · Statement + evidence"

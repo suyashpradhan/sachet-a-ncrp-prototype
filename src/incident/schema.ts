@@ -22,6 +22,43 @@ export const FinancialExposureSchema = z.object({
 }).strict();
 export type FinancialExposure = z.infer<typeof FinancialExposureSchema>;
 
+export const TransactionDirectionSchema = z.enum(["DEBIT", "CREDIT"]);
+export type TransactionDirection = z.infer<typeof TransactionDirectionSchema>;
+
+export const ReportedAmountClaimSchema = z.object({
+  id: z.string(),
+  amount: z.number().positive(),
+  role: z.enum([
+    "DISPLAYED_VALUE",
+    "DEMANDED_UNPAID",
+    "REPORTED_UNVERIFIED",
+  ]),
+  label: z.string(),
+  labelHi: z.string(),
+  sourceLabel: z.string(),
+  sourceLabelHi: z.string(),
+  evidenceId: z.string().nullable(),
+  note: z.string(),
+  noteHi: z.string(),
+}).strict();
+export type ReportedAmountClaim = z.infer<typeof ReportedAmountClaimSchema>;
+
+export const IncidentTransactionSchema = z.object({
+  id: z.string(),
+  direction: TransactionDirectionSchema.optional(),
+  evidenceId: z.string().nullable().optional(),
+  institution: z.string().nullable(),
+  currency: z.string().nullable(),
+  paymentMethod: z.string().nullable(),
+  accountOrUpiId: z.string().nullable(),
+  transactionIdOrUtr: z.string().nullable(),
+  amount: z.number().nullable(),
+  transactionDate: z.string().nullable(),
+  approximateTime: z.string().nullable(),
+  referenceNumber: z.string().nullable(),
+  status: z.enum(["KNOWN", "MISSING", "NEEDS_CONFIRMATION"]),
+});
+
 export const IncidentClassificationSchema = z.object({
   reportFamily: ReportFamilySchema,
   category: z.string().nullable(),
@@ -113,19 +150,8 @@ export const IncidentDraftSchema = z.object({
   }),
   financialExposure: FinancialExposureSchema,
   mentionedInstitutions: z.array(z.string()),
-  transactions: z.array(z.object({
-    id: z.string(),
-    institution: z.string().nullable(),
-    currency: z.string().nullable(),
-    paymentMethod: z.string().nullable(),
-    accountOrUpiId: z.string().nullable(),
-    transactionIdOrUtr: z.string().nullable(),
-    amount: z.number().nullable(),
-    transactionDate: z.string().nullable(),
-    approximateTime: z.string().nullable(),
-    referenceNumber: z.string().nullable(),
-    status: z.enum(["KNOWN", "MISSING", "NEEDS_CONFIRMATION"]),
-  })),
+  transactions: z.array(IncidentTransactionSchema),
+  amountClaims: z.array(ReportedAmountClaimSchema).optional(),
   suspectIdentifiers: z.array(z.object({
     type: z.enum([
       "PHONE",
@@ -153,6 +179,17 @@ export const IncidentDraftSchema = z.object({
 });
 
 export type IncidentDraft = z.infer<typeof IncidentDraftSchema>;
+
+/** Provider-facing schema keeps application-owned evidence links and amount claims out of model output. */
+export const IncidentExtractionSchema = IncidentDraftSchema
+  .omit({ amountClaims: true, transactions: true })
+  .extend({
+    transactions: z.array(
+      IncidentTransactionSchema.omit({ direction: true, evidenceId: true }).extend({
+        direction: TransactionDirectionSchema,
+      }),
+    ),
+  });
 
 const LEGACY_ADAPTIVE_FACT_DEFAULTS: Pick<
   AdaptiveIncidentFacts,

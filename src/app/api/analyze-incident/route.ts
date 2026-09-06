@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import { IncidentDraftSchema } from "../../../incident/schema";
+import { IncidentExtractionSchema } from "../../../incident/schema";
 import { normalizeIncidentDraft } from "../../../incident/normalization";
 
 export const runtime = "nodejs";
@@ -44,13 +44,13 @@ Rules:
 30. A financial scam, financial targeting, a prize amount, a request for bank details, or a bank name does not by itself establish financial loss. When financialLossState is NO or UNKNOWN, transactions must be empty and incident.reportedAmount must be null.
 31. Record requests for bank details, identity documents, OTPs, payment links and UPI collect requests in financialExposure. Exposure is not a transaction.
 32. Put institutions mentioned as incident context in mentionedInstitutions. Put an institution in transactions[].institution only when it belongs to an actual supported payment or debit.
-33. Preserve every independently supported payment in transactions. Give each transaction a stable sequential id, use INR when rupees are stated, and set status to KNOWN, MISSING or NEEDS_CONFIRMATION from the supplied facts.
+33. Preserve every independently supported payment or credit received back in transactions. Give each transaction a stable sequential id, set direction to DEBIT for money leaving the citizen and CREDIT for money received back, use INR when rupees are stated, and set status to KNOWN, MISSING or NEEDS_CONFIRMATION from the supplied facts.
 34. incident.reportedAmount is the total loss, not an additional transaction. If the citizen says “I lost ₹20,000; first ₹5,000, then ₹15,000”, create two transactions totalling ₹20,000 and do not double-count the stated total.
 35. Never use the current browser time, server time or report generation time for incidentDate, incident time, transactionDate or transaction time. Unknown remains null. Preserve approximate expressions without inventing exact minutes.
 36. accountCompromiseBasis records only the supported sign of possible access, such as changed recovery details, an unfamiliar security alert, changed messages/settings, or the citizen simply forgetting a password. Use null when unclear.
 37. citizenConfirmedFields is application-owned follow-up metadata. Always return it as an empty array during initial extraction.
 38. A monetary mention is not automatically a transaction. Classify its meaning before deciding whether it belongs in transactions.
-39. Only actual completed money movement belongs in transactions: paid, sent, transferred, debited, deducted, charged, withdrawn, or a completed UPI/payment event.
+39. Only actual completed money movement belongs in transactions: paid, sent, transferred, debited, deducted, charged, withdrawn, credited back, refunded, or a completed UPI/payment event.
 40. Never create transactions from an opening or remaining balance, stated total loss, requested or demanded amount, promised prize/salary/refund, attempted debit, or blocked/failed payment.
 41. When a stated total and component payments are both supplied, incident.reportedAmount is the stated total and transactions contains only the component payments. Never add the stated total as another transaction.
 42. A promised lottery/prize amount is not loss. For example, a ₹25 lakh prize plus a completed ₹10,000 processing payment means one ₹10,000 transaction and ₹10,000 reported loss.
@@ -73,7 +73,7 @@ Rules:
 59. Multiple harms may coexist. Preserve account compromise, financial loss, threat, impersonation and exposure facts together instead of discarding secondary dimensions.
 60. Set incident.statedTotalLoss only when the citizen explicitly identifies an amount as the total, for example “in total”, “total loss” or “altogether”. A first payment or debit is never a stated total.
 61. Keep openingBalance, intermediateBalances and closingBalance as balance context. Never create transactions from balance values or use a balance difference as a transaction.
-62. Do not perform or rely on arithmetic for the final displayed loss. Preserve every actual payment in transactions; the application deterministically resolves their sum.
+62. Do not perform or rely on arithmetic for the final displayed loss. Preserve every actual debit and supported credit received back in transactions; the application deterministically resolves debits minus credits.
 63. For a multi-event story, incident.approximateTime is only the time of the whole incident. Keep a time belonging to one payment on that transaction and leave the overall time null unless the source describes the whole incident at that time.
 64. Preserve every supported communication channel in adaptiveFacts.communicationChannels. Use incident.occurredOn as a concise single-channel or multiple-channel summary, never “Other” when named channels are known.
 65. Keep entity roles separate: messageSourcePlatforms are platforms named as the source or claimed sender of a message; affectedPlatforms are services/accounts described as inaccessible, hacked, reset or otherwise harmed. Do not put platform names into communicationChannels unless the text explicitly says communication happened through that service.
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       input: [{ role: "user", content }],
       text: {
         format: zodTextFormat(
-          IncidentDraftSchema,
+          IncidentExtractionSchema,
           "incident_draft",
           { description: "Evidence-grounded structured incident draft for citizen review." },
         ),

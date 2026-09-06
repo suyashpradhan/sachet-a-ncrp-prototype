@@ -157,9 +157,17 @@ export function ComplaintPacket({
             {transactions.map((transaction, index) => (
               <div className="packet-transaction" key={`packet-transaction-${index + 1}`}>
                 {transactions.length > 1 ? (
-                  <h3>{hi ? `लेन-देन ${index + 1}` : `Transaction ${index + 1}`}</h3>
+                  <h3>
+                    {transaction.direction.value === "CREDIT"
+                      ? hi ? `वापस मिला क्रेडिट ${index + 1}` : `Credit received ${index + 1}`
+                      : hi ? `लेन-देन ${index + 1}` : `Transaction ${index + 1}`}
+                  </h3>
                 ) : null}
                 <dl>
+                  <PacketField
+                    label={hi ? "लेन-देन का प्रकार" : "Transaction type"}
+                    value={transaction.direction.value === "CREDIT" ? (hi ? "वापस मिला क्रेडिट" : "Credit received back") : (hi ? "भुगतान / डेबिट" : "Payment / debit")}
+                  />
                   <PacketField
                     label={hi ? "राशि" : "Amount"}
                     value={

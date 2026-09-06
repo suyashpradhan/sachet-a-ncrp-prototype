@@ -18,6 +18,7 @@ import {
   buildSyntheticCaseFromComplaint,
   resolveReportedAmount,
 } from "../../incident/complaint-case";
+import { resolveFinancialLoss } from "../../incident/financial-summary";
 import {
   applyMissingAnswer,
   type MissingQuestion,
@@ -44,6 +45,7 @@ import {
 import { useI18n } from "../../i18n/i18n-provider";
 import { useJourneyNavigation } from "../../navigation/journey-navigation";
 import { deriveReportReadiness } from "../../presentation/report-readiness";
+import { formatCurrency } from "../../presentation/format";
 import type { PostReportMilestones } from "../../presentation/post-report-case";
 import {
   createReminderPreferences,
@@ -320,6 +322,17 @@ async function compressScreenshot(file: File): Promise<File> {
 function SachetPreview() {
   const { locale } = useI18n();
   const hi = locale === "hi";
+  const featuredCase = getDemoCase(DEFAULT_DEMO_CASE_ID);
+  const financial = resolveFinancialLoss(featuredCase.draft);
+  const featuredFirstName = hi
+    ? featuredCase.citizenNameHi ?? "नागरिक"
+    : featuredCase.citizen.displayName.split(/\s+/)[0];
+  const displayedValue = featuredCase.draft.amountClaims?.find(
+    (claim) => claim.role === "DISPLAYED_VALUE",
+  );
+  const unpaidDemand = featuredCase.draft.amountClaims?.find(
+    (claim) => claim.role === "DEMANDED_UNPAID",
+  );
 
   return (
     <aside
@@ -332,16 +345,16 @@ function SachetPreview() {
     >
       <div className="sachet-preview-shared">
         <p className="sachet-preview-label">
-          {hi ? "मीरा ने जो साझा किया" : "What Meera shared"}
+          {hi ? `${featuredFirstName} ने जो साझा किया` : `What ${featuredFirstName} shared`}
         </p>
         <blockquote>
           {hi
-            ? "“LinkedIn पर नौकरी का प्रस्ताव मिला। WhatsApp पर मैंने दो भुगतान किए, फिर ₹18,000 और मांगे गए।”"
-            : "“A job offer started on LinkedIn, moved to WhatsApp, and led to two payments before another ₹18,000 was requested.”"}
+            ? "“WhatsApp पर पार्ट-टाइम टास्क मिला। Telegram पर कई भुगतान किए और प्लेटफ़ॉर्म पर एक अलग बैलेंस दिखा।”"
+            : "“A part-time task offer moved from WhatsApp to Telegram, where I made several deposits before withdrawals stopped.”"}
         </blockquote>
         <div className="sachet-preview-evidence">
-          <div><span className="sachet-preview-file-icon" aria-hidden="true">▧</span><strong>{hi ? "बातचीत" : "Conversations"}</strong><small>LinkedIn · WhatsApp</small></div>
-          <div><span className="sachet-preview-file-icon" aria-hidden="true">₹</span><strong>{hi ? "भुगतान रसीदें" : "Payment receipts"}</strong><small>₹499 · ₹1,499</small></div>
+          <div><span className="sachet-preview-file-icon" aria-hidden="true">▧</span><strong>{hi ? "बातचीत" : "Conversations"}</strong><small>WhatsApp · Telegram</small></div>
+          <div><span className="sachet-preview-file-icon" aria-hidden="true">₹</span><strong>{hi ? "भुगतान सबूत" : "Payment evidence"}</strong><small>{featuredCase.evidence.length} {hi ? "आइटम" : "items"}</small></div>
         </div>
       </div>
 
@@ -353,13 +366,13 @@ function SachetPreview() {
       <div className="sachet-preview-report">
         <p className="sachet-preview-label">{hi ? "सचेत ने समझा" : "What सचेत understood"}</p>
         <div className="sachet-preview-report-heading">
-          <strong>{hi ? "नकली नौकरी का प्रस्ताव" : "Fake job offer"}</strong>
-          <b>₹1,998</b>
+          <strong>{hi ? "पार्ट-टाइम टास्क फ्रॉड" : "Part-time task fraud"}</strong>
+          <b>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</b>
         </div>
         <dl>
-          <div><dt>{hi ? "शुरुआत" : "Started on"}</dt><dd>LinkedIn → WhatsApp</dd></div>
-          <div><dt>{hi ? "भुगतान किया" : "Paid"}</dt><dd>₹499 + ₹1,499</dd></div>
-          <div><dt>{hi ? "बाद में मांगा" : "Later requested"}</dt><dd>₹18,000 · {hi ? "भुगतान नहीं किया" : "Not paid"}</dd></div>
+          <div><dt>{hi ? "प्लेटफ़ॉर्म पर दिखा" : "Shown on platform"}</dt><dd>{displayedValue ? formatCurrency(displayedValue.amount) : "—"}</dd></div>
+          <div><dt>{hi ? "सबूत से पुष्ट" : "Evidence supports"}</dt><dd>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</dd></div>
+          <div><dt>{hi ? "बाद में मांगा" : "Later demanded"}</dt><dd>{unpaidDemand ? formatCurrency(unpaidDemand.amount) : "—"} · {hi ? "भुगतान नहीं किया" : "Not paid"}</dd></div>
         </dl>
       </div>
     </aside>
@@ -369,6 +382,14 @@ function SachetPreview() {
 function LandingCaseCheck({ onTryCase }: { onTryCase: () => void }) {
   const { locale } = useI18n();
   const hi = locale === "hi";
+  const featuredCase = getDemoCase(DEFAULT_DEMO_CASE_ID);
+  const financial = resolveFinancialLoss(featuredCase.draft);
+  const featuredFirstName = hi
+    ? featuredCase.citizenNameHi ?? "नागरिक"
+    : featuredCase.citizen.displayName.split(/\s+/)[0];
+  const displayedValue = featuredCase.draft.amountClaims?.find(
+    (claim) => claim.role === "DISPLAYED_VALUE",
+  );
   return (
     <section className="landing-case-check" aria-labelledby="landing-case-check-heading">
       <div>
@@ -383,23 +404,23 @@ function LandingCaseCheck({ onTryCase }: { onTryCase: () => void }) {
       </div>
       <div className="landing-conflict-example">
         <dl>
-          <div><dt>{hi ? "भुगतान किया" : "Actually paid"}</dt><dd>₹499 + ₹1,499</dd></div>
-          <div><dt>{hi ? "बाद में मांगा" : "Requested later"}</dt><dd>₹18,000</dd></div>
+          <div><dt>{hi ? "प्लेटफ़ॉर्म पर दिखा" : "Shown on platform"}</dt><dd>{displayedValue ? formatCurrency(displayedValue.amount) : "—"}</dd></div>
+          <div><dt>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</dt><dd>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</dd></div>
         </dl>
         <strong>
-          {hi ? "₹18,000 का भुगतान नहीं किया गया।" : "The ₹18,000 was not paid."}
+          {hi ? "क्रेडिट को डेबिट से घटाया गया है।" : "Credits are subtracted from matched debits."}
         </strong>
         <p>
           {hi
-            ? "वास्तव में ट्रांसफर हुई राशि ₹1,998 है।"
-            : "Actual money transferred is ₹1,998."}
+            ? "नागरिक का बताया विवरण सुरक्षित रहता है; शिकायत की कुल राशि उपलब्ध सबूत पर आधारित है।"
+            : "The citizen’s account is preserved; the complaint total follows the available evidence."}
         </p>
         <button
           className="landing-example-action"
           type="button"
           onClick={onTryCase}
         >
-          {hi ? "मीरा का मामला देखें" : "Try Meera’s case"} →
+          {hi ? `${featuredFirstName} का मामला देखें` : `Try ${featuredFirstName}’s case`} →
         </button>
       </div>
     </section>

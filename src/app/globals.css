@@ -1690,6 +1690,164 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   margin-bottom: 0;
 }
 
+.evidence-reconciliation {
+  margin-top: 24px;
+}
+
+.reconciliation-contrast {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reconciliation-contrast > div {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.reconciliation-remembered {
+  background: var(--warning-bg);
+}
+
+.reconciliation-supported {
+  border-color: var(--primary-100) !important;
+  background: var(--primary-050);
+}
+
+.reconciliation-contrast p,
+.reconciliation-contrast span,
+.reconciliation-contrast small,
+.reconciliation-contrast button {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 0.88rem;
+}
+
+.reconciliation-contrast small {
+  display: block;
+  margin-top: 5px;
+}
+
+.reconciliation-contrast strong {
+  display: block;
+  margin: 7px 0 2px;
+  color: var(--text);
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  line-height: 1.1;
+}
+
+.reconciliation-supported strong {
+  color: var(--primary);
+}
+
+.reconciliation-contrast button,
+.reconstruction-source-link,
+.reconciliation-not-counted button {
+  width: fit-content;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.reconciliation-calculation {
+  margin-top: 14px !important;
+  padding: 14px 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-subtle);
+}
+
+.reconciliation-calculation dd {
+  font-size: 1rem;
+}
+
+.reconciliation-explanation {
+  margin: 14px 0 0;
+  color: var(--secondary);
+}
+
+.reconstruction-source-link {
+  margin-top: 4px;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.reconciliation-not-counted,
+.reconciliation-open-question,
+.reconciliation-ready {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.reconciliation-not-counted h3,
+.reconciliation-open-question h3,
+.reconciliation-ready h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.reconciliation-not-counted > div {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.reconciliation-not-counted article {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-subtle);
+}
+
+.reconciliation-not-counted article > strong,
+.reconciliation-not-counted article > b {
+  display: block;
+}
+
+.reconciliation-not-counted article > strong {
+  font-size: 1.3rem;
+}
+
+.reconciliation-not-counted article p,
+.reconciliation-not-counted article small {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--secondary);
+}
+
+.reconciliation-open-question,
+.reconciliation-ready {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.reconciliation-open-question {
+  background: var(--warning-bg);
+}
+
+.reconciliation-ready {
+  background: var(--primary-050);
+}
+
+.reconciliation-open-question p:last-child,
+.reconciliation-ready p {
+  margin: 7px 0 0;
+  color: var(--secondary);
+}
+
 .prepared-complaint-disclosure {
   margin-top: 24px;
   border-top: 1px solid var(--border);
@@ -4393,6 +4551,17 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
   .reconstruction-payments article {
     grid-template-columns: 1fr;
+  }
+
+  .reconciliation-contrast,
+  .reconciliation-calculation {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reconciliation-contrast > div,
+  .reconciliation-open-question,
+  .reconciliation-ready {
+    padding: 16px;
   }
 
   .reconstruction-payments article details {

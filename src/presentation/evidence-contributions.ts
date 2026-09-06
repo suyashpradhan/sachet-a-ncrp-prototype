@@ -82,6 +82,7 @@ function demoContributions(
   evidence: IncidentDraft["evidence"][number],
   evidenceIndex: number,
   locale: UiLocale,
+  evidenceId?: string,
 ) {
   const hi = locale === "hi";
   if (evidence.type === "CHAT_SCREENSHOT") {
@@ -102,7 +103,9 @@ function demoContributions(
     const transactionIndex = draft.evidence
       .slice(0, evidenceIndex)
       .filter((item) => item.type === "TRANSACTION_SCREENSHOT").length;
-    const transaction = draft.transactions[transactionIndex] ?? draft.transactions[0];
+    const transaction = draft.transactions.find(
+      (item) => item.evidenceId === evidenceId,
+    ) ?? draft.transactions[transactionIndex] ?? draft.transactions[0];
     const date = formatDate(transaction?.transactionDate ?? null, locale);
     const time = formatTime(transaction?.approximateTime ?? null, locale);
     return uniqueFacts([
@@ -278,7 +281,13 @@ export function deriveEvidenceContributions(
                 ? "सबूत"
                 : "Evidence",
         contributions: isDemoIncident
-          ? demoContributions(draft, evidence, evidenceIndex, locale)
+          ? demoContributions(
+              draft,
+              evidence,
+              evidenceIndex,
+              locale,
+              demoMetadata?.id,
+            )
           : liveContributions(draft, evidence, evidenceIndex, locale),
       },
     ];

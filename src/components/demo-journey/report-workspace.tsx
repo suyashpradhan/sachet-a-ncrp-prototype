@@ -3668,6 +3668,19 @@ function PreparedComplaintSummary({
   const { locale } = useI18n();
   const hi = locale === "hi";
   const financial = resolveFinancialLoss(draft);
+  const amountClaims = draft.amountClaims ?? [];
+  const displayedValueClaim = amountClaims.find(
+    (claim) => claim.role === "DISPLAYED_VALUE",
+  );
+  const unverifiedClaim = amountClaims.find(
+    (claim) => claim.role === "REPORTED_UNVERIFIED",
+  );
+  const hasEvidenceReconciliation = Boolean(
+    displayedValueClaim &&
+      financial.totalDebited &&
+      financial.totalCreditedBack &&
+      financial.computedTransactionLoss,
+  );
   const financialMentions = deriveFinancialFactsFromText(
     [
       draft.incident.narrative,
@@ -3721,7 +3734,7 @@ function PreparedComplaintSummary({
             : draft.citizenSummary.incidentLabel;
   const summaryItems = [
     { label: hi ? "घटना" : "Incident", value: incidentLabel },
-    displayedLoss
+    displayedLoss && !hasEvidenceReconciliation
       ? {
           label: financial.hasExplicitTotalConflict
             ? hi
@@ -3742,7 +3755,7 @@ function PreparedComplaintSummary({
             value: hi ? "कोई भुगतान नहीं बताया गया" : "No payment reported",
           }
         : null,
-    draft.transactions.length > 0
+    draft.transactions.length > 0 && !hasEvidenceReconciliation
       ? {
           label: hi ? "लेन-देन" : "Transactions",
           value: String(draft.transactions.length),
@@ -3770,7 +3783,7 @@ function PreparedComplaintSummary({
             value: draft.adaptiveFacts.affectedPlatforms.join(", "),
           }
         : null,
-    requestedAmount
+    requestedAmount && amountClaims.length === 0
         ? {
             label: hi ? "बाद में मांगी गई राशि" : "Additional amount requested",
             value: `${formatCurrency(requestedAmount)} · ${
@@ -3799,7 +3812,6 @@ function PreparedComplaintSummary({
   const evidenceSupportsAmount = (amount: number) =>
     draft.evidence.some(
       (item) =>
-        item.type === "TRANSACTION_SCREENSHOT" &&
         item.extractedFacts.some((fact) => factMentionsAmount(fact, amount)),
     );
   const requestedAmountHasEvidence = requestedAmount
@@ -3813,6 +3825,17 @@ function PreparedComplaintSummary({
     field.startsWith("adaptive.requestedAmountPaymentStatus."),
   );
   const reporterFirstName = reporterName.trim().split(/\s+/)[0] ?? "";
+  const citizenName = hi ? "नागरिक" : reporterFirstName || "the citizen";
+  const knownDebits = draft.transactions.filter(
+    (transaction) =>
+      transaction.status === "KNOWN" && transaction.direction !== "CREDIT",
+  );
+  const representativeDebits = hasEvidenceReconciliation
+    ? knownDebits.slice(-3)
+    : knownDebits;
+  const reconciliationEvidenceId = draft.transactions.find(
+    (transaction) => transaction.evidenceId,
+  )?.evidenceId;
 
   return (
     <section id="prepared-complaint-summary" className="prepared-complaint-summary" aria-labelledby="prepared-summary-heading">
@@ -3829,6 +3852,47 @@ function PreparedComplaintSummary({
             : "Check that the incident, payments and evidence have been organised correctly."}
         </p>
       </div>
+      {hasEvidenceReconciliation && displayedValueClaim ? (
+        <section className="evidence-reconciliation" aria-labelledby="evidence-reconciliation-heading">
+          <div className="reconciliation-contrast">
+            <div className="reconciliation-remembered">
+              <p>{hi ? `${citizenName} ने बताया` : `What ${citizenName} remembers`}</p>
+              <strong>{formatCurrency(displayedValueClaim.amount)}</strong>
+              <span>{hi ? displayedValueClaim.labelHi : displayedValueClaim.label}</span>
+              {displayedValueClaim.evidenceId ? (
+                <button type="button" onClick={() => requestEvidencePreview(displayedValueClaim.evidenceId ?? "")}>
+                  {hi ? "स्रोत देखें" : "View source"} →
+                </button>
+              ) : null}
+            </div>
+            <div className="reconciliation-supported">
+              <p id="evidence-reconciliation-heading">{hi ? "सबूत से पुष्टि" : "What the evidence supports"}</p>
+              <strong>{formatCurrency(financial.computedTransactionLoss ?? 0)}</strong>
+              <span>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</span>
+              <small>
+                {hi
+                  ? "इससे निकला: मिलान किए गए डेबिट − मिलान किए गए क्रेडिट"
+                  : "Derived from: matched debits − matched credits"}
+              </small>
+              {reconciliationEvidenceId ? (
+                <button type="button" onClick={() => requestEvidencePreview(reconciliationEvidenceId)}>
+                  {hi ? "मिलान किया गया सबूत देखें" : "View matched evidence"} →
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <dl className="reconciliation-calculation">
+            <div><dt>{hi ? "कुल डेबिट" : "Total debited"}</dt><dd>{formatCurrency(financial.totalDebited ?? 0)}</dd></div>
+            <div><dt>{hi ? "वापस मिले क्रेडिट" : "Credits received back"}</dt><dd>− {formatCurrency(financial.totalCreditedBack ?? 0)}</dd></div>
+            <div><dt>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</dt><dd>= {formatCurrency(financial.computedTransactionLoss ?? 0)}</dd></div>
+          </dl>
+          <p className="reconciliation-explanation">
+            {hi
+              ? `${formatCurrency(displayedValueClaim.amount)} टास्क प्लेटफ़ॉर्म पर दिखता है, लेकिन जमा किए गए बैंक या भुगतान सबूत में हमें इससे मेल खाती रकम प्राप्त नहीं हुई। नागरिक का बताया हुआ विवरण सुरक्षित है; शिकायत की कुल राशि उपलब्ध सबूत पर आधारित है।`
+              : `${formatCurrency(displayedValueClaim.amount)} appears on the task platform, but we could not match it to money received in the submitted bank or payment evidence. ${reporterFirstName}’s account is preserved; the complaint total follows the available evidence.`}
+          </p>
+        </section>
+      ) : null}
       <dl>
         {summaryItems.map((item) => (
           <div key={item.label}>
@@ -3857,34 +3921,64 @@ function PreparedComplaintSummary({
           </div>
         </div>
       ) : null}
-      {draft.transactions.length > 0 ? (
+      {representativeDebits.length > 0 ? (
         <div className="reconstruction-payments">
-          <p className="report-field-label">{hi ? "वास्तव में किए गए भुगतान" : "Payments actually made"}</p>
-          {draft.transactions.map((transaction, index) => (
+          <p className="report-field-label">
+            {hasEvidenceReconciliation
+              ? hi ? "प्रतिनिधि मिलान किए गए भुगतान" : "Representative matched payments"
+              : hi ? "वास्तव में किए गए भुगतान" : "Payments actually made"}
+          </p>
+          {representativeDebits.map((transaction, index) => (
             <article key={transaction.id}>
               <div>
                 <strong>{transaction.amount ? formatCurrency(transaction.amount) : hi ? "राशि उपलब्ध नहीं" : "Amount unavailable"}</strong>
                 <span>{transaction.paymentMethod ?? (hi ? `भुगतान ${index + 1}` : `Payment ${index + 1}`)}</span>
                 <small className="reconstruction-source">
                   <b>{hi ? "स्रोत:" : "Source:"}</b>{" "}
-                  {transaction.amount && evidenceSupportsAmount(transaction.amount)
+                  {transaction.evidenceId
+                    ? hi ? "मिलान किया गया भुगतान सबूत" : "Matched payment evidence"
+                    : transaction.amount && evidenceSupportsAmount(transaction.amount)
                     ? hi ? "भुगतान रसीद + घटना का बयान" : "Payment receipt + incident statement"
                     : hi ? "घटना का बयान" : "Incident statement"}
                 </small>
                 {citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber) ? (
                   <small>{hi ? "लेन-देन संदर्भ" : "Transaction reference"}: {citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber)}</small>
                 ) : null}
+                {transaction.evidenceId ? (
+                  <button className="reconstruction-source-link" type="button" onClick={() => requestEvidencePreview(transaction.evidenceId ?? "")}>
+                    {hi ? "जुड़ा हुआ सबूत देखें" : "View linked evidence"} →
+                  </button>
+                ) : null}
               </div>
               <b>{hi ? "भुगतान किया" : "Paid"}</b>
             </article>
           ))}
           <div className="reconstruction-total">
-            <span>{hi ? "वास्तव में ट्रांसफर" : "Actually transferred"}</span>
-            <strong>{displayedLoss ? `${formatCurrency(displayedLoss)} ${hi ? "वास्तव में ट्रांसफर" : "actually transferred"}` : "—"}</strong>
+            <span>{hasEvidenceReconciliation ? (hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss") : (hi ? "वास्तव में ट्रांसफर" : "Actually transferred")}</span>
+            <strong>{displayedLoss ? formatCurrency(displayedLoss) : "—"}</strong>
           </div>
         </div>
       ) : null}
-      {requestedAmount ? (
+      {amountClaims.length > 0 ? (
+        <section className="reconciliation-not-counted" aria-labelledby="not-counted-heading">
+          <h3 id="not-counted-heading">{hi ? "सबूत से पुष्ट हानि में शामिल नहीं" : "Not counted in the evidence-supported loss"}</h3>
+          <div>
+            {amountClaims.map((claim) => (
+              <article key={claim.id}>
+                <strong>{formatCurrency(claim.amount)}</strong>
+                <b>{hi ? claim.labelHi : claim.label}</b>
+                <p>{hi ? claim.noteHi : claim.note}</p>
+                <small>{hi ? "स्रोत" : "Source"}: {hi ? claim.sourceLabelHi : claim.sourceLabel}</small>
+                {claim.evidenceId ? (
+                  <button type="button" onClick={() => requestEvidencePreview(claim.evidenceId ?? "")}>
+                    {hi ? "सबूत देखें" : "View evidence"} →
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : requestedAmount ? (
         <div className="reconstruction-requested">
           <div><span>{hi ? "बाद में मांगी गई राशि" : "Additional amount requested"}</span><strong>{formatCurrency(requestedAmount)}</strong></div>
           <b>{requestedPaymentStatus === "NOT_PAID" ? (hi ? "मांगा गया · भुगतान नहीं किया" : "Requested · Not paid") : requestedPaymentStatus === "PAID" ? (hi ? "कुछ राशि दी गई" : "Some amount paid") : requestedPaymentStatus === "UNKNOWN" ? (hi ? "याद नहीं" : "Not remembered") : (hi ? "आपकी पुष्टि जरूरी है" : "Needs your confirmation")}</b>
@@ -3911,6 +4005,27 @@ function PreparedComplaintSummary({
             </p>
           ) : null}
         </div>
+      ) : null}
+      {unverifiedClaim ? (
+        <aside className="reconciliation-open-question">
+          <p className="eyebrow">{hi ? "एक सवाल बाकी है" : "One open question"}</p>
+          <h3>
+            {hi
+              ? `क्या आप बताए गए ${formatCurrency(unverifiedClaim.amount)} के लिए वॉलेट या भुगतान विवरण प्राप्त कर सकती हैं?`
+              : `Can you retrieve the wallet or payment statement for the ${formatCurrency(unverifiedClaim.amount)} you mentioned?`}
+          </h3>
+          <p>{hi ? "यह अभी जरूरी नहीं है। जानकारी सुरक्षित रहेगी और फिलहाल शिकायत की कुल राशि में शामिल नहीं होगी।" : "This is not required right now. The detail remains recorded and is excluded from the complaint total for now."}</p>
+        </aside>
+      ) : null}
+      {hasEvidenceReconciliation && unverifiedClaim ? (
+        <aside className="reconciliation-ready">
+          <h3>{hi ? "आपकी जाँच के लिए तैयार" : "Ready for you to review"}</h3>
+          <p>
+            {hi
+              ? `शिकायत की कुल राशि अभी उपलब्ध सबूत पर आधारित है। ${reporterFirstName} द्वारा बताया गया ${formatCurrency(unverifiedClaim.amount)} दर्ज है, लेकिन अभी हानि में शामिल नहीं है।`
+              : `The complaint total is based on the evidence currently available. ${reporterFirstName}’s unverified ${formatCurrency(unverifiedClaim.amount)} remains recorded but is not included in the loss yet.`}
+          </p>
+        </aside>
       ) : null}
       {draft.evidence.length > 0 ? (
         <p className="reconstruction-evidence-count">

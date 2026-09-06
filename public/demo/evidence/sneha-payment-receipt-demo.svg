@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetic seventy-two-thousand-rupee payment receipt</title>
+  <desc id="desc">A synthetic payment receipt with a representative debit and transaction reference.</desc>
+  <rect width="720" height="460" fill="#f8f7f5"/>
+  <rect x="166" y="24" width="388" height="412" rx="22" fill="#fff" stroke="#ded9d7"/>
+  <circle cx="360" cy="92" r="30" fill="#edf7f1"/>
+  <path d="M346 92l9 9 19-22" fill="none" stroke="#237a4b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="360" y="144" text-anchor="middle" fill="#171717" font-family="Arial, sans-serif" font-size="17" font-weight="700">Payment completed</text>
+  <text x="360" y="188" text-anchor="middle" fill="#711522" font-family="Arial, sans-serif" font-size="34" font-weight="700">₹72,000</text>
+  <line x1="202" y1="215" x2="518" y2="215" stroke="#ded9d7"/>
+  <g font-family="Arial, sans-serif" font-size="14">
+    <text x="202" y="250" fill="#626262">Payment type</text><text x="518" y="250" text-anchor="end" fill="#171717">Task deposit</text>
+    <text x="202" y="288" fill="#626262">Date &amp; time</text><text x="518" y="288" text-anchor="end" fill="#171717">2 Sep 2026 · 2:20 PM</text>
+    <text x="202" y="326" fill="#626262">Reference</text><text x="518" y="326" text-anchor="end" fill="#171717" font-weight="700">SYN-DB-72000</text>
+    <text x="202" y="364" fill="#626262">Status</text><text x="518" y="364" text-anchor="end" fill="#237a4b" font-weight="700">Matched</text>
+  </g>
+  <text x="360" y="407" text-anchor="middle" fill="#861827" font-family="Arial, sans-serif" font-size="11" font-weight="700">SYNTHETIC DEMO RECEIPT</text>
+</svg>
