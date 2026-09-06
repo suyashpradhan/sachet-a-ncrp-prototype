@@ -854,8 +854,8 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "English / Hindi",
     statement: anilBankOtpStatement,
     narrations: {
-      "en-IN": narration("en-IN", anilBankOtpStatement, 24, "/demo/audio/anil-bank-otp.mp3"),
-      "hi-IN": narration("hi-IN", anilBankOtpHindi, 28, "/demo/audio/anil-bank-otp-hi.mp3"),
+      "en-IN": narration("en-IN", anilBankOtpStatement, 18, "/demo/audio/anil-bank-otp.mp3"),
+      "hi-IN": narration("hi-IN", anilBankOtpHindi, 17, "/demo/audio/anil-bank-otp-hi.mp3"),
     },
     evidence: [
       { id: "demo-evidence-0", src: "/demo/evidence/anil-call-details.svg", label: "Call details", labelHi: "कॉल की जानकारी", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },

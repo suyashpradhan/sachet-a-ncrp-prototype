@@ -16,6 +16,18 @@ async function loadLocalEnvironment() {
 
 const narrations = [
   {
+    file: "anil-bank-otp.mp3",
+    languageCode: "en-IN",
+    speaker: "shubh",
+    text: "Someone claiming to be from my bank called me and said an urgent verification was needed. I shared the OTP during the call. Minutes later, three debit alerts appeared for twelve thousand, eighteen thousand and six thousand rupees. I first thought thirty six thousand rupees was gone, but the bank records show that the six thousand rupee debit was reversed.",
+  },
+  {
+    file: "anil-bank-otp-hi.mp3",
+    languageCode: "hi-IN",
+    speaker: "shubh",
+    text: "मेरे बैंक से होने का दावा करने वाले व्यक्ति ने फोन करके कहा कि तुरंत सत्यापन करना जरूरी है। मैंने कॉल पर ओ टी पी साझा कर दिया। कुछ मिनट बाद बारह हजार, अठारह हजार और छह हजार रुपये के तीन डेबिट संदेश आए। मुझे पहले लगा कि छत्तीस हजार रुपये चले गए, लेकिन बैंक रिकॉर्ड में छह हजार रुपये का डेबिट वापस हुआ दिखता है।",
+  },
+  {
     file: "sneha-task-scam.mp3",
     languageCode: "en-IN",
     speaker: "priya",

@@ -294,17 +294,6 @@ function EvidenceRows({
   const evidenceCount = isDemoIncident
     ? (demoCase?.evidence.length ?? 0)
     : screenshots.length;
-  const evidenceContributions = draft
-    ? deriveEvidenceContributions(draft, {
-        locale,
-        isDemoIncident,
-        screenshotNames: isDemoIncident
-          ? (demoCase?.evidence.map((item) => item.label) ?? [])
-          : screenshots.map((file) => file.name),
-        demoEvidence: demoCase?.evidence,
-      })
-    : [];
-
   if (!isDemoIncident && screenshots.length === 0) {
     return compact ? (
       <section className="report-source-block inline-evidence-section">
@@ -320,9 +309,6 @@ function EvidenceRows({
     <ul className={`report-source-files${compact ? " report-source-files-inline" : ""}`}>
       {isDemoIncident
         ? (demoCase?.evidence ?? []).map((item) => {
-            const contribution = evidenceContributions.find(
-              (candidate) => candidate.evidenceId === item.id,
-            );
             return (
             <li className="report-source-file-preview" key={item.src}>
               <button
@@ -342,31 +328,16 @@ function EvidenceRows({
                 />
                 <span className="evidence-row-copy">
                   <strong>{locale === "hi" ? item.labelHi : item.label}</strong>
-                  <small>
-                    {locale === "hi" ? item.typeLabelHi : item.typeLabel}
-                  </small>
+                  {!compact ? <small>{locale === "hi" ? item.typeLabelHi : item.typeLabel}</small> : null}
                 </span>
                 <span className="evidence-row-action">
                   {compact ? (locale === "hi" ? "पूरा सबूत देखें" : "View full evidence") : t("workspace.view")}
                 </span>
               </button>
-              {compact && contribution?.contributions.length ? (
-                <ul className="inline-evidence-facts">
-                  {contribution.contributions.map((fact) => (
-                    <li key={`${item.id}-${fact.fieldKey}`}>
-                      {/^(Detail found|सबूत में मिली जानकारी)$/.test(fact.label) ? null : <strong>{fact.label}: </strong>}
-                      {fact.displayValue}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
             </li>
           );
         })
         : screenshots.map((file, index) => {
-            const contribution = evidenceContributions.find(
-              (candidate) => candidate.evidenceId === `uploaded-${index}`,
-            );
             return (
             <li
               className="report-source-file-preview uploaded-evidence-row"
@@ -387,22 +358,12 @@ function EvidenceRows({
                 )}
                 <span className="evidence-row-copy">
                   <strong>{file.name}</strong>
-                  <small>{locale === "hi" ? "तैयार" : "Ready"}</small>
+                  {!compact ? <small>{locale === "hi" ? "तैयार" : "Ready"}</small> : null}
                 </span>
                 <span className="evidence-row-action">
                   {compact ? (locale === "hi" ? "पूरा सबूत देखें" : "View full evidence") : t("workspace.view")}
                 </span>
               </button>
-              {compact && contribution?.contributions.length ? (
-                <ul className="inline-evidence-facts">
-                  {contribution.contributions.map((fact) => (
-                    <li key={`${file.name}-${fact.fieldKey}`}>
-                      {/^(Detail found|सबूत में मिली जानकारी)$/.test(fact.label) ? null : <strong>{fact.label}: </strong>}
-                      {fact.displayValue}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
               {!compact ? (
                 <button
                   className="text-button evidence-remove-button"
