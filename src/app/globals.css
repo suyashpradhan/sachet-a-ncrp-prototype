@@ -948,6 +948,16 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   gap: clamp(52px, 8vw, 112px);
 }
 
+.landing-public-hero-simple {
+  max-width: 940px;
+  margin-inline: auto;
+}
+
+.landing-welcome {
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+
 .landing-public-hero-copy {
   max-width: 760px;
 }
@@ -962,6 +972,10 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.landing-public-hero-simple .landing-prototype-boundary {
+  margin: 24px 0 0;
 }
 
 .landing-public-hero h1 {
@@ -1118,6 +1132,11 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 .landing-path > p:not(.landing-path-number) {
   margin-bottom: 28px;
   color: var(--secondary);
+}
+
+.landing-path > .landing-path-support {
+  margin-top: -18px;
+  font-size: 14px;
 }
 
 .landing-path > .primary-button,
