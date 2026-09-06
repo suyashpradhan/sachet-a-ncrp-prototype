@@ -78,7 +78,6 @@ const DEMO_POST_REPORT_MILESTONES: PostReportMilestones = {
 const DEMO_RESTORABLE_VIEWS = new Set<JourneyView>([
   "ANALYSIS_RESULT",
   "REVIEW",
-  "SUCCESS",
 ]);
 
 type PersistedDemoSession = {
@@ -619,6 +618,11 @@ export function DemoJourney() {
   }, [beginExperience]);
 
   useEffect(() => {
+    if (view === "SUCCESS") {
+      clearPersistedDemoSession();
+      return;
+    }
+
     if (
       !attemptedDemoRestoreRef.current ||
       !isDemoIncident ||
