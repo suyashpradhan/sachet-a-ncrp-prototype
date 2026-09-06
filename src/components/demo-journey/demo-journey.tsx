@@ -1504,6 +1504,7 @@ export function DemoJourney() {
       <LandingPage
         hasSubmittedCase={hasSubmittedCase}
         onStartComplaint={startReport}
+        onViewDemo={() => useDemoIncident()}
         onViewSubmittedCase={openSubmittedCase}
       />
     );
