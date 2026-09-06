@@ -68,7 +68,7 @@ type JourneyView =
   | "SUCCESS"
   | "ANALYSIS_ERROR";
 
-const DEMO_SESSION_KEY = "sachet-deterministic-demo-v2";
+const DEMO_SESSION_KEY = "sachet-deterministic-demo-v3";
 const UNFINISHED_REPORT_KEY = "sachet-unfinished-report-v1";
 const DEMO_POST_REPORT_MILESTONES: PostReportMilestones = {
   preparedAt: "2026-09-04T04:30:00.000Z",
@@ -81,7 +81,7 @@ const DEMO_RESTORABLE_VIEWS = new Set<JourneyView>([
 ]);
 
 type PersistedDemoSession = {
-  version: 2;
+  version: 3;
   view: JourneyView;
   draft: IncidentDraft;
   narrative: string;
@@ -538,7 +538,7 @@ export function DemoJourney() {
       if (!parsed || typeof parsed !== "object") return;
       const candidate = parsed as Partial<PersistedDemoSession>;
       if (
-        candidate.version !== 2 ||
+        candidate.version !== 3 ||
         typeof candidate.view !== "string" ||
         !DEMO_RESTORABLE_VIEWS.has(candidate.view as JourneyView) ||
         typeof candidate.narrative !== "string" ||
@@ -635,7 +635,7 @@ export function DemoJourney() {
     }
 
     const session: PersistedDemoSession = {
-      version: 2,
+      version: 3,
       view,
       draft,
       narrative,
