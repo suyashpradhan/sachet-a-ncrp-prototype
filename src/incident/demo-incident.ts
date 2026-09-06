@@ -126,9 +126,9 @@ const emptyAdaptiveFacts = {
 };
 
 const taskScamStatement =
-  "I got a WhatsApp message about some part-time rating tasks. At first they actually paid me small amounts, so I thought it was genuine. Then they moved me to Telegram and asked me to deposit money for larger tasks. I made several payments. The platform later showed around ₹2.34 lakh, but I could not withdraw it. They kept asking for more money, including another ₹90,000, which I did not pay. I also remember paying ₹6,000 from another app, but I don’t have that receipt right now.";
+  "I got a WhatsApp message about part-time online tasks. At first they actually paid me small amounts, so I thought it was genuine. Then they moved me to Telegram and asked me to deposit larger amounts for bigger tasks. I made several payments. The platform later showed ₹80,000, but I could not withdraw it. They kept asking for more money, including another ₹25,000, which I did not pay.";
 const taskScamHindi =
-  "मुझे WhatsApp पर पार्ट-टाइम रेटिंग टास्क का संदेश मिला। शुरू में उन्होंने मुझे छोटी रकम वापस दी, इसलिए मुझे यह सही लगा। फिर वे मुझे Telegram पर ले गए और बड़े टास्क के लिए पैसे जमा करने को कहा। मैंने कई भुगतान किए। बाद में प्लेटफ़ॉर्म पर करीब ₹2.34 लाख दिखे, लेकिन मैं वह रकम निकाल नहीं पाई। वे ₹90,000 और मांगते रहे, जो मैंने नहीं दिए। मुझे यह भी याद है कि मैंने दूसरे ऐप से ₹6,000 दिए थे, लेकिन अभी मेरे पास उसकी रसीद नहीं है।";
+  "मुझे WhatsApp पर पार्ट-टाइम ऑनलाइन टास्क का संदेश मिला। शुरू में उन्होंने मुझे छोटी रकम वापस दी, इसलिए मुझे यह सही लगा। फिर वे मुझे Telegram पर ले गए और बड़े टास्क के लिए ज्यादा पैसे जमा करने को कहा। मैंने कई भुगतान किए। बाद में प्लेटफ़ॉर्म पर ₹80,000 दिखे, लेकिन मैं वह रकम निकाल नहीं पाई। वे ₹25,000 और मांगते रहे, जो मैंने नहीं दिए।";
 
 const taskScamDraft: IncidentDraft = {
   classification: {
@@ -149,14 +149,14 @@ const taskScamDraft: IncidentDraft = {
     affectedPlatforms: ["Synthetic task platform"],
     entityRelationship: "RELATED_BOTH_AFFECTED",
     platformType: "MESSAGING",
-    demandedAmount: 90_000,
+    demandedAmount: 25_000,
     impersonation: true,
     impersonatedEntity: "Part-time task coordinator",
     communicationChannels: ["WhatsApp", "Telegram", "Task platform"],
   },
   citizenSummary: {
     incidentLabel: "Part-time task fraud",
-    shortSummary: "Sneha received a part-time task offer on WhatsApp, moved to Telegram and made several deposits. The submitted payment evidence supports a net loss of ₹1,85,100.",
+    shortSummary: "Sneha received a part-time task offer on WhatsApp, moved to Telegram and made several deposits. The submitted payment evidence supports a net loss of ₹55,000.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -169,7 +169,7 @@ const taskScamDraft: IncidentDraft = {
     moneyLost: true,
     statedTotalLoss: null,
     citizenConfirmedLoss: null,
-    reportedAmount: 185_100,
+    reportedAmount: 55_000,
     openingBalance: null,
     intermediateBalances: [],
     closingBalance: null,
@@ -190,19 +190,15 @@ const taskScamDraft: IncidentDraft = {
   },
   mentionedInstitutions: ["UPI", "Wallet / payment app"],
   transactions: [
-    { id: "sneha-credit-1", direction: "CREDIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-0500", amount: 500, transactionDate: "2026-08-31", approximateTime: "12:05", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-credit-2", direction: "CREDIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-1500", amount: 1_500, transactionDate: "2026-08-31", approximateTime: "15:20", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-1", direction: "DEBIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-01100", amount: 1_100, transactionDate: "2026-09-01", approximateTime: "10:45", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-2", direction: "DEBIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-10000", amount: 10_000, transactionDate: "2026-09-01", approximateTime: "12:10", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-3", direction: "DEBIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-25000", amount: 25_000, transactionDate: "2026-09-02", approximateTime: "11:05", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-4", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-72000", amount: 72_000, transactionDate: "2026-09-02", approximateTime: "14:20", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-credit-3", direction: "CREDIT", evidenceId: "demo-evidence-1", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-21000", amount: 21_000, transactionDate: "2026-09-02", approximateTime: "16:45", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-5", direction: "DEBIT", evidenceId: "demo-evidence-1", institution: "Bank transfer", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-100000", amount: 100_000, transactionDate: "2026-09-03", approximateTime: "09:40", referenceNumber: null, status: "KNOWN" },
+    { id: "sneha-credit-1", direction: "CREDIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-01000", amount: 1_000, transactionDate: "2026-08-31", approximateTime: "12:05", referenceNumber: null, status: "KNOWN" },
+    { id: "sneha-debit-1", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-05000", amount: 5_000, transactionDate: "2026-09-01", approximateTime: "10:45", referenceNumber: null, status: "KNOWN" },
+    { id: "sneha-credit-2", direction: "CREDIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-04000", amount: 4_000, transactionDate: "2026-09-01", approximateTime: "12:10", referenceNumber: null, status: "KNOWN" },
+    { id: "sneha-debit-2", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-15000", amount: 15_000, transactionDate: "2026-09-02", approximateTime: "14:20", referenceNumber: null, status: "KNOWN" },
+    { id: "sneha-debit-3", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "Bank transfer", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-40000", amount: 40_000, transactionDate: "2026-09-03", approximateTime: "09:40", referenceNumber: null, status: "KNOWN" },
   ],
   amountClaims: [
-    { id: "sneha-platform-value", amount: 234_000, role: "DISPLAYED_VALUE", label: "Platform-displayed balance", labelHi: "प्लेटफ़ॉर्म पर दिखा बैलेंस", sourceLabel: "Fake task dashboard screenshot", sourceLabelHi: "नकली टास्क डैशबोर्ड स्क्रीनशॉट", evidenceId: "demo-evidence-3", note: "No matching bank or payment credit was found.", noteHi: "बैंक या भुगतान सबूत में इससे मेल खाता कोई क्रेडिट नहीं मिला।" },
-    { id: "sneha-unpaid-demand", amount: 90_000, role: "DEMANDED_UNPAID", label: "Demanded · Not paid", labelHi: "मांगा गया · भुगतान नहीं किया", sourceLabel: "Telegram conversation", sourceLabelHi: "Telegram बातचीत", evidenceId: "demo-evidence-0", note: "This belongs in the incident narrative, but no payment was made.", noteHi: "यह घटना के बयान में दर्ज है, लेकिन इसका भुगतान नहीं हुआ।" },
-    { id: "sneha-unverified-payment", amount: 6_000, role: "REPORTED_UNVERIFIED", label: "Reported by Sneha · Not yet verified", labelHi: "स्नेहा ने बताया · अभी सत्यापित नहीं", sourceLabel: "Sneha’s statement", sourceLabelHi: "स्नेहा का बयान", evidenceId: null, note: "We do not currently have supporting payment evidence.", noteHi: "अभी हमारे पास इसका सहायक भुगतान सबूत नहीं है।" },
+    { id: "sneha-platform-value", amount: 80_000, role: "DISPLAYED_VALUE", label: "Platform-displayed value", labelHi: "प्लेटफ़ॉर्म पर दिखाई गई राशि", sourceLabel: "Fake task dashboard screenshot", sourceLabelHi: "नकली टास्क डैशबोर्ड स्क्रीनशॉट", evidenceId: "demo-evidence-3", note: "Shown on the task dashboard. Not matched to payment evidence.", noteHi: "टास्क डैशबोर्ड पर दिखाई गई। भुगतान सबूत से मेल नहीं खाती।" },
+    { id: "sneha-unpaid-demand", amount: 25_000, role: "DEMANDED_UNPAID", label: "Demanded · Not paid", labelHi: "मांगा गया · भुगतान नहीं किया", sourceLabel: "Telegram / task conversation", sourceLabelHi: "Telegram / टास्क बातचीत", evidenceId: "demo-evidence-1", note: "This belongs in the incident, but no payment was made.", noteHi: "यह घटना में दर्ज है, लेकिन इसका भुगतान नहीं हुआ।" },
   ],
   suspectIdentifiers: [
     { type: "PHONE", value: "98XX XX4721" },
@@ -210,10 +206,10 @@ const taskScamDraft: IncidentDraft = {
     { type: "URL", value: "https://tasks-demo.invalid" },
   ],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Part-time rating tasks offered on WhatsApp", "Conversation moved to Telegram", "A further ₹90,000 was demanded and not paid"] },
-    { type: "OTHER", extractedFacts: ["Total debited: ₹2,08,100", "Credits received back: ₹23,000", "Net matched loss: ₹1,85,100"] },
-    { type: "TRANSACTION_SCREENSHOT", extractedFacts: ["Representative ₹72,000 task deposit", "Transaction reference SYN-DB-72000", "2 September 2026 at about 2:20 PM"] },
-    { type: "OTHER", extractedFacts: ["Synthetic task-platform balance: ₹2,34,000", "Withdrawal shown as unavailable", "This displayed value is not a bank or payment credit"] },
+    { type: "CHAT_SCREENSHOT", extractedFacts: ["Part-time online tasks offered on WhatsApp", "Small commissions were promised and initially paid"] },
+    { type: "CHAT_SCREENSHOT", extractedFacts: ["Conversation moved to Telegram and a task platform", "A further ₹25,000 was demanded and not paid"] },
+    { type: "OTHER", extractedFacts: ["Total debited: ₹60,000", "Credits received back: ₹5,000", "Net matched loss: ₹55,000"] },
+    { type: "OTHER", extractedFacts: ["Synthetic task-platform value: ₹80,000", "Withdrawal shown as unavailable", "This displayed value is not a bank or payment credit"] },
   ],
   citizenConfirmedFields: ["adaptive.requestedAmountPaymentStatus.NOT_PAID"],
   missingRequiredFields: [],
@@ -682,8 +678,8 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     selectorLabelHi: "स्नेहा का पार्ट-टाइम टास्क फ्रॉड",
     bannerTitle: "Sneha took up a part-time task offer",
     bannerTitleHi: "स्नेहा ने पार्ट-टाइम टास्क का प्रस्ताव स्वीकार किया",
-    incidentTrail: "WhatsApp → Telegram → deposits → fake dashboard balance",
-    incidentTrailHi: "WhatsApp → Telegram → जमा राशि → नकली डैशबोर्ड बैलेंस",
+    incidentTrail: "WhatsApp → Telegram → deposits → fake dashboard",
+    incidentTrailHi: "WhatsApp → Telegram → जमा राशि → नकली डैशबोर्ड",
     citizen: {
       ...demoProfile("Sneha Joshi", "Female", "4721", "sneha.demo"),
       city: "Pune",
@@ -697,13 +693,13 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "English / Hindi",
     statement: taskScamStatement,
     narrations: {
-      "en-IN": narration("en-IN", taskScamStatement, 31, "/demo/audio/sneha-task-scam.mp3"),
-      "hi-IN": narration("hi-IN", taskScamHindi, 35, "/demo/audio/sneha-task-scam-hi.mp3"),
+      "en-IN": narration("en-IN", taskScamStatement, 25, "/demo/audio/sneha-task-scam.mp3"),
+      "hi-IN": narration("hi-IN", taskScamHindi, 29, "/demo/audio/sneha-task-scam-hi.mp3"),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/sneha-conversation-demo.svg", label: "WhatsApp and Telegram conversation", labelHi: "WhatsApp और Telegram बातचीत", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/sneha-payment-statement-demo.svg", label: "Payment statement summary", labelHi: "भुगतान विवरण सारांश", typeLabel: "Bank and payment evidence", typeLabelHi: "बैंक और भुगतान सबूत" },
-      { id: "demo-evidence-2", src: "/demo/evidence/sneha-payment-receipt-demo.svg", label: "Representative payment receipt", labelHi: "प्रतिनिधि भुगतान रसीद", typeLabel: "Payment receipt", typeLabelHi: "भुगतान रसीद" },
+      { id: "demo-evidence-0", src: "/demo/evidence/sneha-conversation-demo.svg", label: "WhatsApp task offer", labelHi: "WhatsApp टास्क प्रस्ताव", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
+      { id: "demo-evidence-1", src: "/demo/evidence/sneha-telegram-task-demo.svg", label: "Telegram and task conversation", labelHi: "Telegram और टास्क बातचीत", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
+      { id: "demo-evidence-2", src: "/demo/evidence/sneha-payment-statement-demo.svg", label: "Payment and bank evidence", labelHi: "भुगतान और बैंक सबूत", typeLabel: "Payment statement", typeLabelHi: "भुगतान विवरण" },
       { id: "demo-evidence-3", src: "/demo/evidence/sneha-task-dashboard-demo.svg", label: "Synthetic task dashboard", labelHi: "सिंथेटिक टास्क डैशबोर्ड", typeLabel: "Platform screenshot", typeLabelHi: "प्लेटफ़ॉर्म स्क्रीनशॉट" },
     ],
     draft: taskScamDraft,

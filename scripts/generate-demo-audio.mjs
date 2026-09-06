@@ -19,13 +19,13 @@ const narrations = [
     file: "sneha-task-scam.mp3",
     languageCode: "en-IN",
     speaker: "priya",
-    text: "I got a WhatsApp message about some part-time rating tasks. At first they actually paid me small amounts, so I thought it was genuine. Then they moved me to Telegram and asked me to deposit money for larger tasks. I made several payments. The platform later showed around two lakh thirty four thousand rupees, but I could not withdraw it. They kept asking for more money, including another ninety thousand rupees, which I did not pay. I also remember paying six thousand rupees from another app, but I do not have that receipt right now.",
+    text: "I got a WhatsApp message about part-time online tasks. At first they actually paid me small amounts, so I thought it was genuine. Then they moved me to Telegram and asked me to deposit larger amounts for bigger tasks. I made several payments. The platform later showed eighty thousand rupees, but I could not withdraw it. They kept asking for more money, including another twenty five thousand rupees, which I did not pay.",
   },
   {
     file: "sneha-task-scam-hi.mp3",
     languageCode: "hi-IN",
     speaker: "priya",
-    text: "मुझे व्हाट्सऐप पर पार्ट-टाइम रेटिंग टास्क का संदेश मिला। शुरू में उन्होंने मुझे छोटी रकम वापस दी, इसलिए मुझे यह सही लगा। फिर वे मुझे टेलीग्राम पर ले गए और बड़े टास्क के लिए पैसे जमा करने को कहा। मैंने कई भुगतान किए। बाद में प्लेटफ़ॉर्म पर करीब दो लाख चौंतीस हजार रुपये दिखे, लेकिन मैं वह रकम निकाल नहीं पाई। वे नब्बे हजार रुपये और मांगते रहे, जो मैंने नहीं दिए। मुझे यह भी याद है कि मैंने दूसरे ऐप से छह हजार रुपये दिए थे, लेकिन अभी मेरे पास उसकी रसीद नहीं है।",
+    text: "मुझे व्हाट्सऐप पर पार्ट-टाइम ऑनलाइन टास्क का संदेश मिला। शुरू में उन्होंने मुझे छोटी रकम वापस दी, इसलिए मुझे यह सही लगा। फिर वे मुझे टेलीग्राम पर ले गए और बड़े टास्क के लिए ज्यादा पैसे जमा करने को कहा। मैंने कई भुगतान किए। बाद में प्लेटफ़ॉर्म पर अस्सी हजार रुपये दिखे, लेकिन मैं वह रकम निकाल नहीं पाई। वे पच्चीस हजार रुपये और मांगते रहे, जो मैंने नहीं दिए।",
   },
   {
     file: "job-offer.mp3",

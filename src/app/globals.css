@@ -1772,6 +1772,14 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   font-size: 1rem;
 }
 
+.reconciliation-calculation small {
+  display: block;
+  margin-top: 5px;
+  color: var(--secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .reconciliation-explanation {
   margin: 14px 0 0;
   color: var(--secondary);

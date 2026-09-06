@@ -3882,14 +3882,27 @@ function PreparedComplaintSummary({
             </div>
           </div>
           <dl className="reconciliation-calculation">
-            <div><dt>{hi ? "कुल डेबिट" : "Total debited"}</dt><dd>{formatCurrency(financial.totalDebited ?? 0)}</dd></div>
-            <div><dt>{hi ? "वापस मिले क्रेडिट" : "Credits received back"}</dt><dd>− {formatCurrency(financial.totalCreditedBack ?? 0)}</dd></div>
-            <div><dt>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</dt><dd>= {formatCurrency(financial.computedTransactionLoss ?? 0)}</dd></div>
+            <div>
+              <dt>{hi ? "वास्तव में गए पैसे" : "Money that actually left"}</dt>
+              <dd>{formatCurrency(financial.totalDebited ?? 0)}</dd>
+              <small>{hi ? "स्रोत: जमा किया गया भुगतान और बैंक सबूत" : "Source: submitted payment and bank evidence"}</small>
+            </div>
+            <div>
+              <dt>{hi ? "वापस आए पैसे" : "Money that came back"}</dt>
+              <dd>− {formatCurrency(financial.totalCreditedBack ?? 0)}</dd>
+              <small>{hi ? "स्रोत: मिलान किया गया आने वाला भुगतान" : "Source: matched incoming payment evidence"}</small>
+              <small>{hi ? "शुरुआती भुगतान से भरोसा बना।" : "Earlier payouts helped build trust."}</small>
+            </div>
+            <div>
+              <dt>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</dt>
+              <dd>= {formatCurrency(financial.computedTransactionLoss ?? 0)}</dd>
+              <small>{hi ? "पुष्ट डेबिट − पुष्ट क्रेडिट से निकला" : "Derived from confirmed debits − confirmed credits"}</small>
+            </div>
           </dl>
           <p className="reconciliation-explanation">
             {hi
-              ? `${formatCurrency(displayedValueClaim.amount)} टास्क प्लेटफ़ॉर्म पर दिखता है, लेकिन जमा किए गए बैंक या भुगतान सबूत में हमें इससे मेल खाती रकम प्राप्त नहीं हुई। नागरिक का बताया हुआ विवरण सुरक्षित है; शिकायत की कुल राशि उपलब्ध सबूत पर आधारित है।`
-              : `${formatCurrency(displayedValueClaim.amount)} appears on the task platform, but we could not match it to money received in the submitted bank or payment evidence. ${reporterFirstName}’s account is preserved; the complaint total follows the available evidence.`}
+              ? `${formatCurrency(displayedValueClaim.amount)} टास्क प्लेटफ़ॉर्म पर दिखता है, लेकिन जमा किए गए भुगतान सबूत में मिले या गए पैसे से इसका मेल नहीं है। नागरिक का बताया हुआ विवरण सुरक्षित है; शिकायत की कुल राशि उपलब्ध सबूत पर आधारित है।`
+              : `${formatCurrency(displayedValueClaim.amount)} appears on the task platform, but it does not match money received or lost in the submitted payment evidence. ${reporterFirstName}’s story is preserved; the complaint total follows the evidence.`}
           </p>
         </section>
       ) : null}
@@ -3961,7 +3974,7 @@ function PreparedComplaintSummary({
       ) : null}
       {amountClaims.length > 0 ? (
         <section className="reconciliation-not-counted" aria-labelledby="not-counted-heading">
-          <h3 id="not-counted-heading">{hi ? "सबूत से पुष्ट हानि में शामिल नहीं" : "Not counted in the evidence-supported loss"}</h3>
+          <h3 id="not-counted-heading">{hi ? "अन्य महत्वपूर्ण राशियाँ" : "Other important amounts"}</h3>
           <div>
             {amountClaims.map((claim) => (
               <article key={claim.id}>
@@ -4017,13 +4030,17 @@ function PreparedComplaintSummary({
           <p>{hi ? "यह अभी जरूरी नहीं है। जानकारी सुरक्षित रहेगी और फिलहाल शिकायत की कुल राशि में शामिल नहीं होगी।" : "This is not required right now. The detail remains recorded and is excluded from the complaint total for now."}</p>
         </aside>
       ) : null}
-      {hasEvidenceReconciliation && unverifiedClaim ? (
+      {hasEvidenceReconciliation ? (
         <aside className="reconciliation-ready">
           <h3>{hi ? "आपकी जाँच के लिए तैयार" : "Ready for you to review"}</h3>
           <p>
-            {hi
-              ? `शिकायत की कुल राशि अभी उपलब्ध सबूत पर आधारित है। ${reporterFirstName} द्वारा बताया गया ${formatCurrency(unverifiedClaim.amount)} दर्ज है, लेकिन अभी हानि में शामिल नहीं है।`
-              : `The complaint total is based on the evidence currently available. ${reporterFirstName}’s unverified ${formatCurrency(unverifiedClaim.amount)} remains recorded but is not included in the loss yet.`}
+            {unverifiedClaim
+              ? hi
+                ? `शिकायत की कुल राशि अभी उपलब्ध सबूत पर आधारित है। नागरिक द्वारा बताया गया ${formatCurrency(unverifiedClaim.amount)} दर्ज है, लेकिन अभी हानि में शामिल नहीं है।`
+                : `The complaint total is based on the evidence currently available. ${reporterFirstName}’s unverified ${formatCurrency(unverifiedClaim.amount)} remains recorded but is not included in the loss yet.`
+              : hi
+                ? "शिकायत की कुल राशि अभी उपलब्ध भुगतान सबूत पर आधारित है।"
+                : "The complaint total is based on the payment evidence currently available."}
           </p>
         </aside>
       ) : null}

@@ -105,7 +105,7 @@ function PrintableCaseReport({
       {prototypeReference ? <section><h2>{hi ? "संदर्भ" : "Reference"}</h2><p>{prototypeReference}</p><p>{hi ? "जमा किया गया" : "Submitted"}: {submitted}</p></section> : null}
       <section><h2>{hi ? "शिकायत की जानकारी" : "Complaint details"}</h2><dl>{summary.map((item) => <div key={item.id}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>
       {displayedStatement ? <section><h2>{hi ? "घटना का विवरण" : "Incident summary"}</h2><p>{displayedStatement}</p></section> : null}
-      {draft.transactions.length > 0 ? <section><h2>{hi ? "लेन-देन" : "Transactions"}</h2>{draft.transactions.map((transaction, index) => { const reference = citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber); return <dl key={transaction.id}><div><dt>{hi ? "लेन-देन" : "Transaction"}</dt><dd>{index + 1}</dd></div>{transaction.amount ? <div><dt>{hi ? "राशि" : "Amount"}</dt><dd>₹{transaction.amount.toLocaleString("en-IN")}</dd></div> : null}{citizenVisibleValue(transaction.institution) ? <div><dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt><dd>{citizenVisibleValue(transaction.institution)}</dd></div> : null}{transaction.transactionDate ? <div><dt>{hi ? "तारीख" : "Date"}</dt><dd>{formatIndiaShortDateWithYear(transaction.transactionDate, locale)}</dd></div> : null}{citizenVisibleValue(transaction.approximateTime) ? <div><dt>{hi ? "समय" : "Time"}</dt><dd>{citizenVisibleValue(transaction.approximateTime)}</dd></div> : null}{reference ? <div><dt>{hi ? "लेन-देन संदर्भ / UTR" : "Transaction reference / UTR"}</dt><dd>{reference}</dd></div> : null}</dl>; })}</section> : null}
+      {draft.transactions.length > 0 ? <section><h2>{hi ? "लेन-देन" : "Transactions"}</h2>{draft.transactions.map((transaction, index) => { const reference = citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber); const credit = transaction.direction === "CREDIT"; return <dl key={transaction.id}><div><dt>{hi ? "लेन-देन" : "Transaction"}</dt><dd>{index + 1}</dd></div><div><dt>{hi ? "प्रकार" : "Type"}</dt><dd>{credit ? (hi ? "वापस मिला क्रेडिट" : "Credit received back") : (hi ? "भुगतान / डेबिट" : "Payment / debit")}</dd></div>{transaction.amount ? <div><dt>{hi ? "राशि" : "Amount"}</dt><dd>₹{transaction.amount.toLocaleString("en-IN")}</dd></div> : null}{citizenVisibleValue(transaction.institution) ? <div><dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt><dd>{citizenVisibleValue(transaction.institution)}</dd></div> : null}{transaction.transactionDate ? <div><dt>{hi ? "तारीख" : "Date"}</dt><dd>{formatIndiaShortDateWithYear(transaction.transactionDate, locale)}</dd></div> : null}{citizenVisibleValue(transaction.approximateTime) ? <div><dt>{hi ? "समय" : "Time"}</dt><dd>{citizenVisibleValue(transaction.approximateTime)}</dd></div> : null}{reference ? <div><dt>{hi ? "लेन-देन संदर्भ / UTR" : "Transaction reference / UTR"}</dt><dd>{reference}</dd></div> : null}</dl>; })}</section> : null}
       {showAffectedAccount ? (
         <section>
           <h2>{hi ? "प्रभावित खाता" : "Affected account"}</h2>
@@ -512,7 +512,7 @@ export function PostSubmissionCaseHome({
 
           <div className="post-submission-priority-grid">
           <section className="companion-section immediate-action-section" aria-labelledby="post-report-actions-heading">
-            <h2 id="post-report-actions-heading">{hi ? "तुरंत कार्रवाई" : "Immediate action"}</h2>
+            <h2 id="post-report-actions-heading">{hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}</h2>
             {primaryAction ? (
               <article className="post-report-primary-action">
                 <p className="companion-eyebrow">{hi ? "सबसे पहले" : "First"}</p>
@@ -590,7 +590,11 @@ export function PostSubmissionCaseHome({
                     <div className="submitted-transaction-list">
                       {draft.transactions.map((transaction, index) => (
                         <article key={transaction.id}>
-                          <h4>{hi ? `लेन-देन ${index + 1}` : `Transaction ${index + 1}`}</h4>
+                          <h4>
+                            {transaction.direction === "CREDIT"
+                              ? hi ? `वापस मिला क्रेडिट ${index + 1}` : `Credit received ${index + 1}`
+                              : hi ? `लेन-देन ${index + 1}` : `Transaction ${index + 1}`}
+                          </h4>
                           <dl>
                             {transaction.amount ? <div><dt>{hi ? "राशि" : "Amount"}</dt><dd>₹{transaction.amount.toLocaleString("en-IN")}</dd></div> : null}
                             {citizenVisibleValue(transaction.institution) ? <div><dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt><dd>{citizenVisibleValue(transaction.institution)}</dd></div> : null}
