@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="500" viewBox="0 0 720 500" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetic bank SMS alerts</title><desc id="desc">Three synthetic debit alerts for the Sachet demo.</desc>
+  <rect width="720" height="500" fill="#faf8f6"/><rect x="50" y="36" width="620" height="428" rx="18" fill="#fff" stroke="#e2ded9"/>
+  <text x="84" y="84" font-family="Arial,sans-serif" font-size="18" fill="#6b6b6b">SYNTHETIC BANK SMS</text>
+  <g font-family="Arial,sans-serif"><g transform="translate(84 115)"><rect width="552" height="82" rx="10" fill="#f7f4f1"/><text x="18" y="31" font-size="18" font-weight="700" fill="#1f1f1f">₹12,000 debited</text><text x="18" y="59" font-size="15" fill="#6b6b6b">Reference SYN-ANIL-12000-01 · 3:07 PM</text></g>
+  <g transform="translate(84 215)"><rect width="552" height="82" rx="10" fill="#f7f4f1"/><text x="18" y="31" font-size="18" font-weight="700" fill="#1f1f1f">₹18,000 debited</text><text x="18" y="59" font-size="15" fill="#6b6b6b">Reference SYN-ANIL-18000-02 · 3:09 PM</text></g>
+  <g transform="translate(84 315)"><rect width="552" height="82" rx="10" fill="#f7f4f1"/><text x="18" y="31" font-size="18" font-weight="700" fill="#1f1f1f">₹6,000 debited</text><text x="18" y="59" font-size="15" fill="#6b6b6b">Reference SYN-ANIL-6000-03 · 3:11 PM</text></g></g>
+</svg>

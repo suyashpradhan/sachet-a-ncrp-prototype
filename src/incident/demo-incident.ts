@@ -3,6 +3,7 @@ import { CITIZEN_DOES_NOT_HAVE, IncidentDraftSchema, type IncidentDraft, type Tr
 
 export type DemoNarrationLanguage = "hi-IN" | "en-IN";
 export type DemoCaseId =
+  | "BANK_OTP"
   | "TASK_SCAM"
   | "JOB_OFFER"
   | "AMOUNT_MISMATCH"
@@ -123,6 +124,174 @@ const emptyAdaptiveFacts = {
   requestedSensitiveInfo: [] as string[],
   sharedSensitiveInfo: [] as string[],
   sensitiveEvidenceRedacted: null,
+};
+
+const anilBankOtpStatement =
+  "Someone claiming to be from my bank called me and said an urgent verification was needed. I shared the OTP during the call. Minutes later, three debit alerts appeared for ₹12,000, ₹18,000 and ₹6,000. I first thought ₹36,000 was gone, but the bank records show that the ₹6,000 debit was reversed.";
+const anilBankOtpHindi =
+  "मेरे बैंक से होने का दावा करने वाले व्यक्ति ने फोन करके कहा कि तुरंत सत्यापन करना जरूरी है। मैंने कॉल पर OTP साझा कर दिया। कुछ मिनट बाद ₹12,000, ₹18,000 और ₹6,000 के तीन डेबिट संदेश आए। मुझे पहले लगा कि ₹36,000 चले गए, लेकिन बैंक रिकॉर्ड में ₹6,000 का डेबिट वापस हुआ दिखता है।";
+
+const anilBankOtpDraft: IncidentDraft = {
+  classification: {
+    reportFamily: "FINANCIAL_FRAUD",
+    category: "Financial Fraud",
+    subCategory: "Vishing / OTP Fraud",
+    cyberElementPresent: true,
+    moneyLost: true,
+    platform: "Phone call and bank SMS",
+    ambiguity: "NONE",
+    explanation:
+      "A caller claiming to represent the bank obtained an OTP before unauthorized debits appeared.",
+    requiresCitizenConfirmation: false,
+  },
+  adaptiveFacts: {
+    ...emptyAdaptiveFacts,
+    platform: "Phone call",
+    messageSourcePlatforms: ["Phone call", "Bank SMS"],
+    platformType: "OTHER",
+    credentialExposure: true,
+    impersonation: true,
+    impersonatedEntity: "Bank representative",
+    communicationChannels: ["Phone call", "Bank SMS"],
+    requestedSensitiveInfo: ["OTP"],
+    sharedSensitiveInfo: ["OTP"],
+    sensitiveEvidenceRedacted: true,
+  },
+  citizenSummary: {
+    incidentLabel: "Bank impersonation and OTP fraud",
+    shortSummary:
+      "Anil shared an OTP with a caller claiming to represent his bank. Three debit alerts totalled ₹36,000, but evidence shows ₹6,000 was reversed, leaving an evidence-supported loss of ₹30,000.",
+  },
+  officialMapping: {
+    category: "FINANCIAL_FRAUD",
+    categoryLabel: "Financial Fraud",
+    subCategoryLabel: "Vishing / OTP Fraud",
+    mappingConfidence: "HIGH",
+  },
+  incident: {
+    financialLossState: "YES",
+    moneyLost: true,
+    statedTotalLoss: 36_000,
+    citizenConfirmedLoss: 30_000,
+    reportedAmount: 30_000,
+    openingBalance: null,
+    intermediateBalances: [],
+    closingBalance: null,
+    incidentDate: "2026-09-03",
+    incidentDateWithoutYear: null,
+    approximateTime: "Around 3 PM",
+    delayInReporting: false,
+    delayReason: null,
+    occurredOn: "Phone call",
+    narrative: anilBankOtpStatement,
+  },
+  financialExposure: {
+    bankDetailsRequested: null,
+    identityDocumentRequested: false,
+    otpRequested: true,
+    paymentLinkReceived: false,
+    upiCollectRequestReceived: false,
+  },
+  mentionedInstitutions: ["Synthetic bank"],
+  transactions: [
+    {
+      id: "anil-debit-12000",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-1",
+      institution: "Synthetic bank",
+      currency: "INR",
+      paymentMethod: "Unauthorized bank debit",
+      accountOrUpiId: "Synthetic account ending 1930",
+      transactionIdOrUtr: "SYN-ANIL-12000-01",
+      amount: 12_000,
+      transactionDate: "2026-09-03",
+      approximateTime: "15:07",
+      referenceNumber: "SYN-ANIL-12000-01",
+      status: "KNOWN",
+    },
+    {
+      id: "anil-debit-18000",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-1",
+      institution: "Synthetic bank",
+      currency: "INR",
+      paymentMethod: "Unauthorized bank debit",
+      accountOrUpiId: "Synthetic account ending 1930",
+      transactionIdOrUtr: "SYN-ANIL-18000-02",
+      amount: 18_000,
+      transactionDate: "2026-09-03",
+      approximateTime: "15:09",
+      referenceNumber: "SYN-ANIL-18000-02",
+      status: "KNOWN",
+    },
+    {
+      id: "anil-debit-6000",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-1",
+      institution: "Synthetic bank",
+      currency: "INR",
+      paymentMethod: "Unauthorized bank debit",
+      accountOrUpiId: "Synthetic account ending 1930",
+      transactionIdOrUtr: "SYN-ANIL-6000-03",
+      amount: 6_000,
+      transactionDate: "2026-09-03",
+      approximateTime: "15:11",
+      referenceNumber: "SYN-ANIL-6000-03",
+      status: "KNOWN",
+    },
+    {
+      id: "anil-credit-6000-reversal",
+      direction: "CREDIT",
+      evidenceId: "demo-evidence-2",
+      institution: "Synthetic bank",
+      currency: "INR",
+      paymentMethod: "Reversal",
+      accountOrUpiId: "Synthetic account ending 1930",
+      transactionIdOrUtr: "SYN-ANIL-REV-6000",
+      amount: 6_000,
+      transactionDate: "2026-09-03",
+      approximateTime: "15:18",
+      referenceNumber: "SYN-ANIL-REV-6000",
+      status: "KNOWN",
+    },
+  ],
+  suspectIdentifiers: [{ type: "PHONE", value: "98XX XX1930" }],
+  evidence: [
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Incoming call from synthetic number 98XX XX1930",
+        "Caller claimed to represent the bank",
+        "Caller identity was not independently verified",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "Debit alerts for ₹12,000, ₹18,000 and ₹6,000",
+        "Total debit alerts: ₹36,000",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Statement shows a ₹6,000 reversal",
+        "Current evidence-supported loss: ₹30,000",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "Synthetic transaction references preserved for all entries",
+        "No verified identity record is available for the caller",
+      ],
+    },
+  ],
+  citizenConfirmedFields: [],
+  missingRequiredFields: [],
+  warnings: [
+    "The citizen initially reported ₹36,000. The available statement shows ₹6,000 was reversed, leaving ₹30,000 as the current evidence-supported loss.",
+  ],
 };
 
 const taskScamStatement =
@@ -667,11 +836,36 @@ const extortionDraft: IncidentDraft = {
   warnings: [],
 };
 
-for (const draft of [taskScamDraft, jobOfferDraft, amountMismatchDraft, accountCompromiseDraft, lotteryDraft, extortionDraft]) {
+for (const draft of [anilBankOtpDraft, taskScamDraft, jobOfferDraft, amountMismatchDraft, accountCompromiseDraft, lotteryDraft, extortionDraft]) {
   IncidentDraftSchema.parse(draft);
 }
 
 export const DEMO_CASES: readonly DemoCaseDefinition[] = [
+  {
+    id: "BANK_OTP",
+    selectorLabel: "Anil's bank OTP fraud",
+    selectorLabelHi: "अनिल का बैंक OTP फ्रॉड",
+    bannerTitle: "Anil received a call claiming to be from his bank",
+    bannerTitleHi: "अनिल को बैंक से होने का दावा करने वाली कॉल आई",
+    incidentTrail: "Bank impersonation call → OTP shared → debit alerts → one reversal",
+    incidentTrailHi: "बैंक के नाम पर कॉल → OTP साझा → डेबिट संदेश → एक राशि वापस",
+    citizen: demoProfile("Anil Kumar", "Male", "1930", "anil.demo"),
+    citizenNameHi: "अनिल",
+    sourceLanguage: "English / Hindi",
+    statement: anilBankOtpStatement,
+    narrations: {
+      "en-IN": narration("en-IN", anilBankOtpStatement, 24, "/demo/audio/anil-bank-otp.mp3"),
+      "hi-IN": narration("hi-IN", anilBankOtpHindi, 28, "/demo/audio/anil-bank-otp-hi.mp3"),
+    },
+    evidence: [
+      { id: "demo-evidence-0", src: "/demo/evidence/anil-call-details.svg", label: "Call details", labelHi: "कॉल की जानकारी", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },
+      { id: "demo-evidence-1", src: "/demo/evidence/anil-bank-alerts.svg", label: "Bank SMS alerts", labelHi: "बैंक SMS संदेश", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
+      { id: "demo-evidence-2", src: "/demo/evidence/anil-bank-statement.svg", label: "Bank statement", labelHi: "बैंक स्टेटमेंट", typeLabel: "Payment statement", typeLabelHi: "भुगतान विवरण" },
+      { id: "demo-evidence-3", src: "/demo/evidence/anil-transaction-references.svg", label: "Transaction references", labelHi: "लेन-देन संदर्भ", typeLabel: "Transaction record", typeLabelHi: "लेन-देन रिकॉर्ड" },
+    ],
+    draft: anilBankOtpDraft,
+    reference: "SACHET-DEMO-ANIL-001",
+  },
   {
     id: "TASK_SCAM",
     selectorLabel: "Sneha's part-time task fraud",
@@ -807,7 +1001,7 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
   },
 ];
 
-export const DEFAULT_DEMO_CASE_ID: DemoCaseId = "TASK_SCAM";
+export const DEFAULT_DEMO_CASE_ID: DemoCaseId = "BANK_OTP";
 
 export function getDemoCase(caseId: DemoCaseId): DemoCaseDefinition {
   return DEMO_CASES.find((item) => item.id === caseId) ?? DEMO_CASES[0];

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetic transaction references</title><desc id="desc">Synthetic reference numbers preserved for the Sachet demo.</desc>
+  <rect width="760" height="460" fill="#faf8f6"/><rect x="48" y="36" width="664" height="388" rx="16" fill="#fff" stroke="#e2ded9"/>
+  <text x="82" y="83" font-family="Arial,sans-serif" font-size="18" fill="#6b6b6b">TRANSACTION REFERENCES · SYNTHETIC</text>
+  <g font-family="Arial,sans-serif"><text x="82" y="137" font-size="17" fill="#6b6b6b">₹12,000 debit</text><text x="330" y="137" font-size="17" font-weight="700" fill="#1f1f1f">SYN-ANIL-12000-01</text>
+  <text x="82" y="197" font-size="17" fill="#6b6b6b">₹18,000 debit</text><text x="330" y="197" font-size="17" font-weight="700" fill="#1f1f1f">SYN-ANIL-18000-02</text>
+  <text x="82" y="257" font-size="17" fill="#6b6b6b">₹6,000 debit</text><text x="330" y="257" font-size="17" font-weight="700" fill="#1f1f1f">SYN-ANIL-6000-03</text>
+  <text x="82" y="317" font-size="17" fill="#237a4b">₹6,000 reversal</text><text x="330" y="317" font-size="17" font-weight="700" fill="#237a4b">SYN-ANIL-REV-6000</text>
+  <line x1="82" y1="350" x2="678" y2="350" stroke="#e2ded9"/><text x="82" y="388" font-size="15" fill="#a61e2d">Demo records only · no real bank is connected</text></g>
+</svg>

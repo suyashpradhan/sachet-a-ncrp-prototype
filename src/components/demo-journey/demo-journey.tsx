@@ -18,7 +18,6 @@ import {
   buildSyntheticCaseFromComplaint,
   resolveReportedAmount,
 } from "../../incident/complaint-case";
-import { resolveFinancialLoss } from "../../incident/financial-summary";
 import {
   applyMissingAnswer,
   type MissingQuestion,
@@ -45,7 +44,6 @@ import {
 import { useI18n } from "../../i18n/i18n-provider";
 import { useJourneyNavigation } from "../../navigation/journey-navigation";
 import { deriveReportReadiness } from "../../presentation/report-readiness";
-import { formatCurrency } from "../../presentation/format";
 import type { PostReportMilestones } from "../../presentation/post-report-case";
 import {
   createReminderPreferences,
@@ -53,6 +51,7 @@ import {
 } from "../../notifications/citizen-nudges";
 import { DEMO_CASE_ACCESS, useDemoCase } from "../demo-case/demo-case-provider";
 import { PostSubmissionCaseHome } from "./post-submission-case-home";
+import { LandingPage } from "./landing-page";
 import {
   ReportWorkspace,
   type PreparationFailure,
@@ -317,126 +316,6 @@ async function compressScreenshot(file: File): Promise<File> {
   return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
     type: "image/jpeg",
   });
-}
-
-function SachetPreview() {
-  const { locale } = useI18n();
-  const hi = locale === "hi";
-  const featuredCase = getDemoCase(DEFAULT_DEMO_CASE_ID);
-  const financial = resolveFinancialLoss(featuredCase.draft);
-  const featuredFirstName = hi
-    ? featuredCase.citizenNameHi ?? "नागरिक"
-    : featuredCase.citizen.displayName.split(/\s+/)[0];
-  const displayedValue = featuredCase.draft.amountClaims?.find(
-    (claim) => claim.role === "DISPLAYED_VALUE",
-  );
-  const unpaidDemand = featuredCase.draft.amountClaims?.find(
-    (claim) => claim.role === "DEMANDED_UNPAID",
-  );
-
-  return (
-    <aside
-      className="sachet-preview"
-      aria-label={
-        hi
-          ? "साझा जानकारी से तैयार रिपोर्ट का उदाहरण"
-          : "Example of shared information becoming a prepared report"
-      }
-    >
-      <div className="sachet-preview-shared">
-        <p className="sachet-preview-label">
-          {hi ? `${featuredFirstName} ने जो साझा किया` : `What ${featuredFirstName} shared`}
-        </p>
-        <blockquote>
-          {hi
-            ? "“WhatsApp पर पार्ट-टाइम टास्क मिला। Telegram पर कई भुगतान किए और प्लेटफ़ॉर्म पर एक अलग बैलेंस दिखा।”"
-            : "“A part-time task offer moved from WhatsApp to Telegram, where I made several deposits before withdrawals stopped.”"}
-        </blockquote>
-        <div className="sachet-preview-evidence">
-          <div><span className="sachet-preview-file-icon" aria-hidden="true">▧</span><strong>{hi ? "बातचीत" : "Conversations"}</strong><small>WhatsApp · Telegram</small></div>
-          <div><span className="sachet-preview-file-icon" aria-hidden="true">₹</span><strong>{hi ? "भुगतान सबूत" : "Payment evidence"}</strong><small>{featuredCase.evidence.length} {hi ? "आइटम" : "items"}</small></div>
-        </div>
-      </div>
-
-      <div className="sachet-preview-connector" aria-hidden="true">
-        <span />
-        <b>↓</b>
-      </div>
-
-      <div className="sachet-preview-report">
-        <p className="sachet-preview-label">{hi ? "सचेत ने समझा" : "What सचेत understood"}</p>
-        <div className="sachet-preview-report-heading">
-          <strong>{hi ? "पार्ट-टाइम टास्क फ्रॉड" : "Part-time task fraud"}</strong>
-          <b>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</b>
-        </div>
-        <dl>
-          <div><dt>{hi ? "प्लेटफ़ॉर्म पर दिखा" : "Shown on platform"}</dt><dd>{displayedValue ? formatCurrency(displayedValue.amount) : "—"}</dd></div>
-          <div><dt>{hi ? "सबूत से पुष्ट" : "Evidence supports"}</dt><dd>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</dd></div>
-          <div><dt>{hi ? "बाद में मांगा" : "Later demanded"}</dt><dd>{unpaidDemand ? formatCurrency(unpaidDemand.amount) : "—"} · {hi ? "भुगतान नहीं किया" : "Not paid"}</dd></div>
-        </dl>
-      </div>
-    </aside>
-  );
-}
-
-function LandingCaseCheck({ onTryCase }: { onTryCase: () => void }) {
-  const { locale } = useI18n();
-  const hi = locale === "hi";
-  const featuredCase = getDemoCase(DEFAULT_DEMO_CASE_ID);
-  const financial = resolveFinancialLoss(featuredCase.draft);
-  const featuredFirstName = hi
-    ? featuredCase.citizenNameHi ?? "नागरिक"
-    : featuredCase.citizen.displayName.split(/\s+/)[0];
-  const displayedValue = featuredCase.draft.amountClaims?.find(
-    (claim) => claim.role === "DISPLAYED_VALUE",
-  );
-  return (
-    <section className="landing-case-check" aria-labelledby="landing-case-check-heading">
-      <div>
-        <h2 id="landing-case-check-heading">
-          {hi ? "एक घटना, कई तरह की जानकारी" : "One incident, reconstructed clearly"}
-        </h2>
-        <p>
-          {hi
-            ? "सचेत बातचीत, भुगतान और सबूत को जोड़ता है—और जो साफ़ नहीं है, उसके बारे में पूछता है।"
-            : "सचेत connects conversations, payments and evidence—and asks when something important is unclear."}
-        </p>
-      </div>
-      <div className="landing-conflict-example">
-        <dl>
-          <div><dt>{hi ? "प्लेटफ़ॉर्म पर दिखा" : "Shown on platform"}</dt><dd>{displayedValue ? formatCurrency(displayedValue.amount) : "—"}</dd></div>
-          <div><dt>{hi ? "सबूत से पुष्ट हानि" : "Evidence-supported loss"}</dt><dd>{financial.resolvedLoss ? formatCurrency(financial.resolvedLoss) : "—"}</dd></div>
-        </dl>
-        <strong>
-          {hi ? "क्रेडिट को डेबिट से घटाया गया है।" : "Credits are subtracted from matched debits."}
-        </strong>
-        <p>
-          {hi
-            ? "नागरिक का बताया विवरण सुरक्षित रहता है; शिकायत की कुल राशि उपलब्ध सबूत पर आधारित है।"
-            : "The citizen’s account is preserved; the complaint total follows the available evidence."}
-        </p>
-        <button
-          className="landing-example-action"
-          type="button"
-          onClick={onTryCase}
-        >
-          {hi ? `${featuredFirstName} का मामला देखें` : `Try ${featuredFirstName}’s case`} →
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function LandingReassurance() {
-  const { locale } = useI18n();
-  const hi = locale === "hi";
-  return (
-    <section className="landing-reassurance landing-three-steps" aria-label={hi ? "शिकायत तैयार करने के तीन चरण" : "Three steps to prepare a complaint"}>
-      <article><span>1</span><h2>{hi ? "बताएं कि क्या हुआ" : "Tell us what happened"}</h2><p>{hi ? "बोलें, लिखें या सबूत जोड़ें।" : "Speak, type, or add evidence."}</p></article>
-      <article><span>2</span><h2>{hi ? "देखें कि हमने क्या समझा" : "Check what we understood"}</h2><p>{hi ? "सचेत घटना को व्यवस्थित करता है और केवल जरूरी बात साफ़ न होने पर पूछता है।" : "सचेत organises the incident and asks only when something important is unclear."}</p></article>
-      <article><span>3</span><h2>{hi ? "अपनी शिकायत जाँचें" : "Review your complaint"}</h2><p>{hi ? "जमा करने से पहले नियंत्रण आपके पास रहता है।" : "You stay in control before anything is submitted."}</p></article>
-    </section>
-  );
 }
 
 export function DemoJourney() {
@@ -1618,64 +1497,12 @@ export function DemoJourney() {
         </div>
       </section>
     ) : (
-      <section className="service-entry section-pad">
-        <div className="shell service-entry-inner">
-          <div className="service-entry-layout landing-hero-layout">
-            <div className="service-entry-copy">
-              <h1>
-                {locale === "hi"
-                  ? "क्या आपके साथ ऑनलाइन धोखाधड़ी हुई या कोशिश की गई?"
-                  : "Were you scammed or targeted online?"}
-              </h1>
-              <p className="service-entry-support">
-                {locale === "hi"
-                  ? "बताएं कि क्या हुआ। बोलें, लिखें या स्क्रीनशॉट जोड़ें। सचेत आपकी बात को शिकायत की जानकारी में बदलता है, जिसे आप जमा करने से पहले जाँचते हैं।"
-                  : "Tell us what happened. Speak, type, or add screenshots. सचेत turns what happened into complaint details you can review before submitting."}
-              </p>
-              <p className="landing-category-reassurance">
-                {locale === "hi"
-                  ? "आपको साइबर अपराध की श्रेणी या तकनीकी शब्द जानने की जरूरत नहीं है।"
-                  : "You do not need to know the cybercrime category or technical terms."}
-              </p>
-              <div className="service-entry-actions">
-                <button
-                  className="primary-button"
-                  type="button"
-                  onClick={hasSubmittedCase ? openSubmittedCase : startReport}
-                >
-                  {hasSubmittedCase
-                    ? locale === "hi" ? "मामला देखें" : "View case"
-                    : locale === "hi" ? "अपनी शिकायत तैयार करें" : "Start preparing my complaint"}
-                </button>
-                <button
-                  className="landing-text-action"
-                  type="button"
-                  onClick={hasSubmittedCase ? startReport : () => useDemoIncident()}
-                >
-                  {hasSubmittedCase
-                    ? locale === "hi" ? "नई शिकायत शुरू करें" : "Start new complaint"
-                    : locale === "hi" ? "नमूना घटना देखें" : "Try a sample incident"}
-                </button>
-              </div>
-              <div className="landing-trust-line">
-                <p>{locale === "hi" ? "जमा करने से पहले आप शिकायत जाँचते हैं।" : "You review the complaint before submitting."}</p>
-                <p>{locale === "hi" ? "जरूरी जानकारी साफ़ न हो तो सचेत अनुमान लगाने के बजाय पूछता है।" : "If an important detail is unclear, सचेत asks instead of guessing."}</p>
-              </div>
-              <p className="landing-capability-line">{locale === "hi" ? "स्वतंत्र हैकाथॉन प्रोटोटाइप · NCRP से जुड़ा नहीं" : "Independent hackathon prototype · Not connected to NCRP"}</p>
-              <section className="landing-urgent-strip" aria-labelledby="landing-urgent-heading">
-                <div>
-                  <h2 id="landing-urgent-heading">{locale === "hi" ? "क्या हाल ही में पैसे गए हैं?" : "Lost money recently?"}</h2>
-                  <p>{locale === "hi" ? "वित्तीय साइबर धोखाधड़ी के लिए तुरंत 1930 पर कॉल करें। इसके बाद शिकायत तैयार करना जारी रख सकते हैं।" : "Call 1930 immediately for financial cyber fraud. You can continue preparing the complaint afterwards."}</p>
-                </div>
-                <a className="primary-button" href="tel:1930">{locale === "hi" ? "1930 पर कॉल करें" : "Call 1930"}</a>
-              </section>
-            </div>
-            <SachetPreview />
-          </div>
-          <LandingCaseCheck onTryCase={() => useDemoIncident()} />
-          <LandingReassurance />
-        </div>
-      </section>
+      <LandingPage
+        hasSubmittedCase={hasSubmittedCase}
+        onStartComplaint={startReport}
+        onViewDemo={() => useDemoIncident()}
+        onViewSubmittedCase={openSubmittedCase}
+      />
     );
   } else if (
     view === "REPORT_INPUT" ||
