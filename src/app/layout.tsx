@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   },
   description:
     "Tell सचेत what happened by voice, text or evidence, then review structured financial cyber-fraud reporting information.",
+  icons: {
+    icon: "/Sachet%20logo.svg",
+    shortcut: "/Sachet%20logo.svg",
+    apple: "/Sachet%20logo.svg",
+  },
   openGraph: {
     title: APP_NAME,
     description:
