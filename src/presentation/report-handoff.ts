@@ -266,7 +266,7 @@ export function buildBankNotification(
   const providerLabel = provider ?? (
     hi ? "आपका बैंक या भुगतान सेवा प्रदाता" : "Your bank or payment provider"
   );
-  const citizenName = safeComplaintValue(complaint.groups.complainant.name) ?? unknown;
+  const citizenName = safeComplaintValue(complaint.groups.victim.name) ?? unknown;
   const contact = [
     safeComplaintValue(complaint.groups.complainant.mobile),
     safeComplaintValue(complaint.groups.complainant.email),

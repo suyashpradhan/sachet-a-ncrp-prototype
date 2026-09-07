@@ -43,6 +43,7 @@ export type DemoCaseDefinition = {
   incidentTrail?: string;
   incidentTrailHi?: string;
   citizen: ReporterProfile;
+  reporter?: ReporterProfile;
   citizenNameHi?: string;
   sourceLanguage: string;
   statement: string;
@@ -140,6 +141,13 @@ const rajeshBankOtpEnglish =
   "I received a call in the evening. The caller said he was from my bank’s card-security team and that my account needed urgent verification. He asked me to share an OTP. Soon after, I received messages showing ₹12,000 and ₹18,000 had been debited. I did not make those payments.";
 
 const rajeshBankOtpDraft: IncidentDraft = {
+  reportingPeople: {
+    reportingFor: "SOMEONE_ELSE",
+    victimName: "Rajesh Sharma",
+    helperName: "Suyash Pradhan",
+    relationship: "Son",
+    statementProvidedBy: "VICTIM",
+  },
   classification: {
     reportFamily: "FINANCIAL_FRAUD",
     category: "Financial Fraud",
@@ -1071,6 +1079,10 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     citizen: {
       ...demoProfile("Rajesh Sharma", "Male", "6400", "rajesh.demo"),
       dateOfBirth: "1962-04-18",
+    },
+    reporter: {
+      ...demoProfile("Suyash Pradhan", "Male", "0024", "suyash.demo"),
+      relationshipWithVictim: "Son",
     },
     citizenNameHi: "राजेश",
     sourceLanguage: "Hindi · English translation available",

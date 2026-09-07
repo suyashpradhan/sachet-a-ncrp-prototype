@@ -5,14 +5,18 @@ import { useI18n } from "../../i18n/i18n-provider";
 
 type LandingPageProps = {
   hasSubmittedCase: boolean;
+  hasRecoverableComplaint: boolean;
   onStartComplaint: () => void;
+  onContinueComplaint: () => void;
   onViewDemo: () => void;
   onViewSubmittedCase: () => void;
 };
 
 export function LandingPage({
   hasSubmittedCase,
+  hasRecoverableComplaint,
   onStartComplaint,
+  onContinueComplaint,
   onViewDemo,
   onViewSubmittedCase,
 }: LandingPageProps) {
@@ -22,6 +26,15 @@ export function LandingPage({
     ? ["रिपोर्ट करने", "समझने", "रोकने"]
     : ["report", "understand", "prevent"];
   const [rotatingWordIndex, setRotatingWordIndex] = useState(0);
+  const [confirmNewComplaint, setConfirmNewComplaint] = useState(false);
+
+  function requestStartComplaint() {
+    if (hasRecoverableComplaint) {
+      setConfirmNewComplaint(true);
+      return;
+    }
+    onStartComplaint();
+  }
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -81,7 +94,7 @@ export function LandingPage({
                 className="primary-button"
                 type="button"
                 onClick={
-                  hasSubmittedCase ? onViewSubmittedCase : onStartComplaint
+                  hasSubmittedCase ? onViewSubmittedCase : requestStartComplaint
                 }
               >
                 {hasSubmittedCase
@@ -100,12 +113,37 @@ export function LandingPage({
                 {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
               </button>
             </div>
+            {hasRecoverableComplaint ? (
+              <aside className="landing-resume-complaint">
+                <div>
+                  <strong>{hi ? "अपनी शिकायत जारी रखें" : "Continue your complaint"}</strong>
+                  <p>{hi ? "जहाँ छोड़ा था, वहीं से शुरू करें।" : "Pick up where you left off."}</p>
+                </div>
+                <button className="secondary-button" type="button" onClick={onContinueComplaint}>
+                  {hi ? "शिकायत जारी रखें" : "Continue complaint"}
+                </button>
+              </aside>
+            ) : null}
+            {confirmNewComplaint ? (
+              <div className="landing-new-complaint-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="new-complaint-heading">
+                <h2 id="new-complaint-heading">{hi ? "नई शिकायत शुरू करें?" : "Start a new complaint?"}</h2>
+                <p>{hi ? "आपकी अभी सुरक्षित शिकायत बदल दी जाएगी।" : "Your current saved complaint will be replaced."}</p>
+                <div className="landing-primary-actions">
+                  <button className="secondary-button" type="button" onClick={() => setConfirmNewComplaint(false)}>
+                    {hi ? "मौजूदा शिकायत रखें" : "Keep current complaint"}
+                  </button>
+                  <button className="primary-button" type="button" onClick={onStartComplaint}>
+                    {hi ? "नई शिकायत शुरू करें" : "Start new complaint"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
           <SachetHeroIllustration />
         </div>
       </section>
 
-      <CitizenPaths hi={hi} onStartComplaint={onStartComplaint} />
+      <CitizenPaths hi={hi} onStartComplaint={requestStartComplaint} />
       <HowSachetWorks hi={hi} />
       <FraudGuidance hi={hi} />
       <AfterReporting hi={hi} />

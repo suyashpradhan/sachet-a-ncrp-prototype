@@ -23,6 +23,7 @@ import {
 import type {
   IncidentDraft,
   ReportFamily,
+  ReportingPeople,
   TranscriptionResult,
 } from "../../incident/schema";
 import {
@@ -112,6 +113,7 @@ type ReportWorkspaceProps = {
   reportMethod: ReportMethod;
   narrative: string;
   reporterName: string;
+  reportingPeople: ReportingPeople | null;
   screenshots: File[];
   unavailableEvidenceNames: string[];
   transcription: TranscriptionResult | null;
@@ -139,6 +141,7 @@ type ReportWorkspaceProps = {
   onReportMethodChange: (method: ReportMethod) => void;
   onNarrativeChange: (value: string) => void;
   onReporterNameChange: (value: string) => void;
+  onReportingPeopleChange: (value: ReportingPeople) => void;
   onReporterProfileChange: (profile: ReporterProfile) => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
@@ -905,7 +908,25 @@ function ReportInputPane(props: ReportWorkspaceProps) {
   const processing = props.mode === "PROCESSING";
   const [editingTranscript, setEditingTranscript] = useState(false);
   const isSpeakMode = props.reportMethod === "SPEAK";
-  const sourcePersonName = props.demoCase?.citizen.displayName.split(/\s+/)[0];
+  const reportingForSomeoneElse =
+    props.reportingPeople?.reportingFor === "SOMEONE_ELSE";
+  const sourcePersonName = reportingForSomeoneElse
+    ? props.reportingPeople?.victimName?.trim().split(/\s+/)[0]
+    : props.demoCase?.citizen.displayName.split(/\s+/)[0];
+  const relationship = props.reportingPeople?.relationship ?? "";
+  const relationshipOption = relationship.startsWith("Other:")
+    ? "Other"
+    : relationship;
+  const otherRelationship = relationship.startsWith("Other:")
+    ? relationship.slice("Other:".length).trim()
+    : "";
+  const reportingChoiceComplete = Boolean(
+    props.reportingPeople?.reportingFor === "SELF" ||
+      (reportingForSomeoneElse &&
+        props.reportingPeople?.victimName?.trim() &&
+        relationship &&
+        (relationshipOption !== "Other" || otherRelationship)),
+  );
   const showingCaseFile = Boolean(props.draft);
   const recordingTime = `${Math.floor(props.recordingSeconds / 60)}:${String(
     props.recordingSeconds % 60,
@@ -941,7 +962,7 @@ function ReportInputPane(props: ReportWorkspaceProps) {
       <h1 id="journey-stage-heading" tabIndex={-1}>
         {props.mode === "REVIEW"
           ? t("workspace.reviewSubmit")
-          : props.isDemoIncident && sourcePersonName
+          : sourcePersonName && (props.isDemoIncident || reportingForSomeoneElse)
             ? locale === "hi"
               ? `${sourcePersonName} ने हमें क्या बताया`
               : `What ${sourcePersonName} told us`
@@ -961,7 +982,99 @@ function ReportInputPane(props: ReportWorkspaceProps) {
             : "Describe the incident in your own words. You don't need to know the report category."}
       </p>
 
-      {props.mode !== "REVIEW" && props.experienceMode !== "DEMO_CASE" ? (
+      {props.mode !== "REVIEW" && props.experienceMode !== "DEMO_CASE" && !props.draft ? (
+        <section className="reporting-for-question" aria-labelledby="reporting-for-heading">
+          <h2 id="reporting-for-heading">
+            {locale === "hi" ? "आप किसके लिए रिपोर्ट कर रहे हैं?" : "Who are you reporting for?"}
+          </h2>
+          <div className="reporting-for-options">
+            <button
+              type="button"
+              aria-pressed={props.reportingPeople?.reportingFor === "SELF"}
+              onClick={() =>
+                props.onReportingPeopleChange({
+                  reportingFor: "SELF",
+                  victimName: props.reporterName || null,
+                  helperName: null,
+                  relationship: null,
+                  statementProvidedBy: "VICTIM",
+                })
+              }
+            >
+              <strong>{locale === "hi" ? "अपने लिए" : "Myself"}</strong>
+              <span>{locale === "hi" ? "यह मेरे साथ हुआ।" : "This happened to me."}</span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={reportingForSomeoneElse}
+              onClick={() =>
+                props.onReportingPeopleChange({
+                  reportingFor: "SOMEONE_ELSE",
+                  victimName: reportingForSomeoneElse
+                    ? props.reportingPeople?.victimName ?? null
+                    : null,
+                  helperName: props.reporterName || null,
+                  relationship: reportingForSomeoneElse
+                    ? props.reportingPeople?.relationship ?? null
+                    : null,
+                  statementProvidedBy: "VICTIM",
+                })
+              }
+            >
+              <strong>{locale === "hi" ? "किसी और के लिए" : "Someone else"}</strong>
+              <span>{locale === "hi" ? "मैं उस व्यक्ति की मदद कर रहा/रही हूँ जिसके साथ यह हुआ।" : "I’m helping the person this happened to."}</span>
+            </button>
+          </div>
+          {reportingForSomeoneElse ? (
+            <div className="reporting-for-details">
+              <label>
+                <span>{locale === "hi" ? "जिस व्यक्ति के साथ यह हुआ — पूरा नाम" : "Person this happened to — full name"}</span>
+                <input
+                  autoComplete="name"
+                  value={props.reportingPeople?.victimName ?? ""}
+                  onChange={(event) => props.onReportingPeopleChange({
+                    ...props.reportingPeople!,
+                    victimName: event.target.value,
+                  })}
+                />
+              </label>
+              <label>
+                <span>{locale === "hi" ? "आप किस रिश्ते से मदद कर रहे हैं?" : "You are helping as"}</span>
+                <select
+                  value={relationshipOption}
+                  onChange={(event) => props.onReportingPeopleChange({
+                    ...props.reportingPeople!,
+                    relationship: event.target.value === "Other" ? "Other:" : event.target.value || null,
+                  })}
+                >
+                  <option value="">{locale === "hi" ? "रिश्ता चुनें" : "Select relationship"}</option>
+                  <option value="Son / daughter">{locale === "hi" ? "बेटा / बेटी" : "Son / daughter"}</option>
+                  <option value="Spouse / partner">{locale === "hi" ? "जीवनसाथी / साथी" : "Spouse / partner"}</option>
+                  <option value="Parent">{locale === "hi" ? "माता-पिता" : "Parent"}</option>
+                  <option value="Sibling">{locale === "hi" ? "भाई / बहन" : "Sibling"}</option>
+                  <option value="Relative">{locale === "hi" ? "रिश्तेदार" : "Relative"}</option>
+                  <option value="Friend">{locale === "hi" ? "मित्र" : "Friend"}</option>
+                  <option value="Other">{locale === "hi" ? "अन्य" : "Other"}</option>
+                </select>
+              </label>
+              {relationshipOption === "Other" ? (
+                <label>
+                  <span>{locale === "hi" ? "रिश्ता लिखें" : "Relationship"}</span>
+                  <input
+                    value={otherRelationship}
+                    onChange={(event) => props.onReportingPeopleChange({
+                      ...props.reportingPeople!,
+                      relationship: `Other: ${event.target.value}`,
+                    })}
+                  />
+                </label>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {props.mode !== "REVIEW" && props.experienceMode !== "DEMO_CASE" && reportingChoiceComplete ? (
         <div className="incident-composer">
           {!props.draft ? (
             <aside className="before-you-begin" aria-labelledby="before-you-begin-heading">
@@ -1035,7 +1148,13 @@ function ReportInputPane(props: ReportWorkspaceProps) {
                 </div>
               ) : props.transcription ? (
                 <div className="voice-transcript-editor">
-                  <h2>{locale === "hi" ? "आपका बयान" : "Your statement"}</h2>
+                  <h2>
+                    {reportingForSomeoneElse && sourcePersonName
+                      ? locale === "hi"
+                        ? `${sourcePersonName} ने हमें क्या बताया`
+                        : `What ${sourcePersonName} told us`
+                      : locale === "hi" ? "आपका बयान" : "Your statement"}
+                  </h2>
                   {editingTranscript ? (
                     <textarea
                       value={props.transcription.originalTranscript}
@@ -2799,7 +2918,12 @@ function ReportReview(props: ReportWorkspaceProps) {
   const sourceLabel = (sources: string[]) => {
     if (sources.length === 0) return "—";
     if (sources.includes("SIMULATED_PROFILE")) return t("field.fromProfile");
-    if (sources.includes("USER_INPUT")) return t("profile.fromTest");
+    if (sources.includes("USER_INPUT"))
+      return props.draft?.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+        ? locale === "hi"
+          ? "मदद करने वाले व्यक्ति ने जोड़ा"
+          : "Added by person helping"
+        : t("profile.fromTest");
     if (sources.includes("USER_CONFIRMED")) return t("field.fromConfirmation");
     if (sources.includes("EVIDENCE")) return t("field.fromEvidence");
     if (sources.includes("VOICE") || sources.includes("TYPED"))
@@ -2867,7 +2991,11 @@ function ReportReview(props: ReportWorkspaceProps) {
       </div>
       <PreparedComplaintSummary
         draft={props.draft}
-        reporterName={props.reporterProfile.displayName}
+        reporterName={
+          props.draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+            ? props.draft.reportingPeople.victimName ?? props.reporterProfile.displayName
+            : props.reporterProfile.displayName
+        }
       />
       <section
         className="case-integrity-summary"
@@ -3005,7 +3133,11 @@ function ReportReview(props: ReportWorkspaceProps) {
       </div>
       <section className="review-reporter-details" aria-labelledby="review-reporter-heading">
         <div>
-          <h2 id="review-reporter-heading">{locale === "hi" ? "शिकायत में अपनी जानकारी जोड़ें" : "Add your details to the complaint"}</h2>
+          <h2 id="review-reporter-heading">
+            {props.draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+              ? locale === "hi" ? "मदद करने वाले व्यक्ति की जानकारी जोड़ें" : "Add details for the person helping"
+              : locale === "hi" ? "शिकायत में अपनी जानकारी जोड़ें" : "Add your details to the complaint"}
+          </h2>
           <p>{locale === "hi" ? "हम यह जानकारी तभी मांगते हैं जब घटना की जानकारी तैयार हो जाती है।" : "We ask for these only after the incident details are ready."}</p>
         </div>
         <div className="review-reporter-fields">
@@ -4215,7 +4347,11 @@ function ReportDetailsPane({
       {props.mode === "READY" && props.draft ? (
         <PreparedComplaintSummary
           draft={props.draft}
-          reporterName={props.reporterProfile.displayName}
+          reporterName={
+            props.draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+              ? props.draft.reportingPeople.victimName ?? props.reporterProfile.displayName
+              : props.reporterProfile.displayName
+          }
         />
       ) : null}
 
@@ -4979,10 +5115,13 @@ export function ReportWorkspace(props: ReportWorkspaceProps) {
     let attempts = 0;
 
     const reveal = () => {
-      const target = Array.from(
+      const candidates = Array.from(
         document.querySelectorAll<HTMLElement>("[data-report-field-id]"),
-      ).find((item) => item.dataset.reportFieldId === pendingTargetId);
-      if (!target && attempts < 4) {
+      ).filter((item) => item.dataset.reportFieldId === pendingTargetId);
+      const target =
+        candidates.find((item) => item.getClientRects().length > 0) ??
+        candidates[0];
+      if (!target && attempts < 30) {
         attempts += 1;
         frame = window.requestAnimationFrame(reveal);
         return;
@@ -4990,10 +5129,18 @@ export function ReportWorkspace(props: ReportWorkspaceProps) {
 
       if (!target) {
         const fallback = document.querySelector<HTMLElement>(
-          "#report-details-heading",
+          ".priority-missing-question, [data-amount-conflict], .case-consistency-issue, .composer-evidence, #report-details-heading",
         );
-        fallback?.focus({ preventScroll: true });
-        fallback?.scrollIntoView({ behavior: "auto", block: "start" });
+        const fallbackFocus = fallback?.matches(
+          "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
+        )
+          ? fallback
+          : fallback?.querySelector<HTMLElement>(
+              "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
+            );
+        fallback?.scrollIntoView({ behavior: "auto", block: "center" });
+        fallbackFocus?.focus({ preventScroll: true });
+        fallback?.classList.add("report-field-target-highlight");
         setNavigationMessage(
           locale === "hi"
             ? "अगली जरूरी जानकारी रिपोर्ट में दिखाई गई है।"
@@ -5008,31 +5155,35 @@ export function ReportWorkspace(props: ReportWorkspaceProps) {
         disclosure.open = true;
         disclosure = disclosure.parentElement?.closest("details") ?? null;
       }
-      const focusTarget = target.matches(
-        "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
-      )
-        ? target
-        : target.querySelector<HTMLElement>(
-            "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
-          );
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      target.scrollIntoView({
-        behavior: reduceMotion ? "auto" : "smooth",
-        block: "center",
+      frame = window.requestAnimationFrame(() => {
+        const focusTarget = target.matches(
+          "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
+        )
+          ? target
+          : target.querySelector<HTMLElement>(
+              "input, textarea, select, button, [tabindex]:not([tabindex='-1'])",
+            );
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        target.scrollIntoView({
+          behavior: reduceMotion ? "auto" : "smooth",
+          block: "center",
+        });
+        focusTarget?.focus({ preventScroll: true });
+        target.classList.add("report-field-target-highlight");
+        if (highlightTimerRef.current)
+          window.clearTimeout(highlightTimerRef.current);
+        highlightTimerRef.current = window.setTimeout(() => {
+          target.classList.remove("report-field-target-highlight");
+        }, 1600);
+        setNavigationMessage(
+          locale === "hi"
+            ? "जरूरी फ़ील्ड खुल गया है।"
+            : "Required field opened.",
+        );
+        setPendingTargetId(null);
       });
-      focusTarget?.focus({ preventScroll: true });
-      target.classList.add("report-field-target-highlight");
-      if (highlightTimerRef.current)
-        window.clearTimeout(highlightTimerRef.current);
-      highlightTimerRef.current = window.setTimeout(() => {
-        target.classList.remove("report-field-target-highlight");
-      }, 1600);
-      setNavigationMessage(
-        locale === "hi" ? "जरूरी फ़ील्ड खुल गया है।" : "Required field opened.",
-      );
-      setPendingTargetId(null);
     };
 
     frame = window.requestAnimationFrame(reveal);

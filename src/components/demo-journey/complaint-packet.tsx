@@ -290,6 +290,26 @@ export function ComplaintPacket({
           </dl>
         </section>
 
+        {draft.reportingPeople?.reportingFor === "SOMEONE_ELSE" ? (
+          <section className="packet-section">
+            <h2>{hi ? "इस शिकायत में लोग" : "People in this complaint"}</h2>
+            <dl>
+              <PacketField
+                label={hi ? "पीड़ित" : "Victim"}
+                value={draft.reportingPeople.victimName}
+              />
+              <PacketField
+                label={hi ? "रिपोर्ट करने में मदद करने वाला व्यक्ति" : "Person helping to report"}
+                value={draft.reportingPeople.helperName}
+              />
+              <PacketField
+                label={hi ? "रिश्ता" : "Relationship"}
+                value={draft.reportingPeople.relationship?.replace(/^Other:\s*/, "") ?? null}
+              />
+            </dl>
+          </section>
+        ) : null}
+
         <footer>
           <p>{hi ? "नागरिक द्वारा दी गई जानकारी से तैयार।" : "Prepared from information supplied by the citizen."}</p>
           <p>{hi ? "सचेत, एक स्वतंत्र प्रोटोटाइप, के साथ तैयार। यह सरकारी दस्तावेज़ नहीं है और एनसीआरपी, किसी बैंक या पुलिस से जुड़ा नहीं है।" : "Prepared with Sachet, an independent prototype. This is not a government document and is not connected to NCRP, a bank, or the police."}</p>

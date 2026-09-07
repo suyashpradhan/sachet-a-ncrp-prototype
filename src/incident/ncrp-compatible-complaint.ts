@@ -102,6 +102,10 @@ const ComplainantGroupSchema = z.object({
   relationshipWithVictim: ComplaintFieldSchema,
 });
 
+const VictimGroupSchema = z.object({
+  name: ComplaintFieldSchema,
+});
+
 const AddressGroupSchema = z.object({
   houseNumber: ComplaintFieldSchema,
   street: ComplaintFieldSchema,
@@ -174,6 +178,7 @@ export const NcrpCompatibleComplaintSchema = z.object({
       })),
     }),
     suspect: SuspectGroupSchema,
+    victim: VictimGroupSchema,
     complainant: ComplainantGroupSchema,
     address: AddressGroupSchema,
     identityDocument: z.object({
@@ -509,6 +514,15 @@ export function buildNcrpCompatibleComplaint({
         photograph: valueField(null, [], false),
         address: valueField(null, [], false),
       },
+      victim: {
+        name: valueField(
+          draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+            ? draft.reportingPeople.victimName
+            : profile.displayName,
+          [profileSource],
+          true,
+        ),
+      },
       complainant: {
         title: valueField(profile.title, [profileSource], false),
         name: valueField(profile.displayName, [profileSource], true),
@@ -518,7 +532,13 @@ export function buildNcrpCompatibleComplaint({
         parentOrSpouseRelationship: valueField(profile.parentOrSpouseRelationship, [profileSource], true),
         parentOrSpouseName: valueField(profile.parentOrSpouseName, [profileSource], true),
         email: valueField(profile.email, [profileSource], true),
-        relationshipWithVictim: valueField(profile.relationshipWithVictim, [profileSource], true),
+        relationshipWithVictim: valueField(
+          draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+            ? draft.reportingPeople.relationship
+            : profile.relationshipWithVictim || "Self",
+          [profileSource],
+          true,
+        ),
       },
       address: {
         houseNumber: valueField(profile.houseNumber, [profileSource], false),

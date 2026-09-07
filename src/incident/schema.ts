@@ -13,6 +13,15 @@ export type ReportFamily = z.infer<typeof ReportFamilySchema>;
 export const FinancialLossStateSchema = z.enum(["YES", "NO", "UNKNOWN"]);
 export type FinancialLossState = z.infer<typeof FinancialLossStateSchema>;
 
+export const ReportingPeopleSchema = z.object({
+  reportingFor: z.enum(["SELF", "SOMEONE_ELSE"]),
+  victimName: z.string().nullable(),
+  helperName: z.string().nullable(),
+  relationship: z.string().nullable(),
+  statementProvidedBy: z.enum(["VICTIM", "HELPER"]),
+}).strict();
+export type ReportingPeople = z.infer<typeof ReportingPeopleSchema>;
+
 export const FinancialExposureSchema = z.object({
   bankDetailsRequested: z.boolean().nullable(),
   identityDocumentRequested: z.boolean().nullable(),
@@ -119,6 +128,7 @@ export const AdaptiveIncidentFactsSchema = z.object({
 export type AdaptiveIncidentFacts = z.infer<typeof AdaptiveIncidentFactsSchema>;
 
 export const IncidentDraftSchema = z.object({
+  reportingPeople: ReportingPeopleSchema.optional(),
   classification: IncidentClassificationSchema,
   adaptiveFacts: AdaptiveIncidentFactsSchema,
   citizenSummary: z.object({
@@ -182,7 +192,7 @@ export type IncidentDraft = z.infer<typeof IncidentDraftSchema>;
 
 /** Provider-facing schema keeps application-owned evidence links and amount claims out of model output. */
 export const IncidentExtractionSchema = IncidentDraftSchema
-  .omit({ amountClaims: true, transactions: true })
+  .omit({ amountClaims: true, transactions: true, reportingPeople: true })
   .extend({
     transactions: z.array(
       IncidentTransactionSchema.omit({ direction: true, evidenceId: true }).extend({

@@ -1170,6 +1170,40 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   gap: 14px;
 }
 
+.landing-resume-complaint {
+  max-width: 620px;
+  margin-top: 22px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.landing-resume-complaint p,
+.landing-new-complaint-confirmation p {
+  margin: 4px 0 0;
+  color: var(--secondary);
+}
+
+.landing-new-complaint-confirmation {
+  max-width: 620px;
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(50, 20, 20, 0.08);
+}
+
+.landing-new-complaint-confirmation h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
 .landing-review-note {
   margin: 16px 0 0;
   color: var(--secondary);
@@ -1715,6 +1749,73 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 .incident-composer {
   margin-top: 24px;
 }
+
+.reporting-for-question {
+  margin-top: 26px;
+}
+
+.reporting-for-question h2 {
+  margin-bottom: 14px;
+  font-size: 22px;
+}
+
+.reporting-for-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reporting-for-options button {
+  min-height: 104px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--text);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.reporting-for-options button[aria-pressed="true"] {
+  background: var(--primary-050);
+  border-color: var(--primary);
+}
+
+.reporting-for-options button span {
+  color: var(--secondary);
+}
+
+.reporting-for-details {
+  margin-top: 16px;
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+  background: var(--surface-muted);
+  border-radius: 10px;
+}
+
+.reporting-for-details label {
+  display: grid;
+  gap: 7px;
+  font-weight: 650;
+}
+
+.reporting-for-details input,
+.reporting-for-details select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font: inherit;
+}
+
 
 .report-method-fieldset {
   margin: 24px 0 16px;
@@ -5388,6 +5489,19 @@ html[data-ui-locale="hi"] .companion-eyebrow {
   .report-input-pane,
   .report-details-pane {
     padding: 26px;
+  }
+
+  .reporting-for-options {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-resume-complaint {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .landing-resume-complaint .secondary-button {
+    width: 100%;
   }
 
   .case-knowledge-summary {

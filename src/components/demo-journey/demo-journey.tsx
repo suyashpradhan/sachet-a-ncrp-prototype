@@ -33,9 +33,11 @@ import {
 } from "../../incident/ncrp-compatible-complaint";
 import {
   IncidentDraftSchema,
+  ReportingPeopleSchema,
   safeParseIncidentDraft,
   TranscriptionResultSchema,
   type IncidentDraft,
+  type ReportingPeople,
   type ReportFamily,
   type TranscriptionResult,
 } from "../../incident/schema";
@@ -43,6 +45,7 @@ import { applyReportFamily } from "../../incident/classification";
 import {
   SYNTHETIC_NCRP_PROFILE,
   createEmptyTestProfile,
+  type ReporterProfile,
 } from "../../experience/profile";
 import { useI18n } from "../../i18n/i18n-provider";
 import { useJourneyNavigation } from "../../navigation/journey-navigation";
@@ -109,6 +112,8 @@ type PersistedUnfinishedReport = {
   view: "REPORT_INPUT" | "ANALYSIS_RESULT" | "REVIEW";
   reportMethod: ReportMethod;
   reporterName: string;
+  reporterProfile?: ReporterProfile | null;
+  reportingPeople?: ReportingPeople | null;
   narrative: string;
   transcription: TranscriptionResult | null;
   draft: IncidentDraft | null;
@@ -193,9 +198,25 @@ function readUnfinishedReport(): PersistedUnfinishedReport | null {
     const parsedTranscription = candidate.transcription
       ? TranscriptionResultSchema.safeParse(candidate.transcription)
       : null;
+    const parsedReportingPeople = candidate.reportingPeople
+      ? ReportingPeopleSchema.safeParse(candidate.reportingPeople)
+      : null;
+    const restoredProfile =
+      candidate.reporterProfile &&
+      typeof candidate.reporterProfile === "object" &&
+      Object.entries(candidate.reporterProfile).every(
+        ([key, value]) => key === "source" || typeof value === "string",
+      )
+        ? {
+            ...createEmptyTestProfile(),
+            ...candidate.reporterProfile,
+            source: "TEST_INPUT" as const,
+          }
+        : null;
     if (
       (parsedDraft && !parsedDraft.success) ||
-      (parsedTranscription && !parsedTranscription.success)
+      (parsedTranscription && !parsedTranscription.success) ||
+      (parsedReportingPeople && !parsedReportingPeople.success)
     ) {
       window.localStorage.removeItem(UNFINISHED_REPORT_KEY);
       return null;
@@ -205,6 +226,12 @@ function readUnfinishedReport(): PersistedUnfinishedReport | null {
       view: candidate.view as PersistedUnfinishedReport["view"],
       reportMethod: candidate.reportMethod as ReportMethod,
       reporterName: candidate.reporterName,
+      reporterProfile: restoredProfile,
+      reportingPeople: parsedReportingPeople?.success
+        ? parsedReportingPeople.data
+        : parsedDraft?.success
+          ? parsedDraft.data.reportingPeople ?? null
+          : null,
       narrative: candidate.narrative,
       transcription: parsedTranscription?.success
         ? parsedTranscription.data
@@ -321,7 +348,7 @@ async function compressScreenshot(file: File): Promise<File> {
 }
 
 export function DemoJourney() {
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
   const { registerControls } = useJourneyNavigation();
   const {
     experienceMode,
@@ -336,6 +363,8 @@ export function DemoJourney() {
   const [draft, setDraft] = useState<IncidentDraft | null>(null);
   const [narrative, setNarrative] = useState("");
   const [reporterName, setReporterName] = useState("");
+  const [reportingPeople, setReportingPeople] =
+    useState<ReportingPeople | null>(null);
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [transcription, setTranscription] =
     useState<TranscriptionResult | null>(null);
@@ -447,7 +476,8 @@ export function DemoJourney() {
       return;
     }
     const meaningful = Boolean(
-      narrative.trim() ||
+      reportingPeople ||
+        narrative.trim() ||
         transcription ||
         draft ||
         screenshots.length > 0 ||
@@ -475,6 +505,12 @@ export function DemoJourney() {
         view: savedView,
         reportMethod,
         reporterName: sanitizeSensitiveText(reporterName).text,
+        reporterProfile: reporterProfile
+          ? sanitizeForDeviceStorage(reporterProfile)
+          : null,
+        reportingPeople: reportingPeople
+          ? sanitizeForDeviceStorage(reportingPeople)
+          : null,
         narrative: sanitizeSensitiveText(narrative).text,
         transcription: safeTranscription?.success
           ? safeTranscription.data
@@ -525,6 +561,8 @@ export function DemoJourney() {
     recordingSeconds,
     reportMethod,
     reporterName,
+    reporterProfile,
+    reportingPeople,
     screenshots,
     selectedReportedAmount,
     transcription,
@@ -762,6 +800,7 @@ export function DemoJourney() {
     setDraft(null);
     setNarrative("");
     setReporterName("");
+    setReportingPeople(null);
     setScreenshots([]);
     setAudio(null);
     setTranscription(null);
@@ -887,7 +926,7 @@ export function DemoJourney() {
     resetInputs();
     setSelectedDemoCaseId(demoCase.id);
     setDemoCaseRevision((current) => current + 1);
-    beginExperience("DEMO_CASE", demoCase.citizen);
+    beginExperience("DEMO_CASE", demoCase.reporter ?? demoCase.citizen);
     setNarrative(demoCase.statement);
     setDemoNarrationLanguage(selectedNarrationLanguage);
     setTranscription(demoCase.narrations[selectedNarrationLanguage]);
@@ -895,6 +934,15 @@ export function DemoJourney() {
       demoCase.narrations[selectedNarrationLanguage].durationSeconds,
     );
     setIsDemoIncident(true);
+    setReportingPeople(
+      demoCase.draft.reportingPeople ?? {
+        reportingFor: "SELF",
+        victimName: demoCase.citizen.displayName,
+        helperName: null,
+        relationship: null,
+        statementProvidedBy: "VICTIM",
+      },
+    );
     const mobileSuffix = demoCase.citizen.registeredMobile.replace(/\D/g, "").slice(-4);
     setReminderPreferences(
       createReminderPreferences(true, {
@@ -924,9 +972,22 @@ export function DemoJourney() {
     resetDemo();
     resetInputs();
     beginExperience("LIVE_TEST", createEmptyTestProfile());
+    setReporterProfile(
+      recoverableReport.reporterProfile ?? createEmptyTestProfile(),
+    );
     setSubmittedReference("");
     setReportMethod(recoverableReport.reportMethod);
     setReporterName(recoverableReport.reporterName);
+    setReportingPeople(
+      recoverableReport.reportingPeople ??
+        recoverableReport.draft?.reportingPeople ?? {
+          reportingFor: "SELF",
+          victimName: recoverableReport.reporterName || null,
+          helperName: null,
+          relationship: null,
+          statementProvidedBy: "VICTIM",
+        },
+    );
     setNarrative(recoverableReport.narrative);
     setTranscription(recoverableReport.transcription);
     setDraft(
@@ -1146,8 +1207,24 @@ export function DemoJourney() {
       event.target.value = "";
       return;
     }
-    const prepared = await Promise.all(uniqueSelected.map(compressScreenshot));
+    const prepared = await Promise.all(
+      uniqueSelected.map(async (file) => {
+        try {
+          return await compressScreenshot(file);
+        } catch {
+          // Keep the original image when a browser cannot decode/compress it.
+          // Evidence attachment must not fail silently because optimization did.
+          return file;
+        }
+      }),
+    );
+    const nextEvidenceCount = screenshots.length + prepared.length;
     setScreenshots((current) => [...current, ...prepared]);
+    setDraft((current) =>
+      current
+        ? alignEvidenceToUploadedFiles(current, nextEvidenceCount)
+        : current,
+    );
     setUnavailableEvidenceNames((current) =>
       current.filter(
         (name) => !prepared.some((file) => file.name === name),
@@ -1307,10 +1384,6 @@ export function DemoJourney() {
         setTranscription(preparedTranscription);
       }
 
-      if (preparedTranscription?.languageCode.startsWith("hi")) setLocale("hi");
-      else if (preparedTranscription?.languageCode.startsWith("en")) setLocale("en");
-      else if (!preparedTranscription && /[\u0900-\u097f]/.test(narrative)) setLocale("hi");
-
       setLoadingMessage("workspace.organisingReport");
       const data = new FormData();
       data.append("narrative", narrative);
@@ -1318,7 +1391,7 @@ export function DemoJourney() {
         "englishTranscript",
         preparedTranscription?.englishTranscript ?? "",
       );
-      data.append("reportingFor", "SELF");
+      data.append("reportingFor", reportingPeople?.reportingFor ?? "SELF");
       data.append("reportingDate", currentIndiaDate());
       screenshots.forEach((file) =>
         data.append("screenshots", file, file.name),
@@ -1330,12 +1403,20 @@ export function DemoJourney() {
       const result: unknown = await response.json().catch(() => null);
       if (analysisRunRef.current !== analysisRun) return;
       if (!response.ok) throw new Error("REPORT_PREPARATION_FAILED");
-      setDraft(
-        alignEvidenceToUploadedFiles(
+      const preparedPeople = reportingPeople ?? {
+        reportingFor: "SELF" as const,
+        victimName: activeProfile.displayName.trim() || null,
+        helperName: null,
+        relationship: null,
+        statementProvidedBy: "VICTIM" as const,
+      };
+      setDraft({
+        ...alignEvidenceToUploadedFiles(
           normalizeIncidentDraft(IncidentDraftSchema.parse(result)),
           screenshots.length,
         ),
-      );
+        reportingPeople: preparedPeople,
+      });
       preparedAtRef.current = new Date().toISOString();
       setPreparedSourceSignature(
         reportSourceSignature({
@@ -1476,7 +1557,10 @@ export function DemoJourney() {
       }
       const built = buildSyntheticCaseFromComplaint({
         incidentDraft: draft,
-        syntheticCitizen: { displayName: activeProfile.displayName },
+        syntheticCitizen: {
+          displayName:
+            draft.reportingPeople?.victimName ?? activeProfile.displayName,
+        },
         acknowledgementId: DEMO_CASE_ACCESS.acknowledgementNumber,
         submittedAt: submissionTime,
         caseOrigin: isDemoIncident ? "DEMO_INCIDENT" : "LIVE_TEST",
@@ -1506,32 +1590,12 @@ export function DemoJourney() {
   let content: ReactNode;
 
   if (view === "ENTRY") {
-    content = recoverableReport && !hasSubmittedCase ? (
-      <section className="service-entry section-pad" data-journey-focus tabIndex={-1}>
-        <div className="shell reading-shell draft-recovery-card">
-          <p className="eyebrow">
-            {locale === "hi" ? "इस डिवाइस पर सुरक्षित" : "Saved on this device"}
-          </p>
-          <h1>{locale === "hi" ? "अपनी शिकायत जारी रखें?" : "Continue your complaint?"}</h1>
-          <p>
-            {locale === "hi"
-              ? "आपकी प्रगति इस डिवाइस पर सुरक्षित है।"
-              : "Your progress was saved on this device."}
-          </p>
-          <div className="entry-actions">
-            <button className="primary-button" type="button" onClick={continueRecoveredReport}>
-              {locale === "hi" ? "जारी रखें" : "Continue"}
-            </button>
-            <button className="secondary-button" type="button" onClick={startReport}>
-              {locale === "hi" ? "नई शिकायत शुरू करें" : "Start new complaint"}
-            </button>
-          </div>
-        </div>
-      </section>
-    ) : (
+    content = (
       <LandingPage
         hasSubmittedCase={hasSubmittedCase}
+        hasRecoverableComplaint={Boolean(recoverableReport && !hasSubmittedCase)}
         onStartComplaint={startReport}
+        onContinueComplaint={continueRecoveredReport}
         onViewDemo={() => useDemoIncident()}
         onViewSubmittedCase={openSubmittedCase}
       />
@@ -1560,6 +1624,7 @@ export function DemoJourney() {
         reportMethod={reportMethod}
         narrative={narrative}
         reporterName={reporterName}
+        reportingPeople={reportingPeople}
         screenshots={screenshots}
         unavailableEvidenceNames={unavailableEvidenceNames}
         transcription={transcription}
@@ -1586,10 +1651,64 @@ export function DemoJourney() {
         reportReference={submittedReference}
         onReportMethodChange={setReportMethod}
         onNarrativeChange={setNarrative}
-        onReporterNameChange={setReporterName}
+        onReporterNameChange={(value) => {
+          setReporterName(value);
+          setReportingPeople((current) =>
+            current?.reportingFor === "SOMEONE_ELSE"
+              ? { ...current, helperName: value || null }
+              : current
+                ? { ...current, victimName: value || null }
+                : current,
+          );
+          setDraft((current) =>
+            current?.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+              ? {
+                  ...current,
+                  reportingPeople: { ...current.reportingPeople, helperName: value || null },
+                }
+              : current?.reportingPeople
+                ? {
+                    ...current,
+                    reportingPeople: { ...current.reportingPeople, victimName: value || null },
+                  }
+                : current,
+          );
+        }}
+        onReportingPeopleChange={(people) => {
+          setReportingPeople(people);
+          setDraft((current) =>
+            current ? { ...current, reportingPeople: people } : current,
+          );
+        }}
         onReporterProfileChange={(profile) => {
           setReporterProfile(profile);
           setReporterName(profile.displayName);
+          setReportingPeople((current) =>
+            current?.reportingFor === "SOMEONE_ELSE"
+              ? { ...current, helperName: profile.displayName || null }
+              : current
+                ? { ...current, victimName: profile.displayName || null }
+                : current,
+          );
+          setDraft((current) =>
+            current?.reportingPeople?.reportingFor === "SOMEONE_ELSE"
+              ? {
+                  ...current,
+                  reportingPeople: {
+                    ...current.reportingPeople,
+                    helperName: profile.displayName || null,
+                  },
+                }
+              : current?.reportingPeople
+                ? {
+                    ...current,
+                    reportingPeople: {
+                      ...current.reportingPeople,
+                      victimName: profile.displayName || null,
+                    },
+                  }
+                : current,
+          );
         }}
         onStartRecording={() => void startRecording()}
         onStopRecording={stopRecording}

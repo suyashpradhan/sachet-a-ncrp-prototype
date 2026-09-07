@@ -124,6 +124,26 @@ function PrintableCaseReport({
           </p>
         </section>
       ) : null}
+      {draft.reportingPeople?.reportingFor === "SOMEONE_ELSE" ? (
+        <section>
+          <h2>{hi ? "इस शिकायत में लोग" : "People in this complaint"}</h2>
+          <dl>
+            <div>
+              <dt>{hi ? "पीड़ित" : "Victim"}</dt>
+              <dd>{draft.reportingPeople.victimName}</dd>
+            </div>
+            <div>
+              <dt>{hi ? "रिपोर्ट करने में मदद करने वाला व्यक्ति" : "Person helping to report"}</dt>
+              <dd>
+                {draft.reportingPeople.helperName}
+                {draft.reportingPeople.relationship
+                  ? ` · ${draft.reportingPeople.relationship.replace(/^Other:\s*/, "")}`
+                  : ""}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      ) : null}
       <section>
         <h2>{hi ? "शिकायत की जानकारी" : "Complaint details"}</h2>
         <dl>
@@ -137,7 +157,13 @@ function PrintableCaseReport({
       </section>
       {displayedStatement ? (
         <section>
-          <h2>{hi ? "घटना का विवरण" : "Incident summary"}</h2>
+          <h2>
+            {draft.reportingPeople?.reportingFor === "SOMEONE_ELSE" && draft.reportingPeople.victimName
+              ? hi
+                ? `${draft.reportingPeople.victimName} ने हमें क्या बताया`
+                : `What ${draft.reportingPeople.victimName} told us`
+              : hi ? "घटना का विवरण" : "Incident summary"}
+          </h2>
           <p>{displayedStatement}</p>
         </section>
       ) : null}
