@@ -4,7 +4,10 @@ export function isInternalCaseValue(value: unknown): boolean {
   return (
     value === CITIZEN_DOES_NOT_HAVE ||
     value === "UNKNOWN" ||
-    (typeof value === "string" && /^__[A-Z0-9_]+__$/.test(value))
+    (typeof value === "string" &&
+      (/^__[A-Z0-9_]+__$/.test(value) ||
+        /^(?:synthetic|demo|placeholder)\b/i.test(value) ||
+        /^(?:fake bank|fake payment provider)\b/i.test(value)))
   );
 }
 

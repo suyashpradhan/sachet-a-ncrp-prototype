@@ -237,6 +237,32 @@ export function deriveReportReadiness(input: {
     });
   }
 
+  const knownDebitCount = draft.transactions.filter(
+    (transaction) =>
+      transaction.status === "KNOWN" &&
+      transaction.direction !== "CREDIT" &&
+      Boolean(transaction.amount),
+  ).length;
+  if (
+    !amountResolution?.hasConflict &&
+    amountResolution?.resolvedLoss &&
+    knownDebitCount > 0 &&
+    !draft.citizenConfirmedFields.includes("incident.citizenConfirmedLoss")
+  ) {
+    items.unshift({
+      id: "financial.confirmedLoss",
+      fieldId: "financial-loss-confirmation",
+      sectionId: "INCIDENT",
+      label:
+        locale === "hi"
+          ? "कुल नुकसान की पुष्टि करें"
+          : "Confirm the total amount lost",
+      level: "BLOCKING",
+      blocking: true,
+      kind: "CONFIRMATION",
+    });
+  }
+
   for (const issue of getCaseConsistencyIssues(draft)) {
     if (
       issue.type === "TOTAL_MISMATCH" ||

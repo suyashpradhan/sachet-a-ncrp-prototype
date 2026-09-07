@@ -25,7 +25,6 @@ import { formatIndiaShortDateWithYear } from "../../presentation/format";
 import type { DemoCaseDefinition } from "../../incident/demo-incident";
 import {
   deriveCitizenNudges,
-  type ReminderCategory,
   type ReminderPreferences,
 } from "../../notifications/citizen-nudges";
 import { citizenVisibleValue } from "../../presentation/citizen-visible-value";
@@ -530,7 +529,7 @@ export function PostSubmissionCaseHome({
   const { locale } = useI18n();
   const hi = locale === "hi";
   const summary = getCaseSummary(draft, locale);
-  const actions = getPostReportActions(draft, locale);
+  const actions = getPostReportActions(draft, locale).slice(0, 3);
   const primaryAction = actions[0];
   const secondaryActions = actions.slice(1);
   const keepReady = getKeepReadyPacket(draft, locale);
@@ -560,49 +559,7 @@ export function PostSubmissionCaseHome({
     isDemoIncident ? "DEMO" : "LIVE",
     prototypeReference,
   );
-  const timeline = [
-    ...baseTimeline,
-    ...(reminderPreferences.enabled && reminderPreferences.scheduledAt
-      ? [
-          {
-            id: "reminders-enabled",
-            timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
-              dateStyle: "medium",
-              timeStyle: "short",
-              timeZone: "Asia/Kolkata",
-            }).format(new Date(reminderPreferences.scheduledAt)),
-            title: hi ? "सचेत रिमाइंडर तय हुआ" : "सचेत reminder scheduled",
-            sourceRefs: [
-              {
-                type: "SYSTEM" as const,
-                label: hi ? "स्रोत: सचेत" : "Source: सचेत",
-              },
-            ],
-          },
-        ]
-      : []),
-    ...(reminderPreferences.sentAt
-      ? [
-          {
-            id: "demo-reminder-sent",
-            timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
-              dateStyle: "medium",
-              timeStyle: "short",
-              timeZone: "Asia/Kolkata",
-            }).format(new Date(reminderPreferences.sentAt)),
-            title: hi
-              ? "सिंथेटिक डेमो रिमाइंडर भेजा गया"
-              : "Synthetic demo reminder sent",
-            sourceRefs: [
-              {
-                type: "PROTOTYPE" as const,
-                label: hi ? "स्रोत: सिंथेटिक डेमो" : "Source: Synthetic demo",
-              },
-            ],
-          },
-        ]
-      : []),
-  ];
+  const timeline = baseTimeline;
   const stateExplanation = getCaseStateExplanation(
     missingReferenceIndex >= 0 ? "ADDITIONAL_INFO_REQUESTED" : "SUBMITTED",
     locale,
@@ -615,6 +572,7 @@ export function PostSubmissionCaseHome({
     "transactions",
     "incident-date",
     "channel",
+    "claimed-identity",
     "affected-platforms",
     "affected-account",
     "affected-platform",
@@ -644,20 +602,6 @@ export function PostSubmissionCaseHome({
     reminderPreferences.channel === "EMAIL"
       ? activeRecipient.replace(/^(.{1,2}).*(@.*)$/, "$1••••$2")
       : `+91 ••••• ${activeRecipient.replace(/\D/g, "").slice(-4)}`;
-  const reminderCategoryLabels: Record<ReminderCategory, string> = hi
-    ? {
-        IMPORTANT_ACTIONS: "जरूरी कार्रवाई",
-        MISSING_DETAILS: "शिकायत की छूटी जानकारी",
-        EVIDENCE_SAFETY: "सबूत और सुरक्षा",
-        FOLLOW_UP: "उपलब्ध होने पर मामले की स्थिति",
-      }
-    : {
-        IMPORTANT_ACTIONS: "Important actions",
-        MISSING_DETAILS: "Missing complaint details",
-        EVIDENCE_SAFETY: "Evidence & safety",
-        FOLLOW_UP: "Case-status changes when available",
-      };
-
   function updateReminderPreferences(update: Partial<ReminderPreferences>) {
     onReminderPreferencesChange({ ...reminderPreferences, ...update });
   }
@@ -672,14 +616,6 @@ export function PostSubmissionCaseHome({
           : hi
             ? "सही भारतीय मोबाइल नंबर दर्ज करें।"
             : "Enter a valid Indian mobile number.",
-      );
-      return;
-    }
-    if (!Object.values(reminderPreferences.categories).some(Boolean)) {
-      setReminderError(
-        hi
-          ? "कम से कम एक रिमाइंडर प्रकार चुनें।"
-          : "Choose at least one reminder type.",
       );
       return;
     }
@@ -1108,7 +1044,7 @@ export function PostSubmissionCaseHome({
               {hi ? "आगे क्या हो सकता है" : "What may happen next"}
             </h2>
             <ol className="post-report-stage-list compact-process-list">
-              {process.possibleNextStages.map((stage, index) => (
+              {process.possibleNextStages.slice(0, 3).map((stage, index) => (
                 <li key={stage.id}>
                   <span aria-hidden="true">{index + 1}</span>
                   <div>
@@ -1118,6 +1054,11 @@ export function PostSubmissionCaseHome({
                 </li>
               ))}
             </ol>
+            <p className="source-note">
+              {hi
+                ? "सचेत के पास सरकार, पुलिस, बैंक या भुगतान प्रदाता की लाइव केस स्थिति उपलब्ध नहीं है।"
+                : "Sachet does not have live access to government, police, bank or payment-provider case status."}
+            </p>
             <details className="process-boundaries-disclosure">
               <summary>
                 {hi ? "इसका क्या अर्थ नहीं है" : "What this does not mean"}
@@ -1128,6 +1069,14 @@ export function PostSubmissionCaseHome({
                 ))}
               </ul>
             </details>
+          </section>
+
+          <section className="companion-section post-report-timeline-section">
+            <IncidentTimeline
+              events={timeline}
+              heading={hi ? "मामले की समयरेखा" : "Case timeline"}
+              groupByDate
+            />
           </section>
 
           <section
@@ -1142,8 +1091,8 @@ export function PostSubmissionCaseHome({
               </h2>
               <p>
                 {hi
-                  ? "जरूरी कार्रवाई, छूटी हुई जानकारी, सबूत और सुरक्षा के बारे में रिमाइंडर पाएँ।"
-                  : "Get reminders about actions you may need to take, missing complaint details, evidence and safety."}
+                  ? "जरूरी अगले कदमों और सुरक्षित रखने वाले सबूतों के बारे में आसान रिमाइंडर पाएँ।"
+                  : "Get simple reminders about important next steps and evidence you may need to keep safe."}
               </p>
             </div>
             {reminderPreferences.enabled && !managingReminders ? (
@@ -1162,34 +1111,24 @@ export function PostSubmissionCaseHome({
                     · {maskedRecipient}
                   </strong>
                   <p>
-                    {reminderPreferences.sentAt
-                      ? hi
-                        ? `सिंथेटिक रिमाइंडर भेजा गया · ${new Intl.DateTimeFormat("hi-IN", { timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(reminderPreferences.sentAt))}`
-                        : `Synthetic reminder sent · ${new Intl.DateTimeFormat("en-IN", { timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(reminderPreferences.sentAt))}`
-                      : isDemoIncident
-                        ? hi
-                          ? "अगला सिंथेटिक रिमाइंडर · 2 मिनट में"
-                          : "Next synthetic reminder · in 2 minutes"
-                        : hi
-                          ? "सचेत रिमाइंडर इस प्रोटोटाइप सत्र में सहेजा गया"
-                          : "Sachet reminder saved in this prototype session"}
+                    {hi
+                      ? "हम आपको जरूरी अगले कदमों, सबूतों और फॉलो-अप कार्रवाई के बारे में याद दिलाएँगे।"
+                      : "We’ll remind you about important next steps, evidence and follow-up actions."}
                   </p>
-                  <ul className="reminder-enabled-categories">
-                    {Object.entries(reminderPreferences.categories)
-                      .filter(([, enabled]) => enabled)
-                      .map(([category]) => (
-                        <li key={category}>
-                          {reminderCategoryLabels[category as ReminderCategory]}
-                        </li>
-                      ))}
-                  </ul>
+                  {isDemoIncident ? (
+                    <p className="source-note">
+                      {hi
+                        ? "केवल डेमो पूर्वावलोकन — कोई असली संदेश नहीं भेजा गया।"
+                        : "Demo preview only — no real message was sent."}
+                    </p>
+                  ) : null}
                   <div className="entry-actions">
                     <button
                       className="text-button"
                       type="button"
                       onClick={() => setManagingReminders(true)}
                     >
-                      {hi ? "रिमाइंडर प्रबंधित करें" : "Manage reminders"}
+                      {hi ? "माध्यम बदलें" : "Change channel"}
                     </button>
                     <button
                       className="text-button"
@@ -1277,37 +1216,6 @@ export function PostSubmissionCaseHome({
                     }
                   />
                 </label>
-                <fieldset className="reminder-category-options">
-                  <legend>
-                    {hi ? "इनके बारे में याद दिलाएँ" : "Remind me about"}
-                  </legend>
-                  {(
-                    Object.keys(
-                      reminderPreferences.categories,
-                    ) as ReminderCategory[]
-                  ).map((category) => (
-                    <label key={category}>
-                      <input
-                        type="checkbox"
-                        checked={reminderPreferences.categories[category]}
-                        onChange={(event) =>
-                          updateReminderPreferences({
-                            categories: {
-                              ...reminderPreferences.categories,
-                              [category]: event.target.checked,
-                            },
-                          })
-                        }
-                      />
-                      <span>{reminderCategoryLabels[category]}</span>
-                    </label>
-                  ))}
-                </fieldset>
-                <p className="source-note">
-                  {hi
-                    ? "आधिकारिक स्थिति अपडेट के लिए NCRP या एजेंसी का इंटीग्रेशन जरूरी है।"
-                    : "Official case-status updates require an NCRP or agency integration."}
-                </p>
                 {reminderError ? (
                   <p className="form-error" role="alert">
                     {reminderError}
@@ -1373,19 +1281,6 @@ export function PostSubmissionCaseHome({
                     <p>{nudge.body}</p>
                   </article>
                 ))}
-                {isDemoIncident && !reminderPreferences.sentAt ? (
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={() =>
-                      updateReminderPreferences({
-                        sentAt: new Date().toISOString(),
-                      })
-                    }
-                  >
-                    {hi ? "डेमो समय आगे बढ़ाएँ" : "Advance demo reminder"}
-                  </button>
-                ) : null}
                 <p className="source-note">
                   {isDemoIncident
                     ? hi
@@ -1397,14 +1292,6 @@ export function PostSubmissionCaseHome({
                 </p>
               </div>
             ) : null}
-          </section>
-
-          <section className="companion-section post-report-timeline-section">
-            <IncidentTimeline
-              events={timeline}
-              heading={hi ? "मामले की समयरेखा" : "Case timeline"}
-              groupByDate
-            />
           </section>
 
           <EvidenceIncluded

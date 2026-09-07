@@ -891,7 +891,13 @@ export function DemoJourney() {
       demoCase.narrations[selectedNarrationLanguage].durationSeconds,
     );
     setIsDemoIncident(true);
-    setReminderPreferences(createReminderPreferences(true));
+    const mobileSuffix = demoCase.citizen.registeredMobile.replace(/\D/g, "").slice(-4);
+    setReminderPreferences(
+      createReminderPreferences(true, {
+        email: demoCase.citizen.email,
+        whatsapp: `+91 98765 6${mobileSuffix || "3210"}`,
+      }),
+    );
     setDraft(structuredClone(demoCase.draft));
     setSubmittedReference(demoCase.reference);
     preparedAtRef.current = DEMO_POST_REPORT_MILESTONES.preparedAt;

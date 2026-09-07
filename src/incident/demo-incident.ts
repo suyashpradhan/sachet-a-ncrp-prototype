@@ -1,5 +1,10 @@
 import type { ReporterProfile } from "../experience/profile";
-import { CITIZEN_DOES_NOT_HAVE, IncidentDraftSchema, type IncidentDraft, type TranscriptionResult } from "./schema";
+import {
+  CITIZEN_DOES_NOT_HAVE,
+  IncidentDraftSchema,
+  type IncidentDraft,
+  type TranscriptionResult,
+} from "./schema";
 
 export type DemoNarrationLanguage = "hi-IN" | "en-IN";
 export type DemoCaseId =
@@ -130,9 +135,9 @@ const emptyAdaptiveFacts = {
 };
 
 const rajeshBankOtpHindi =
-  "मुझे शाम को एक फोन आया। सामने वाले ने कहा कि वह मेरे बैंक की कार्ड सिक्योरिटी टीम से बोल रहा है और मेरे खाते की वेरिफिकेशन तुरंत करनी है। उसने मुझसे एक OTP बताने को कहा। उसके थोड़ी देर बाद मेरे फोन पर बारह हज़ार और अठारह हज़ार रुपये कटने के मैसेज आए। मैंने ये पेमेंट नहीं किए। मुझे समझ नहीं आ रहा था कि अब मुझे कहाँ शिकायत करनी है और क्या-क्या जानकारी देनी है।";
+  "मुझे शाम को एक फोन आया। सामने वाले ने कहा कि वह मेरे बैंक की कार्ड सिक्योरिटी टीम से बोल रहा है और मेरे खाते की वेरिफिकेशन तुरंत करनी है। उसने मुझसे एक OTP बताने को कहा। उसके थोड़ी देर बाद मेरे फोन पर बारह हज़ार और अठारह हज़ार रुपये कटने के मैसेज आए। मैंने ये पेमेंट नहीं किए.";
 const rajeshBankOtpEnglish =
-  "I received a call in the evening. The caller said he was from my bank’s card-security team and that my account needed urgent verification. He asked me to share an OTP. Soon after, I received messages showing ₹12,000 and ₹18,000 had been debited. I did not make those payments. I did not know where I should report this or what information I needed to provide.";
+  "I received a call in the evening. The caller said he was from my bank’s card-security team and that my account needed urgent verification. He asked me to share an OTP. Soon after, I received messages showing ₹12,000 and ₹18,000 had been debited. I did not make those payments.";
 
 const rajeshBankOtpDraft: IncidentDraft = {
   classification: {
@@ -280,7 +285,8 @@ const taskScamDraft: IncidentDraft = {
     moneyLost: true,
     platform: "WhatsApp, Telegram and a task platform",
     ambiguity: "NONE",
-    explanation: "A part-time task offer moved from WhatsApp to Telegram and led to repeated deposits into a fake task platform.",
+    explanation:
+      "A part-time task offer moved from WhatsApp to Telegram and led to repeated deposits into a fake task platform.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -297,7 +303,8 @@ const taskScamDraft: IncidentDraft = {
   },
   citizenSummary: {
     incidentLabel: "Part-time task fraud",
-    shortSummary: "Sneha received a part-time task offer on WhatsApp, moved to Telegram and made several deposits. The submitted payment evidence supports a net loss of ₹55,000.",
+    shortSummary:
+      "Sneha received a part-time task offer on WhatsApp, moved to Telegram and made several deposits. The submitted payment evidence supports a net loss of ₹55,000.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -331,15 +338,107 @@ const taskScamDraft: IncidentDraft = {
   },
   mentionedInstitutions: ["UPI", "Wallet / payment app"],
   transactions: [
-    { id: "sneha-credit-1", direction: "CREDIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-01000", amount: 1_000, transactionDate: "2026-08-31", approximateTime: "12:05", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-1", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-05000", amount: 5_000, transactionDate: "2026-09-01", approximateTime: "10:45", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-credit-2", direction: "CREDIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task commission", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-CR-04000", amount: 4_000, transactionDate: "2026-09-01", approximateTime: "12:10", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-2", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "UPI", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-15000", amount: 15_000, transactionDate: "2026-09-02", approximateTime: "14:20", referenceNumber: null, status: "KNOWN" },
-    { id: "sneha-debit-3", direction: "DEBIT", evidenceId: "demo-evidence-2", institution: "Bank transfer", currency: "INR", paymentMethod: "Task deposit", accountOrUpiId: CITIZEN_DOES_NOT_HAVE, transactionIdOrUtr: "SYN-DB-40000", amount: 40_000, transactionDate: "2026-09-03", approximateTime: "09:40", referenceNumber: null, status: "KNOWN" },
+    {
+      id: "sneha-credit-1",
+      direction: "CREDIT",
+      evidenceId: "demo-evidence-2",
+      institution: "UPI",
+      currency: "INR",
+      paymentMethod: "Task commission",
+      accountOrUpiId: CITIZEN_DOES_NOT_HAVE,
+      transactionIdOrUtr: "SYN-CR-01000",
+      amount: 1_000,
+      transactionDate: "2026-08-31",
+      approximateTime: "12:05",
+      referenceNumber: null,
+      status: "KNOWN",
+    },
+    {
+      id: "sneha-debit-1",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-2",
+      institution: "UPI",
+      currency: "INR",
+      paymentMethod: "Task deposit",
+      accountOrUpiId: CITIZEN_DOES_NOT_HAVE,
+      transactionIdOrUtr: "SYN-DB-05000",
+      amount: 5_000,
+      transactionDate: "2026-09-01",
+      approximateTime: "10:45",
+      referenceNumber: null,
+      status: "KNOWN",
+    },
+    {
+      id: "sneha-credit-2",
+      direction: "CREDIT",
+      evidenceId: "demo-evidence-2",
+      institution: "UPI",
+      currency: "INR",
+      paymentMethod: "Task commission",
+      accountOrUpiId: CITIZEN_DOES_NOT_HAVE,
+      transactionIdOrUtr: "SYN-CR-04000",
+      amount: 4_000,
+      transactionDate: "2026-09-01",
+      approximateTime: "12:10",
+      referenceNumber: null,
+      status: "KNOWN",
+    },
+    {
+      id: "sneha-debit-2",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-2",
+      institution: "UPI",
+      currency: "INR",
+      paymentMethod: "Task deposit",
+      accountOrUpiId: CITIZEN_DOES_NOT_HAVE,
+      transactionIdOrUtr: "SYN-DB-15000",
+      amount: 15_000,
+      transactionDate: "2026-09-02",
+      approximateTime: "14:20",
+      referenceNumber: null,
+      status: "KNOWN",
+    },
+    {
+      id: "sneha-debit-3",
+      direction: "DEBIT",
+      evidenceId: "demo-evidence-2",
+      institution: "Bank transfer",
+      currency: "INR",
+      paymentMethod: "Task deposit",
+      accountOrUpiId: CITIZEN_DOES_NOT_HAVE,
+      transactionIdOrUtr: "SYN-DB-40000",
+      amount: 40_000,
+      transactionDate: "2026-09-03",
+      approximateTime: "09:40",
+      referenceNumber: null,
+      status: "KNOWN",
+    },
   ],
   amountClaims: [
-    { id: "sneha-platform-value", amount: 80_000, role: "DISPLAYED_VALUE", label: "Platform-displayed value", labelHi: "प्लेटफ़ॉर्म पर दिखाई गई राशि", sourceLabel: "Fake task dashboard screenshot", sourceLabelHi: "नकली टास्क डैशबोर्ड स्क्रीनशॉट", evidenceId: "demo-evidence-3", note: "Shown on the task dashboard. Not matched to payment evidence.", noteHi: "टास्क डैशबोर्ड पर दिखाई गई। भुगतान सबूत से मेल नहीं खाती।" },
-    { id: "sneha-unpaid-demand", amount: 25_000, role: "DEMANDED_UNPAID", label: "Demanded · Not paid", labelHi: "मांगा गया · भुगतान नहीं किया", sourceLabel: "Telegram / task conversation", sourceLabelHi: "Telegram / टास्क बातचीत", evidenceId: "demo-evidence-1", note: "This belongs in the incident, but no payment was made.", noteHi: "यह घटना में दर्ज है, लेकिन इसका भुगतान नहीं हुआ।" },
+    {
+      id: "sneha-platform-value",
+      amount: 80_000,
+      role: "DISPLAYED_VALUE",
+      label: "Platform-displayed value",
+      labelHi: "प्लेटफ़ॉर्म पर दिखाई गई राशि",
+      sourceLabel: "Fake task dashboard screenshot",
+      sourceLabelHi: "नकली टास्क डैशबोर्ड स्क्रीनशॉट",
+      evidenceId: "demo-evidence-3",
+      note: "Shown on the task dashboard. Not matched to payment evidence.",
+      noteHi: "टास्क डैशबोर्ड पर दिखाई गई। भुगतान सबूत से मेल नहीं खाती।",
+    },
+    {
+      id: "sneha-unpaid-demand",
+      amount: 25_000,
+      role: "DEMANDED_UNPAID",
+      label: "Demanded · Not paid",
+      labelHi: "मांगा गया · भुगतान नहीं किया",
+      sourceLabel: "Telegram / task conversation",
+      sourceLabelHi: "Telegram / टास्क बातचीत",
+      evidenceId: "demo-evidence-1",
+      note: "This belongs in the incident, but no payment was made.",
+      noteHi: "यह घटना में दर्ज है, लेकिन इसका भुगतान नहीं हुआ।",
+    },
   ],
   suspectIdentifiers: [
     { type: "PHONE", value: "98XX XX4721" },
@@ -347,10 +446,36 @@ const taskScamDraft: IncidentDraft = {
     { type: "URL", value: "https://tasks-demo.invalid" },
   ],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Part-time online tasks offered on WhatsApp", "Small commissions were promised and initially paid"] },
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Conversation moved to Telegram and a task platform", "A further ₹25,000 was demanded and not paid"] },
-    { type: "OTHER", extractedFacts: ["Total debited: ₹60,000", "Credits received back: ₹5,000", "Net matched loss: ₹55,000"] },
-    { type: "OTHER", extractedFacts: ["Synthetic task-platform value: ₹80,000", "Withdrawal shown as unavailable", "This displayed value is not a bank or payment credit"] },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "Part-time online tasks offered on WhatsApp",
+        "Small commissions were promised and initially paid",
+      ],
+    },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "Conversation moved to Telegram and a task platform",
+        "A further ₹25,000 was demanded and not paid",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Total debited: ₹60,000",
+        "Credits received back: ₹5,000",
+        "Net matched loss: ₹55,000",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Synthetic task-platform value: ₹80,000",
+        "Withdrawal shown as unavailable",
+        "This displayed value is not a bank or payment credit",
+      ],
+    },
   ],
   citizenConfirmedFields: ["adaptive.requestedAmountPaymentStatus.NOT_PAID"],
   missingRequiredFields: [],
@@ -372,7 +497,8 @@ const jobOfferDraft: IncidentDraft = {
     moneyLost: true,
     platform: "LinkedIn and WhatsApp",
     ambiguity: "NONE",
-    explanation: "A fake job opportunity moved from LinkedIn to WhatsApp and led to two payments and a further payment request.",
+    explanation:
+      "A fake job opportunity moved from LinkedIn to WhatsApp and led to two payments and a further payment request.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -389,7 +515,8 @@ const jobOfferDraft: IncidentDraft = {
   },
   citizenSummary: {
     incidentLabel: "Fake job-offer fraud",
-    shortSummary: "Meera was contacted about a job on LinkedIn and moved to WhatsApp. She paid ₹499 and ₹1,499, then declined a further ₹18,000 security-deposit request.",
+    shortSummary:
+      "Meera was contacted about a job on LinkedIn and moved to WhatsApp. She paid ₹499 and ₹1,499, then declined a further ₹18,000 security-deposit request.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -457,14 +584,38 @@ const jobOfferDraft: IncidentDraft = {
     { type: "PHONE", value: "98XX XX1800" },
   ],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Job opportunity first shared on LinkedIn", "Conversation moved to WhatsApp"] },
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["₹18,000 security deposit requested", "Security deposit was not paid"] },
-    { type: "TRANSACTION_SCREENSHOT", extractedFacts: ["₹499 registration payment", "Transaction reference DEMO-UPI-499-030926", "3 September 2026 at about 11:18 AM"] },
-    { type: "TRANSACTION_SCREENSHOT", extractedFacts: ["₹1,499 verification payment", "Transaction reference DEMO-UPI-1499-030926", "3 September 2026 at about 12:06 PM"] },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "Job opportunity first shared on LinkedIn",
+        "Conversation moved to WhatsApp",
+      ],
+    },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "₹18,000 security deposit requested",
+        "Security deposit was not paid",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "₹499 registration payment",
+        "Transaction reference DEMO-UPI-499-030926",
+        "3 September 2026 at about 11:18 AM",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "₹1,499 verification payment",
+        "Transaction reference DEMO-UPI-1499-030926",
+        "3 September 2026 at about 12:06 PM",
+      ],
+    },
   ],
-  citizenConfirmedFields: [
-    "adaptive.requestedAmountPaymentStatus.NOT_PAID",
-  ],
+  citizenConfirmedFields: ["adaptive.requestedAmountPaymentStatus.NOT_PAID"],
   missingRequiredFields: [],
   warnings: [],
 };
@@ -504,7 +655,8 @@ const amountMismatchDraft: IncidentDraft = {
     moneyLost: true,
     platform: "WhatsApp",
     ambiguity: "NONE",
-    explanation: "Two debits followed a fraudulent KYC message sent over WhatsApp.",
+    explanation:
+      "Two debits followed a fraudulent KYC message sent over WhatsApp.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -519,7 +671,8 @@ const amountMismatchDraft: IncidentDraft = {
   },
   citizenSummary: {
     incidentLabel: "KYC-related banking fraud",
-    shortSummary: "Asha opened a KYC link sent over WhatsApp. Two debits total ₹20,000, while she remembers the total as ₹25,000.",
+    shortSummary:
+      "Asha opened a KYC link sent over WhatsApp. Two debits total ₹20,000, while she remembers the total as ₹25,000.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -587,9 +740,30 @@ const amountMismatchDraft: IncidentDraft = {
     { type: "URL", value: "https://sbi-kyc-demo.invalid/update" },
   ],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["WhatsApp KYC message claiming to be from SBI", "Synthetic sender 98XX XX4100", "KYC link shown"] },
-    { type: "TRANSACTION_SCREENSHOT", extractedFacts: ["₹5,000 debit", "SBI account ending 0024", "3 September 2026 at about 9:12 AM"] },
-    { type: "TRANSACTION_SCREENSHOT", extractedFacts: ["₹15,000 debit", "SBI account ending 0024", "3 September 2026 at about 9:34 AM"] },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "WhatsApp KYC message claiming to be from SBI",
+        "Synthetic sender 98XX XX4100",
+        "KYC link shown",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "₹5,000 debit",
+        "SBI account ending 0024",
+        "3 September 2026 at about 9:12 AM",
+      ],
+    },
+    {
+      type: "TRANSACTION_SCREENSHOT",
+      extractedFacts: [
+        "₹15,000 debit",
+        "SBI account ending 0024",
+        "3 September 2026 at about 9:34 AM",
+      ],
+    },
   ],
   citizenConfirmedFields: [],
   missingRequiredFields: [],
@@ -605,7 +779,8 @@ const accountCompromiseDraft: IncidentDraft = {
     moneyLost: false,
     platform: "WhatsApp",
     ambiguity: "NONE",
-    explanation: "The account describes possible unauthorised access involving Instagram and WhatsApp.",
+    explanation:
+      "The account describes possible unauthorised access involving Instagram and WhatsApp.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -619,11 +794,15 @@ const accountCompromiseDraft: IncidentDraft = {
     accountCompromise: true,
     accountCompromiseBasis: "Password reset and loss of account access",
     maliciousLink: true,
-    communicationChannels: ["Instagram notification", "WhatsApp security notification"],
+    communicationChannels: [
+      "Instagram notification",
+      "WhatsApp security notification",
+    ],
   },
   citizenSummary: {
     incidentLabel: "Possible social-media account compromise",
-    shortSummary: "Shubham opened an Instagram password-reset link and later could not access WhatsApp. He is unsure whether the events are connected.",
+    shortSummary:
+      "Shubham opened an Instagram password-reset link and later could not access WhatsApp. He is unsure whether the events are connected.",
   },
   officialMapping: {
     category: "OTHER_CYBER_CRIME",
@@ -659,9 +838,25 @@ const accountCompromiseDraft: IncidentDraft = {
   transactions: [],
   suspectIdentifiers: [],
   evidence: [
-    { type: "OTHER", extractedFacts: ["Instagram password-reset email", "Synthetic security notification", "Reset link was opened"] },
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["WhatsApp login/security notification", "Account access unavailable"] },
-    { type: "OTHER", extractedFacts: ["Unknown device shown in synthetic login activity"] },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Instagram password-reset email",
+        "Synthetic security notification",
+        "Reset link was opened",
+      ],
+    },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "WhatsApp login/security notification",
+        "Account access unavailable",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: ["Unknown device shown in synthetic login activity"],
+    },
   ],
   citizenConfirmedFields: [],
   missingRequiredFields: [],
@@ -677,7 +872,8 @@ const lotteryDraft: IncidentDraft = {
     moneyLost: false,
     platform: "WhatsApp",
     ambiguity: "NONE",
-    explanation: "A false lottery prize was used to request a processing fee and sensitive information.",
+    explanation:
+      "A false lottery prize was used to request a processing fee and sensitive information.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -692,7 +888,8 @@ const lotteryDraft: IncidentDraft = {
   },
   citizenSummary: {
     incidentLabel: "Online lottery attempt",
-    shortSummary: "Vivek was promised a ₹25 lakh prize and asked for a ₹10,000 processing fee, Aadhaar image and bank details. He paid and shared nothing.",
+    shortSummary:
+      "Vivek was promised a ₹25 lakh prize and asked for a ₹10,000 processing fee, Aadhaar image and bank details. He paid and shared nothing.",
   },
   officialMapping: {
     category: "FINANCIAL_FRAUD",
@@ -728,9 +925,25 @@ const lotteryDraft: IncidentDraft = {
   transactions: [],
   suspectIdentifiers: [{ type: "PHONE", value: "97XX XX2500" }],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Synthetic KBC lucky-draw claim", "Prize promised: ₹25,00,000", "Processing fee requested: ₹10,000"] },
-    { type: "OTHER", extractedFacts: ["Synthetic missed call from 97XX XX2500"] },
-    { type: "OTHER", extractedFacts: ["Synthetic prize image", "Aadhaar image and bank details requested"] },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "Synthetic KBC lucky-draw claim",
+        "Prize promised: ₹25,00,000",
+        "Processing fee requested: ₹10,000",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: ["Synthetic missed call from 97XX XX2500"],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Synthetic prize image",
+        "Aadhaar image and bank details requested",
+      ],
+    },
   ],
   citizenConfirmedFields: [],
   missingRequiredFields: [],
@@ -746,7 +959,8 @@ const extortionDraft: IncidentDraft = {
     moneyLost: false,
     platform: "Telegram",
     ambiguity: "NONE",
-    explanation: "An unknown account threatened to distribute private photos unless money was paid.",
+    explanation:
+      "An unknown account threatened to distribute private photos unless money was paid.",
     requiresCitizenConfirmation: false,
   },
   adaptiveFacts: {
@@ -757,14 +971,16 @@ const extortionDraft: IncidentDraft = {
     threatOrExtortion: true,
     demandedAmount: 20_000,
     threatChannel: "Telegram and Email",
-    threatDescription: "An unknown sender threatened to share private photos with the citizen's contacts unless money was paid.",
+    threatDescription:
+      "An unknown sender threatened to share private photos with the citizen's contacts unless money was paid.",
     sensitiveMaterialInvolved: true,
     communicationChannels: ["Telegram", "Email"],
     sensitiveEvidenceRedacted: true,
   },
   citizenSummary: {
     incidentLabel: "Online threat and extortion",
-    shortSummary: "Riya received the same threat through Telegram and email. The sender demanded ₹20,000, but she made no payment.",
+    shortSummary:
+      "Riya received the same threat through Telegram and email. The sender demanded ₹20,000, but she made no payment.",
   },
   officialMapping: {
     category: "WOMEN_CHILDREN_RELATED_CRIME",
@@ -803,16 +1019,40 @@ const extortionDraft: IncidentDraft = {
     { type: "EMAIL", value: "unknown.sender@example.invalid" },
   ],
   evidence: [
-    { type: "CHAT_SCREENSHOT", extractedFacts: ["Synthetic Telegram threat message", "Sensitive wording redacted", "₹20,000 demanded"] },
-    { type: "OTHER", extractedFacts: ["Synthetic email repeating the threat", "Sender address preserved"] },
-    { type: "OTHER", extractedFacts: ["Synthetic Telegram profile", "Actual identity unknown"] },
+    {
+      type: "CHAT_SCREENSHOT",
+      extractedFacts: [
+        "Synthetic Telegram threat message",
+        "Sensitive wording redacted",
+        "₹20,000 demanded",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: [
+        "Synthetic email repeating the threat",
+        "Sender address preserved",
+      ],
+    },
+    {
+      type: "OTHER",
+      extractedFacts: ["Synthetic Telegram profile", "Actual identity unknown"],
+    },
   ],
   citizenConfirmedFields: [],
   missingRequiredFields: [],
   warnings: [],
 };
 
-for (const draft of [rajeshBankOtpDraft, taskScamDraft, jobOfferDraft, amountMismatchDraft, accountCompromiseDraft, lotteryDraft, extortionDraft]) {
+for (const draft of [
+  rajeshBankOtpDraft,
+  taskScamDraft,
+  jobOfferDraft,
+  amountMismatchDraft,
+  accountCompromiseDraft,
+  lotteryDraft,
+  extortionDraft,
+]) {
   IncidentDraftSchema.parse(draft);
 }
 
@@ -821,7 +1061,8 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     id: "BANK_OTP",
     selectorLabel: "Rajesh's bank OTP fraud",
     selectorLabelHi: "राजेश का बैंक OTP फ्रॉड",
-    bannerTitle: "Rajesh received a call from someone claiming to be from his bank",
+    bannerTitle:
+      "Rajesh received a call from someone claiming to be from his bank",
     bannerTitleHi: "राजेश को बैंक से होने का दावा करने वाले व्यक्ति की कॉल आई",
     personaSummary: "Rajesh · 64 · Retired",
     personaSummaryHi: "राजेश · 64 वर्ष · सेवानिवृत्त",
@@ -835,7 +1076,12 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "Hindi · English translation available",
     statement: rajeshBankOtpHindi,
     narrations: {
-      "en-IN": narration("en-IN", rajeshBankOtpEnglish, 19, "/demo/audio/rajesh-bank-otp-en.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        rajeshBankOtpEnglish,
+        19,
+        "/demo/audio/rajesh-bank-otp-en.mp3",
+      ),
       "hi-IN": narration(
         "hi-IN",
         rajeshBankOtpHindi,
@@ -845,10 +1091,38 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
       ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/rajesh-call-details.svg", label: "Call details", labelHi: "कॉल की जानकारी", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },
-      { id: "demo-evidence-1", src: "/demo/evidence/rajesh-debit-12000.svg", label: "₹12,000 bank SMS alert", labelHi: "₹12,000 का बैंक SMS", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/rajesh-debit-18000.svg", label: "₹18,000 bank SMS alert", labelHi: "₹18,000 का बैंक SMS", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-3", src: "/demo/evidence/rajesh-bank-statement.svg", label: "Bank statement", labelHi: "बैंक स्टेटमेंट", typeLabel: "Transaction evidence", typeLabelHi: "लेन-देन सबूत" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/rajesh-call-details.svg",
+        label: "Call details",
+        labelHi: "कॉल की जानकारी",
+        typeLabel: "Call record",
+        typeLabelHi: "कॉल रिकॉर्ड",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/rajesh-debit-12000.svg",
+        label: "₹12,000 bank SMS alert",
+        labelHi: "₹12,000 का बैंक SMS",
+        typeLabel: "Message screenshot",
+        typeLabelHi: "संदेश का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/rajesh-debit-18000.svg",
+        label: "₹18,000 bank SMS alert",
+        labelHi: "₹18,000 का बैंक SMS",
+        typeLabel: "Message screenshot",
+        typeLabelHi: "संदेश का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-3",
+        src: "/demo/evidence/rajesh-bank-statement.svg",
+        label: "Bank statement",
+        labelHi: "बैंक स्टेटमेंट",
+        typeLabel: "Transaction evidence",
+        typeLabelHi: "लेन-देन सबूत",
+      },
     ],
     draft: rajeshBankOtpDraft,
     reference: "SACHET-DEMO-RAJESH-001",
@@ -874,14 +1148,52 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "English / Hindi",
     statement: taskScamStatement,
     narrations: {
-      "en-IN": narration("en-IN", taskScamStatement, 25, "/demo/audio/sneha-task-scam.mp3"),
-      "hi-IN": narration("hi-IN", taskScamHindi, 29, "/demo/audio/sneha-task-scam-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        taskScamStatement,
+        25,
+        "/demo/audio/sneha-task-scam.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        taskScamHindi,
+        29,
+        "/demo/audio/sneha-task-scam-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/sneha-conversation-demo.svg", label: "WhatsApp task offer", labelHi: "WhatsApp टास्क प्रस्ताव", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/sneha-telegram-task-demo.svg", label: "Telegram and task conversation", labelHi: "Telegram और टास्क बातचीत", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/sneha-payment-statement-demo.svg", label: "Payment and bank evidence", labelHi: "भुगतान और बैंक सबूत", typeLabel: "Payment statement", typeLabelHi: "भुगतान विवरण" },
-      { id: "demo-evidence-3", src: "/demo/evidence/sneha-task-dashboard-demo.svg", label: "Synthetic task dashboard", labelHi: "सिंथेटिक टास्क डैशबोर्ड", typeLabel: "Platform screenshot", typeLabelHi: "प्लेटफ़ॉर्म स्क्रीनशॉट" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/sneha-conversation-demo.svg",
+        label: "WhatsApp task offer",
+        labelHi: "WhatsApp टास्क प्रस्ताव",
+        typeLabel: "Conversation screenshot",
+        typeLabelHi: "बातचीत का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/sneha-telegram-task-demo.svg",
+        label: "Telegram and task conversation",
+        labelHi: "Telegram और टास्क बातचीत",
+        typeLabel: "Conversation screenshot",
+        typeLabelHi: "बातचीत का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/sneha-payment-statement-demo.svg",
+        label: "Payment and bank evidence",
+        labelHi: "भुगतान और बैंक सबूत",
+        typeLabel: "Payment statement",
+        typeLabelHi: "भुगतान विवरण",
+      },
+      {
+        id: "demo-evidence-3",
+        src: "/demo/evidence/sneha-task-dashboard-demo.svg",
+        label: "Synthetic task dashboard",
+        labelHi: "सिंथेटिक टास्क डैशबोर्ड",
+        typeLabel: "Platform screenshot",
+        typeLabelHi: "प्लेटफ़ॉर्म स्क्रीनशॉट",
+      },
     ],
     draft: taskScamDraft,
     reference: "SACHET-DEMO-SNEHA-001",
@@ -892,20 +1204,60 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     selectorLabelHi: "मीरा को मिला नकली नौकरी का प्रस्ताव",
     bannerTitle: "Meera received a fake job offer",
     bannerTitleHi: "मीरा को नकली नौकरी का प्रस्ताव मिला",
-    incidentTrail: "LinkedIn → WhatsApp → ₹499 paid → ₹1,499 paid → ₹18,000 requested",
-    incidentTrailHi: "LinkedIn → WhatsApp → ₹499 भुगतान → ₹1,499 भुगतान → ₹18,000 मांगे गए",
+    incidentTrail:
+      "LinkedIn → WhatsApp → ₹499 paid → ₹1,499 paid → ₹18,000 requested",
+    incidentTrailHi:
+      "LinkedIn → WhatsApp → ₹499 भुगतान → ₹1,499 भुगतान → ₹18,000 मांगे गए",
     citizen: demoProfile("Meera Sharma", "Female", "1800", "meera.demo"),
     sourceLanguage: "English / Hindi",
     statement: jobOfferStatement,
     narrations: {
-      "en-IN": narration("en-IN", jobOfferEnglish, 24, "/demo/audio/job-offer.mp3"),
-      "hi-IN": narration("hi-IN", jobOfferHindi, 29, "/demo/audio/job-offer-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        jobOfferEnglish,
+        24,
+        "/demo/audio/job-offer.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        jobOfferHindi,
+        29,
+        "/demo/audio/job-offer-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/meera-linkedin-demo.svg", label: "LinkedIn conversation", labelHi: "LinkedIn बातचीत", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/meera-whatsapp-demo.svg", label: "WhatsApp conversation", labelHi: "WhatsApp बातचीत", typeLabel: "Conversation screenshot", typeLabelHi: "बातचीत का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/meera-payment-499-demo.svg", label: "₹499 payment receipt", labelHi: "₹499 भुगतान रसीद", typeLabel: "Payment receipt", typeLabelHi: "भुगतान रसीद" },
-      { id: "demo-evidence-3", src: "/demo/evidence/meera-payment-1499-demo.svg", label: "₹1,499 payment receipt", labelHi: "₹1,499 भुगतान रसीद", typeLabel: "Payment receipt", typeLabelHi: "भुगतान रसीद" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/meera-linkedin-demo.svg",
+        label: "LinkedIn conversation",
+        labelHi: "LinkedIn बातचीत",
+        typeLabel: "Conversation screenshot",
+        typeLabelHi: "बातचीत का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/meera-whatsapp-demo.svg",
+        label: "WhatsApp conversation",
+        labelHi: "WhatsApp बातचीत",
+        typeLabel: "Conversation screenshot",
+        typeLabelHi: "बातचीत का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/meera-payment-499-demo.svg",
+        label: "₹499 payment receipt",
+        labelHi: "₹499 भुगतान रसीद",
+        typeLabel: "Payment receipt",
+        typeLabelHi: "भुगतान रसीद",
+      },
+      {
+        id: "demo-evidence-3",
+        src: "/demo/evidence/meera-payment-1499-demo.svg",
+        label: "₹1,499 payment receipt",
+        labelHi: "₹1,499 भुगतान रसीद",
+        typeLabel: "Payment receipt",
+        typeLabelHi: "भुगतान रसीद",
+      },
     ],
     draft: jobOfferDraft,
     reference: "DEMO-NCRP-2026-000184",
@@ -918,13 +1270,44 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "Hinglish",
     statement: amountMismatchStatement,
     narrations: {
-      "en-IN": narration("en-IN", amountMismatchEnglish, 19, "/demo/audio/amount-mismatch.mp3"),
-      "hi-IN": narration("hi-IN", amountMismatchHindi, 25, "/demo/audio/amount-mismatch-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        amountMismatchEnglish,
+        19,
+        "/demo/audio/amount-mismatch.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        amountMismatchHindi,
+        25,
+        "/demo/audio/amount-mismatch-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/asha-kyc-message-demo.svg", label: "WhatsApp KYC message", labelHi: "WhatsApp KYC संदेश", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/asha-transaction-5000-demo.svg", label: "₹5,000 transaction", labelHi: "₹5,000 लेन-देन", typeLabel: "Transaction screenshot", typeLabelHi: "लेन-देन का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/asha-transaction-15000-demo.svg", label: "₹15,000 transaction", labelHi: "₹15,000 लेन-देन", typeLabel: "Transaction screenshot", typeLabelHi: "लेन-देन का स्क्रीनशॉट" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/asha-kyc-message-demo.svg",
+        label: "WhatsApp KYC message",
+        labelHi: "WhatsApp KYC संदेश",
+        typeLabel: "Message screenshot",
+        typeLabelHi: "संदेश का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/asha-transaction-5000-demo.svg",
+        label: "₹5,000 transaction",
+        labelHi: "₹5,000 लेन-देन",
+        typeLabel: "Transaction screenshot",
+        typeLabelHi: "लेन-देन का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/asha-transaction-15000-demo.svg",
+        label: "₹15,000 transaction",
+        labelHi: "₹15,000 लेन-देन",
+        typeLabel: "Transaction screenshot",
+        typeLabelHi: "लेन-देन का स्क्रीनशॉट",
+      },
     ],
     draft: amountMismatchDraft,
     reference: "सचेत-DEMO-AMOUNT-001",
@@ -937,13 +1320,44 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "English + Hinglish",
     statement: accountCompromiseStatement,
     narrations: {
-      "en-IN": narration("en-IN", accountCompromiseEnglish, 15, "/demo/audio/account-compromise.mp3"),
-      "hi-IN": narration("hi-IN", accountCompromiseHindi, 17, "/demo/audio/account-compromise-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        accountCompromiseEnglish,
+        15,
+        "/demo/audio/account-compromise.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        accountCompromiseHindi,
+        17,
+        "/demo/audio/account-compromise-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/account-reset-demo.svg", label: "Instagram password-reset email", labelHi: "Instagram पासवर्ड-रीसेट ईमेल", typeLabel: "Email screenshot", typeLabelHi: "ईमेल का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/account-security-demo.svg", label: "WhatsApp security notification", labelHi: "WhatsApp सुरक्षा सूचना", typeLabel: "Security screenshot", typeLabelHi: "सुरक्षा स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/unknown-device-demo.svg", label: "Unknown login device", labelHi: "अनजान लॉगिन डिवाइस", typeLabel: "Account activity", typeLabelHi: "अकाउंट गतिविधि" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/account-reset-demo.svg",
+        label: "Instagram password-reset email",
+        labelHi: "Instagram पासवर्ड-रीसेट ईमेल",
+        typeLabel: "Email screenshot",
+        typeLabelHi: "ईमेल का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/account-security-demo.svg",
+        label: "WhatsApp security notification",
+        labelHi: "WhatsApp सुरक्षा सूचना",
+        typeLabel: "Security screenshot",
+        typeLabelHi: "सुरक्षा स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/unknown-device-demo.svg",
+        label: "Unknown login device",
+        labelHi: "अनजान लॉगिन डिवाइस",
+        typeLabel: "Account activity",
+        typeLabelHi: "अकाउंट गतिविधि",
+      },
     ],
     draft: accountCompromiseDraft,
     reference: "सचेत-DEMO-ACCOUNT-002",
@@ -956,13 +1370,44 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "Hindi / Hinglish",
     statement: lotteryStatement,
     narrations: {
-      "en-IN": narration("en-IN", lotteryEnglish, 16, "/demo/audio/lottery-attempt.mp3"),
-      "hi-IN": narration("hi-IN", lotteryHindi, 16, "/demo/audio/lottery-attempt-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        lotteryEnglish,
+        16,
+        "/demo/audio/lottery-attempt.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        lotteryHindi,
+        16,
+        "/demo/audio/lottery-attempt-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/lottery-message-demo.svg", label: "WhatsApp lottery message", labelHi: "WhatsApp लॉटरी संदेश", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/call-log-demo.svg", label: "Missed-call log", labelHi: "मिस्ड-कॉल लॉग", typeLabel: "Call record", typeLabelHi: "कॉल रिकॉर्ड" },
-      { id: "demo-evidence-2", src: "/demo/evidence/prize-claim-demo.svg", label: "Prize claim image", labelHi: "इनाम के दावे की तस्वीर", typeLabel: "Claim image", typeLabelHi: "दावे की तस्वीर" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/lottery-message-demo.svg",
+        label: "WhatsApp lottery message",
+        labelHi: "WhatsApp लॉटरी संदेश",
+        typeLabel: "Message screenshot",
+        typeLabelHi: "संदेश का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/call-log-demo.svg",
+        label: "Missed-call log",
+        labelHi: "मिस्ड-कॉल लॉग",
+        typeLabel: "Call record",
+        typeLabelHi: "कॉल रिकॉर्ड",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/prize-claim-demo.svg",
+        label: "Prize claim image",
+        labelHi: "इनाम के दावे की तस्वीर",
+        typeLabel: "Claim image",
+        typeLabelHi: "दावे की तस्वीर",
+      },
     ],
     draft: lotteryDraft,
     reference: "सचेत-DEMO-LOTTERY-003",
@@ -975,13 +1420,44 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     sourceLanguage: "Hindi + English",
     statement: extortionStatement,
     narrations: {
-      "en-IN": narration("en-IN", extortionEnglish, 15, "/demo/audio/extortion.mp3"),
-      "hi-IN": narration("hi-IN", extortionHindi, 21, "/demo/audio/extortion-hi.mp3"),
+      "en-IN": narration(
+        "en-IN",
+        extortionEnglish,
+        15,
+        "/demo/audio/extortion.mp3",
+      ),
+      "hi-IN": narration(
+        "hi-IN",
+        extortionHindi,
+        21,
+        "/demo/audio/extortion-hi.mp3",
+      ),
     },
     evidence: [
-      { id: "demo-evidence-0", src: "/demo/evidence/telegram-threat-demo.svg", label: "Redacted Telegram threat", labelHi: "छिपाया गया Telegram धमकी संदेश", typeLabel: "Message screenshot", typeLabelHi: "संदेश का स्क्रीनशॉट" },
-      { id: "demo-evidence-1", src: "/demo/evidence/email-threat-demo.svg", label: "Threat email", labelHi: "धमकी वाला ईमेल", typeLabel: "Email screenshot", typeLabelHi: "ईमेल का स्क्रीनशॉट" },
-      { id: "demo-evidence-2", src: "/demo/evidence/unknown-profile-demo.svg", label: "Unknown account profile", labelHi: "अनजान अकाउंट प्रोफ़ाइल", typeLabel: "Profile screenshot", typeLabelHi: "प्रोफ़ाइल स्क्रीनशॉट" },
+      {
+        id: "demo-evidence-0",
+        src: "/demo/evidence/telegram-threat-demo.svg",
+        label: "Redacted Telegram threat",
+        labelHi: "छिपाया गया Telegram धमकी संदेश",
+        typeLabel: "Message screenshot",
+        typeLabelHi: "संदेश का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-1",
+        src: "/demo/evidence/email-threat-demo.svg",
+        label: "Threat email",
+        labelHi: "धमकी वाला ईमेल",
+        typeLabel: "Email screenshot",
+        typeLabelHi: "ईमेल का स्क्रीनशॉट",
+      },
+      {
+        id: "demo-evidence-2",
+        src: "/demo/evidence/unknown-profile-demo.svg",
+        label: "Unknown account profile",
+        labelHi: "अनजान अकाउंट प्रोफ़ाइल",
+        typeLabel: "Profile screenshot",
+        typeLabelHi: "प्रोफ़ाइल स्क्रीनशॉट",
+      },
     ],
     draft: extortionDraft,
     reference: "सचेत-DEMO-EXTORTION-004",
@@ -1046,7 +1522,10 @@ export function createUnknownIncidentDraft(): IncidentDraft {
       requiresCitizenConfirmation: false,
     },
     adaptiveFacts: { ...emptyAdaptiveFacts },
-    citizenSummary: { incidentLabel: "Incident details not yet known", shortSummary: "" },
+    citizenSummary: {
+      incidentLabel: "Incident details not yet known",
+      shortSummary: "",
+    },
     officialMapping: {
       category: null,
       categoryLabel: null,

@@ -4119,6 +4119,25 @@ function ReportDetailsPane({
   const amountConflictResolution = amountConflictMissing
     ? props.amountResolution
     : null;
+  const knownDebitCount = props.draft?.transactions.filter(
+    (transaction) =>
+      transaction.status === "KNOWN" &&
+      transaction.direction !== "CREDIT" &&
+      Boolean(transaction.amount),
+  ).length ?? 0;
+  const resolvedLoss = props.amountResolution?.resolvedLoss ?? null;
+  const lossConfirmed = Boolean(
+    props.draft?.citizenConfirmedFields.includes(
+      "incident.citizenConfirmedLoss",
+    ),
+  );
+  const lossConfirmationNeeded = Boolean(
+    props.draft &&
+      !props.amountResolution?.hasConflict &&
+      resolvedLoss &&
+      knownDebitCount > 0 &&
+      !lossConfirmed,
+  );
   const missingQuestions = props.draft
     ? deriveMissingQuestions(props.draft)
     : [];
@@ -4424,6 +4443,69 @@ function ReportDetailsPane({
                 </button>
               </div>
             </section>
+          ) : null}
+
+          {lossConfirmationNeeded && resolvedLoss ? (
+            <section
+              className="amount-conflict"
+              data-report-field-id="financial-loss-confirmation"
+              aria-labelledby="financial-loss-confirmation-heading"
+            >
+              <h3 id="financial-loss-confirmation-heading">
+                {locale === "hi"
+                  ? "कुल नुकसान की पुष्टि करें"
+                  : "Confirm the total amount lost"}
+              </h3>
+              <p>
+                {locale === "hi"
+                  ? `हमें ${knownDebitCount} भुगतान मिले, जिनका कुल नुकसान ${formatCurrency(resolvedLoss)} है। क्या इस घटना में आपका कुल नुकसान ${formatCurrency(resolvedLoss)} था?`
+                  : `We found ${knownDebitCount} ${knownDebitCount === 1 ? "payment" : "payments"} totalling ${formatCurrency(resolvedLoss)}. Is ${formatCurrency(resolvedLoss)} the total amount you lost in this incident?`}
+              </p>
+              <div className="inline-field-actions">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => props.onReportedAmountSelect(resolvedLoss)}
+                >
+                  {locale === "hi"
+                    ? `हाँ, ${formatCurrency(resolvedLoss)} सही है`
+                    : `Yes, ${formatCurrency(resolvedLoss)} is correct`}
+                </button>
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => {
+                    const group = document.querySelector<HTMLElement>(
+                      "[data-group-id='TRANSACTIONS']",
+                    );
+                    group?.scrollIntoView({
+                      behavior: window.matchMedia(
+                        "(prefers-reduced-motion: reduce)",
+                      ).matches
+                        ? "auto"
+                        : "smooth",
+                      block: "center",
+                    });
+                    group
+                      ?.querySelector<HTMLButtonElement>(
+                        ".report-section-heading button",
+                      )
+                      ?.click();
+                  }}
+                >
+                  {locale === "hi"
+                    ? "कुछ छूटा है या गलत है"
+                    : "Something is missing or incorrect"}
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          {lossConfirmed && resolvedLoss && knownDebitCount > 0 ? (
+            <p className="reconstruction-confirmation" role="status">
+              <strong>{locale === "hi" ? "आपने पुष्टि की" : "Confirmed by you"}</strong>
+              {" · "}{formatCurrency(resolvedLoss)}
+            </p>
           ) : null}
 
           {consistencyIssues.map((issue) => (

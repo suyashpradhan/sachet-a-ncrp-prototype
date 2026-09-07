@@ -259,13 +259,25 @@ export function getCaseSummary(
         : incidentChannel,
     });
   }
+  const claimedIdentity = citizenVisibleValue(
+    draft.adaptiveFacts.impersonatedEntity,
+  );
+  if (claimedIdentity) {
+    items.push({
+      id: "claimed-identity",
+      label: hi ? "दावा की गई पहचान" : "Claimed identity",
+      value: claimedIdentity,
+    });
+  }
   const affectedAccount = citizenVisibleValue(draft.adaptiveFacts.affectedAccount);
   const affectedPlatforms = draft.adaptiveFacts.affectedPlatforms
     .map((value) => citizenVisibleValue(value))
     .filter((value): value is string => Boolean(value));
-  const affectedPlatform = citizenVisibleValue(
-    draft.adaptiveFacts.platform ?? draft.classification.platform,
-  );
+  const affectedPlatform = getIncidentCapabilities(draft).accountCompromise
+    ? citizenVisibleValue(
+        draft.adaptiveFacts.platform ?? draft.classification.platform,
+      )
+    : null;
   if (affectedPlatforms.length > 0) {
     items.push({
       id: "affected-platforms",
@@ -332,9 +344,6 @@ export function getPostReportActions(
   const isRansomware = capabilities.ransomware;
   const isSensitiveAbuse =
     draft.classification.reportFamily === "WOMEN_CHILDREN_RELATED_CRIME";
-  const hasEvidence = draft.evidence.some(
-    (item) => item.type !== "VOICE_STATEMENT",
-  );
 
   if (draft.classification.reportFamily === "OUT_OF_SCOPE_OR_UNCLEAR") {
     return [
@@ -420,13 +429,6 @@ export function getPostReportActions(
           : "Use the national cyber-fraud helpline for urgent financial-fraud reporting.",
         href: "tel:1930",
       },
-      ...(isAccountCompromise ? [{
-        id: "account-recovery",
-        title: hi ? "प्रभावित खाते की रिकवरी शुरू करें" : "Start recovery for the affected account",
-        description: hi
-          ? "प्रभावित प्लेटफ़ॉर्म की आधिकारिक सेटिंग या सहायता से रिकवरी शुरू करें।"
-          : "Start recovery through the affected platform's official settings or support.",
-      }] : []),
       {
         id: "contact-bank",
         title: institutionName
@@ -441,35 +443,18 @@ export function getPostReportActions(
           : `Tell them the ${transactionCount === 1 ? "transaction is" : "transactions are"} connected to suspected cyber fraud.`,
       },
       {
-        id: "keep-transactions",
-        title: knownReferences > 0
-          ? hi
-            ? "लेन-देन के सभी उपलब्ध संदर्भ तैयार रखें"
-            : "Keep all available transaction references ready"
-          : hi
-            ? "लेन-देन की उपलब्ध जानकारी तैयार रखें"
-            : "Keep the transaction details you have available",
+        id: "preserve-evidence",
+        title: hi ? "सबूत और संदर्भ सुरक्षित रखें" : "Keep your evidence and references safe",
         description: transactionCount > 0 && totalLoss
           ? hi
-            ? `आपने ${transactionCount} लेन-देन में कुल ${formatCurrency(totalLoss)} का नुकसान बताया है।`
-            : `You reported ${transactionCount} ${transactionCount === 1 ? "transaction" : "transactions"} totalling ${formatCurrency(totalLoss)}.`
+            ? `${transactionCount} लेन-देन और कुल ${formatCurrency(totalLoss)} के नुकसान से जुड़े मूल संदेश, स्क्रीनशॉट और उपलब्ध संदर्भ सुरक्षित रखें।`
+            : `Keep the original messages, screenshots and ${knownReferences > 0 ? "transaction references" : "transaction details"} for the ${transactionCount === 1 ? "transaction" : `${transactionCount} transactions`} totalling ${formatCurrency(totalLoss)}.`
           : hi
-            ? "बैंक से हुई बातचीत और आपके पास मौजूद भुगतान विवरण सुरक्षित रखें।"
+            ? "बैंक से हुई बातचीत और उपलब्ध भुगतान विवरण सुरक्षित रखें।"
             : "Keep bank communication and the payment details you have available.",
       },
-      {
-        id: "preserve-evidence",
-        title: hi ? "भुगतान से जुड़े सबूत सुरक्षित रखें" : "Preserve the evidence connected to the payment",
-        description: hasEvidence
-          ? hi
-            ? "संदेश, लिंक, फोन नंबर, स्क्रीनशॉट और लेन-देन रिकॉर्ड की मूल प्रतियाँ रखें।"
-            : "Keep the original messages, links, phone numbers, screenshots and transaction records."
-          : hi
-            ? "संदेश, लिंक, फोन नंबर और उपलब्ध लेन-देन रिकॉर्ड सुरक्षित रखें।"
-            : "Keep messages, links, phone numbers and available transaction records.",
-      },
     ];
-    return actions.slice(0, 4);
+    return actions.slice(0, 3);
   }
 
   if (capabilities.threatOrExtortion) {
@@ -557,7 +542,7 @@ export function getPostReportActions(
           : "Keep the message, phone number, profile, URL or screenshot if available.",
       },
     );
-    return actions.slice(0, 4);
+    return actions.slice(0, 3);
   }
 
   if (isRansomware) {
@@ -611,13 +596,6 @@ export function getPostReportActions(
         description: hi
           ? "आधिकारिक सेटिंग से संदिग्ध क्रेडेंशियल बदलें और खाते की सुरक्षा जाँचें।"
           : "Change compromised credentials and review account security using official settings.",
-      },
-      {
-        id: "review-security",
-        title: hi ? "हाल की लॉगिन और सुरक्षा गतिविधि देखें" : "Review recent login and security activity",
-        description: hi
-          ? "अनजान सत्र, रिकवरी बदलाव या सुरक्षा चेतावनियाँ देखें।"
-          : "Look for unfamiliar sessions, recovery changes or security alerts.",
       },
       {
         id: "preserve-account-evidence",
@@ -1218,8 +1196,15 @@ export function getPostSubmissionTimeline(
       },
     ],
   };
-  const transactionEvents: IncidentTimelineEvent[] = draft.transactions.map(
-    (transaction, index) => ({
+  const orderedTransactions = draft.transactions
+    .map((transaction, index) => ({ transaction, index }))
+    .sort((left, right) => {
+      const leftKey = `${left.transaction.transactionDate ?? draft.incident.incidentDate ?? ""}T${left.transaction.approximateTime ?? "99:99"}`;
+      const rightKey = `${right.transaction.transactionDate ?? draft.incident.incidentDate ?? ""}T${right.transaction.approximateTime ?? "99:99"}`;
+      return leftKey.localeCompare(rightKey) || left.index - right.index;
+    });
+  const transactionEvents: IncidentTimelineEvent[] = orderedTransactions.map(
+    ({ transaction, index }) => ({
       id: `case-transaction-${transaction.id || index}`,
       timeLabel: factTimeLabel(
         transaction.transactionDate,
@@ -1246,21 +1231,43 @@ export function getPostSubmissionTimeline(
       id: "report-prepared",
       timeLabel: formatApplicationTime(milestones.preparedAt, locale),
       title: hi ? "रिपोर्ट तैयार हुई" : "Report prepared",
-      sourceRefs: [{ type: "SYSTEM", label: hi ? "स्रोत: सचेत" : "Source: सचेत" }],
+      sourceRefs: [{ type: "SYSTEM" as const, label: hi ? "स्रोत: सचेत" : "Source: सचेत" }],
     },
     {
       id: "report-reviewed",
       timeLabel: formatApplicationTime(milestones.reviewedAt, locale),
       title: hi ? "रिपोर्ट की जाँच हुई" : "Report reviewed",
-      sourceRefs: [{ type: "USER_CONFIRMED", label: hi ? "स्रोत: नागरिक की पुष्टि" : "Source: Citizen confirmation" }],
+      sourceRefs: [{ type: "USER_CONFIRMED" as const, label: hi ? "स्रोत: नागरिक की पुष्टि" : "Source: Citizen confirmation" }],
     },
     {
       id: "report-submitted",
       timeLabel: formatApplicationTime(milestones.submittedAt, locale),
-      title: hi ? "शिकायत जमा हुई" : "Complaint submitted",
-      sourceRefs: [{ type: "PROTOTYPE", label: hi ? "स्रोत: प्रोटोटाइप सबमिशन" : "Source: Prototype submission" }],
+      title: isDemoIncident
+        ? hi
+          ? "डेमो शिकायत जमा हुई"
+          : "Demo complaint submitted"
+        : hi
+          ? "शिकायत सचेत में तैयार हुई"
+          : "Complaint ready in Sachet",
+      sourceRefs: [{
+        type: "PROTOTYPE" as const,
+        label: isDemoIncident
+          ? hi
+            ? "स्रोत: प्रोटोटाइप सबमिशन"
+            : "Source: Prototype submission"
+          : hi
+            ? "स्रोत: सचेत में तैयार रिपोर्ट"
+            : "Source: Report prepared in Sachet",
+      }],
     },
-  ];
+  ].sort((left, right) => {
+    const timestamps: Record<string, string> = {
+      "report-prepared": milestones.preparedAt,
+      "report-reviewed": milestones.reviewedAt,
+      "report-submitted": milestones.submittedAt,
+    };
+    return timestamps[left.id].localeCompare(timestamps[right.id]);
+  });
   return [
     ...(baseEvents.length > 0 ? baseEvents : [incidentEvent]),
     ...transactionEvents,

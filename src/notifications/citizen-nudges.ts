@@ -49,17 +49,20 @@ export type CitizenNudge = {
   relatedField?: string;
 };
 
-export function createReminderPreferences(isDemo: boolean): ReminderPreferences {
+export function createReminderPreferences(
+  isDemo: boolean,
+  destination?: { email?: string; whatsapp?: string },
+): ReminderPreferences {
   return {
     enabled: false,
     channel: "WHATSAPP",
-    email: isDemo ? "meera.demo@example.invalid" : "",
-    whatsapp: isDemo ? "+91 98765 43210" : "",
+    email: isDemo ? destination?.email ?? "demo@example.invalid" : "",
+    whatsapp: isDemo ? destination?.whatsapp ?? "+91 98765 43210" : "",
     categories: {
       IMPORTANT_ACTIONS: true,
       MISSING_DETAILS: true,
       EVIDENCE_SAFETY: true,
-      FOLLOW_UP: true,
+      FOLLOW_UP: false,
     },
     scheduledAt: null,
     sentAt: null,
@@ -104,18 +107,7 @@ export function deriveCitizenNudges(
     : preferences.whatsapp.trim();
   const complete = (
     nudges: Array<Omit<CitizenNudge, "complaintId" | "category" | "recipient" | "source" | "scheduledAt" | "sentAt" | "deliveryState" | "mode">>,
-  ): CitizenNudge[] => [...nudges, {
-    id: "official-follow-up",
-    title: hi ? "आधिकारिक शिकायत की स्थिति जाँचें" : "Check your official complaint status",
-    body: hi
-      ? "अपना पावती या संदर्भ नंबर तैयार रखें और उचित समय पर आधिकारिक पोर्टल पर स्थिति जाँचें।"
-      : "Keep your acknowledgement or reference available and check the official portal after an appropriate time.",
-    reason: "FOLLOW_UP" as const,
-    schedule: "TOMORROW" as const,
-    channel: preferences.channel,
-    priority: "NORMAL" as const,
-  }]
-    .map((nudge) => ({
+  ): CitizenNudge[] => nudges.map((nudge) => ({
       ...nudge,
       complaintId,
       category: categoryForReason(nudge.reason),
@@ -129,8 +121,7 @@ export function deriveCitizenNudges(
           ? "SCHEDULED" as const
           : "PROTOTYPE_PREVIEW" as const,
       mode,
-    }))
-    .filter((nudge) => preferences.categories[nudge.category]);
+    }));
 
   if (financialLoss) {
     return complete([
