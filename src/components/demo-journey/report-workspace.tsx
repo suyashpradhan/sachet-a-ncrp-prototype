@@ -4100,6 +4100,7 @@ function ReportDetailsPane({
   ...props
 }: ReportWorkspaceProps & {
   groups: ReportGroupView[];
+  complaint: NcrpCompatibleComplaint | null;
   readiness: ReportReadiness | null;
   consistencyIssues: CaseConsistencyIssue[];
   onResolveConsistencyIssue: (
@@ -4815,12 +4816,18 @@ function ReportDetailsPane({
                 ))}
               </div>
 
-              <ImmediateHandoff
-                draft={props.draft}
-                amountResolution={props.amountResolution}
-              />
             </div>
           </details>
+
+          {props.complaint ? (
+            <ImmediateHandoff
+              draft={props.draft}
+              complaint={props.complaint}
+              amountResolution={props.amountResolution}
+              reference={props.reportReference}
+              isDemoIncident={props.isDemoIncident}
+            />
+          ) : null}
         </>
       ) : null}
     </section>
@@ -5173,6 +5180,7 @@ export function ReportWorkspace(props: ReportWorkspaceProps) {
           <ReportDetailsPane
             {...props}
             groups={groups}
+            complaint={complaint}
             readiness={readiness}
             consistencyIssues={consistencyIssues}
             onResolveConsistencyIssue={resolveConsistencyIssue}

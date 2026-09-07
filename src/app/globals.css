@@ -3760,6 +3760,176 @@ html[data-ui-locale="hi"] .utr-example text {
   font-weight: 700;
 }
 
+.prepared-handoff {
+  padding-top: 30px;
+  border-top: 1px solid var(--border);
+}
+
+.prepared-handoff-header h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.prepared-handoff-header p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--secondary);
+  line-height: 1.6;
+}
+
+.handoff-action-list {
+  margin-top: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.handoff-action-card {
+  padding: 22px 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.handoff-action-number {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: var(--primary-050);
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.handoff-action-card h3 {
+  margin: 1px 0 6px;
+  font-size: 19px;
+}
+
+.handoff-action-card p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.handoff-action-buttons,
+.handoff-document-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.handoff-action-card > div > .secondary-button {
+  margin-top: 14px;
+}
+
+.handoff-expanded-view {
+  margin-top: 24px;
+  padding: clamp(18px, 3vw, 28px);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.handoff-expanded-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.handoff-expanded-heading h3 {
+  margin: 0 0 5px;
+  font-size: 22px;
+}
+
+.handoff-expanded-heading p,
+.handoff-expanded-heading small {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.handoff-expanded-heading small {
+  display: block;
+  margin-top: 5px;
+}
+
+.call-brief-items {
+  margin: 22px 0;
+  padding: 0;
+  display: grid;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.call-brief-items li {
+  padding: 17px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.call-brief-items li + li {
+  border-top: 1px solid var(--border);
+}
+
+.call-brief-items li > span {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.call-brief-items strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.call-brief-items p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.call-brief-item-unknown p {
+  color: var(--secondary);
+}
+
+.bank-notification-body {
+  margin: 22px 0 0;
+  padding: clamp(18px, 3vw, 28px);
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.handoff-demo-boundary {
+  margin: 18px 0 0;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.handoff-expanded-view .complaint-packet {
+  margin-top: 18px;
+}
+
 .incident-description-block p {
   line-height: 1.7;
 }
@@ -5572,6 +5742,28 @@ html[data-ui-locale="hi"] .companion-eyebrow {
   .call-brief-actions > * {
     width: 100%;
   }
+
+  .handoff-action-buttons > *,
+  .handoff-document-actions > * {
+    width: 100%;
+  }
+
+  .handoff-expanded-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .handoff-expanded-heading > .text-button {
+    align-self: flex-start;
+  }
+
+  .call-brief-items li {
+    padding: 15px;
+  }
+
+  .call-brief-items p {
+    font-size: 16px;
+  }
 }
 
 @media print {
@@ -5677,6 +5869,36 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
   .complaint-packet .incident-timeline > ol > li {
     min-height: 54px;
+  }
+
+  body[data-print-target="bank-notification"] .complaint-packet,
+  body[data-print-target="bank-notification"] .complaint-packet * {
+    visibility: hidden !important;
+  }
+
+  body[data-print-target="bank-notification"] .bank-notification-print,
+  body[data-print-target="bank-notification"] .bank-notification-print * {
+    visibility: visible !important;
+  }
+
+  body[data-print-target="bank-notification"] .bank-notification-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    color: #000;
+    background: #fff;
+    border: 0;
+  }
+
+  body[data-print-target="bank-notification"] .bank-notification-body {
+    margin: 0;
+    padding: 0;
+    color: #000;
+    background: #fff;
+    border: 0;
+    font-size: 11pt;
+    line-height: 1.55;
   }
 
   .no-print {

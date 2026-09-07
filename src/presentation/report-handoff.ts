@@ -1,5 +1,9 @@
 import type { ReportedAmountResolution } from "../incident/complaint-case";
-import { citizenVisibleValue } from "./citizen-visible-value";
+import type { NcrpCompatibleComplaint } from "../incident/ncrp-compatible-complaint";
+import {
+  citizenVisibleValue,
+  isInternalCaseValue,
+} from "./citizen-visible-value";
 import type { IncidentDraft } from "../incident/schema";
 import { sanitizeSensitiveText } from "../incident/sensitive-text";
 import type { UiLocale } from "../i18n/i18n-provider";
@@ -11,6 +15,17 @@ export type NextAction = {
   id: string;
   title: string;
   description: string;
+};
+
+export type CallBriefItem = {
+  label: string;
+  value: string;
+  isKnown: boolean;
+};
+
+export type BankNotification = {
+  providerLabel: string;
+  body: string;
 };
 
 type HandoffOptions = {
@@ -61,6 +76,284 @@ function financialContext(draft: IncidentDraft, locale: UiLocale) {
   return null;
 }
 
+function unknownCallValue(locale: UiLocale) {
+  return locale === "hi"
+    ? "पता नहीं — ऑपरेटर को बताएं कि यह जानकारी उपलब्ध नहीं है।"
+    : "Not known — tell the operator this is not known.";
+}
+
+function callBriefItem(
+  label: string,
+  value: string | null | undefined,
+  locale: UiLocale,
+): CallBriefItem {
+  const safeValue = value ? sanitizeSensitiveText(value).text.trim() : "";
+  return safeValue
+    ? { label, value: safeValue, isKnown: true }
+    : { label, value: unknownCallValue(locale), isKnown: false };
+}
+
+function resolveHandoffFacts(
+  draft: IncidentDraft,
+  { locale, amountResolution }: HandoffOptions,
+) {
+  const transaction = draft.transactions.find(
+    (item) => item.direction !== "CREDIT",
+  ) ?? draft.transactions[0];
+  const hasUnresolvedConflict = Boolean(
+    amountResolution?.hasConflict && !amountResolution.selectedAmount,
+  );
+  const confirmedAmount = hasUnresolvedConflict
+    ? null
+    : amountResolution?.selectedAmount ?? resolveFinancialLoss(draft).resolvedLoss;
+  const transactionDate = formatDate(transaction?.transactionDate ?? null, locale);
+  const transactionTime = formatTime(transaction?.approximateTime ?? null, locale);
+  const institution = citizenVisibleValue(transaction?.institution);
+  const affectedAccount = citizenVisibleValue(transaction?.accountOrUpiId);
+  const paymentMethod = citizenVisibleValue(transaction?.paymentMethod);
+  const references = draft.transactions
+    .map((item) => citizenVisibleValue(
+      item.transactionIdOrUtr ?? item.referenceNumber,
+    ))
+    .filter((value): value is string => Boolean(value));
+  const destinationIdentifiers = draft.suspectIdentifiers
+    .filter((item) => item.type === "UPI_ID" || item.type === "OTHER")
+    .map((item) => citizenVisibleValue(item.value))
+    .filter((value): value is string => Boolean(value));
+  const contactIdentifiers = draft.suspectIdentifiers
+    .filter((item) =>
+      ["PHONE", "EMAIL", "SOCIAL_HANDLE", "NAME"].includes(item.type)
+    )
+    .map((item) => citizenVisibleValue(item.value))
+    .filter((value): value is string => Boolean(value));
+  const claimedIdentity = citizenVisibleValue(
+    draft.adaptiveFacts.impersonatedEntity,
+  );
+  const contactAndClaim = [
+    contactIdentifiers.length > 0 ? contactIdentifiers.join(", ") : null,
+    claimedIdentity
+      ? locale === "hi"
+        ? `${claimedIdentity} होने का दावा किया; पहचान की स्वतंत्र पुष्टि नहीं हुई।`
+        : `claimed to be ${claimedIdentity}; the identity was not independently confirmed.`
+      : null,
+  ].filter(Boolean).join(locale === "hi" ? " — " : "; ");
+
+  return {
+    transaction,
+    hasUnresolvedConflict,
+    confirmedAmount,
+    transactionDate,
+    transactionTime,
+    institution,
+    affectedAccount,
+    paymentMethod,
+    references,
+    destinationIdentifiers,
+    contactAndClaim,
+  };
+}
+
+export function buildCallBriefItems(
+  draft: IncidentDraft,
+  options: HandoffOptions,
+): CallBriefItem[] | null {
+  if (
+    draft.classification.reportFamily !== "FINANCIAL_FRAUD" ||
+    draft.incident.moneyLost !== true ||
+    draft.transactions.length === 0
+  ) {
+    return null;
+  }
+
+  const { locale } = options;
+  const hi = locale === "hi";
+  const facts = resolveHandoffFacts(draft, options);
+  const dateAndTime = [facts.transactionDate, facts.transactionTime]
+    .filter(Boolean)
+    .join(hi ? ", " : " at ");
+  const institutionAndAccount = [facts.institution, facts.affectedAccount]
+    .filter(Boolean)
+    .join(" · ");
+
+  return [
+    callBriefItem(
+      hi ? "क्या हुआ" : "What happened",
+      hi
+        ? draft.incident.narrative || draft.citizenSummary.shortSummary
+        : draft.citizenSummary.shortSummary || draft.incident.narrative,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "कितनी राशि गई" : "Amount lost",
+      facts.confirmedAmount ? formatCurrency(facts.confirmedAmount) : null,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "पहले लेन-देन की तारीख और समय" : "Date and time of the first transaction",
+      dateAndTime || null,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "बैंक या प्रभावित वित्तीय खाता" : "Bank or affected financial account",
+      institutionAndAccount || null,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "पैसे कैसे गए" : "How the money left",
+      facts.paymentMethod,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "लाभार्थी या गंतव्य की जानकारी" : "Beneficiary or destination identifiers",
+      facts.destinationIdentifiers.length > 0
+        ? facts.destinationIdentifiers.join(", ")
+        : null,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "लेन-देन संदर्भ" : "Transaction references",
+      facts.references.length > 0 ? facts.references.join(", ") : null,
+      locale,
+    ),
+    callBriefItem(
+      hi ? "किसने संपर्क किया और क्या पहचान बताई" : "Who contacted you and what identity they claimed",
+      facts.contactAndClaim || null,
+      locale,
+    ),
+  ];
+}
+
+function safeComplaintValue(
+  field: { value: string | number | boolean | null; sources: string[] },
+): string | null {
+  const value = field.value;
+  if (value === null || value === "" || isInternalCaseValue(value)) return null;
+  if (typeof value === "string" && /(?:\.invalid|^test[-_ ])/i.test(value)) {
+    return null;
+  }
+  return sanitizeSensitiveText(String(value)).text;
+}
+
+function currentLetterDate(locale: UiLocale, now: Date) {
+  return new Intl.DateTimeFormat(locale === "hi" ? "hi-IN" : "en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(now);
+}
+
+export function buildBankNotification(
+  draft: IncidentDraft,
+  complaint: NcrpCompatibleComplaint,
+  options: HandoffOptions & { now?: Date },
+): BankNotification | null {
+  if (
+    draft.classification.reportFamily !== "FINANCIAL_FRAUD" ||
+    draft.incident.moneyLost !== true ||
+    draft.transactions.length === 0
+  ) {
+    return null;
+  }
+
+  const { locale } = options;
+  const hi = locale === "hi";
+  const facts = resolveHandoffFacts(draft, options);
+  const unknown = hi ? "पता नहीं" : "Not known";
+  const provider = draft.transactions
+    .map((item) => citizenVisibleValue(item.institution))
+    .find(Boolean) ?? null;
+  const providerLabel = provider ?? (
+    hi ? "आपका बैंक या भुगतान सेवा प्रदाता" : "Your bank or payment provider"
+  );
+  const citizenName = safeComplaintValue(complaint.groups.complainant.name) ?? unknown;
+  const contact = [
+    safeComplaintValue(complaint.groups.complainant.mobile),
+    safeComplaintValue(complaint.groups.complainant.email),
+  ].filter(Boolean).join(" · ") || unknown;
+  const accountIdentifiers = draft.transactions
+    .map((item) => citizenVisibleValue(item.accountOrUpiId))
+    .filter((value): value is string => Boolean(value));
+  const account = accountIdentifiers.length > 0
+    ? [...new Set(accountIdentifiers)].join(", ")
+    : unknown;
+  const statement = sanitizeSensitiveText(
+    (hi
+      ? draft.incident.narrative || draft.citizenSummary.shortSummary
+      : draft.citizenSummary.shortSummary || draft.incident.narrative) || unknown,
+  ).text;
+  const transactionLines = draft.transactions.map((transaction, index) => {
+    const date = formatDate(transaction.transactionDate, locale) ?? unknown;
+    const time = formatTime(transaction.approximateTime, locale) ?? unknown;
+    const amount = transaction.amount ? formatCurrency(transaction.amount) : unknown;
+    const reference = citizenVisibleValue(
+      transaction.transactionIdOrUtr ?? transaction.referenceNumber,
+    ) ?? unknown;
+    return hi
+      ? `${index + 1}. तारीख: ${date}\n   समय: ${time}\n   राशि: ${amount}\n   संदर्भ: ${reference}`
+      : `${index + 1}. Date: ${date}\n   Time: ${time}\n   Amount: ${amount}\n   Reference: ${reference}`;
+  });
+  const totalLoss = facts.confirmedAmount
+    ? formatCurrency(facts.confirmedAmount)
+    : unknown;
+  const callerContext = facts.contactAndClaim || unknown;
+  const date = currentLetterDate(locale, options.now ?? new Date());
+
+  const body = hi
+    ? [
+        `तारीख: ${date}`,
+        "",
+        "प्रति: शाखा प्रबंधक / धोखाधड़ी सहायता टीम",
+        "",
+        `नागरिक का नाम: ${citizenName}`,
+        `खाता / कार्ड पहचान: ${account}`,
+        "",
+        "विषय: अनधिकृत लेन-देन की सूचना",
+        "",
+        statement,
+        "",
+        "मैं नीचे दिए गए लेन-देन को अपने द्वारा अनधिकृत के रूप में रिपोर्ट कर रहा/रही हूँ:",
+        "",
+        ...transactionLines,
+        "",
+        `कुल नुकसान: ${totalLoss}`,
+        `कॉलर / घटना का संदर्भ: ${callerContext}`,
+        "शिकायत पावती / संदर्भ: __________",
+        "",
+        "कृपया इस सूचना की प्राप्ति स्वीकार करें। कृपया विवादित लेन-देन और शिकायत को दर्ज करके उनकी समीक्षा करें।",
+        "",
+        `नाम: ${citizenName}`,
+        `संपर्क: ${contact}`,
+      ].join("\n")
+    : [
+        `Date: ${date}`,
+        "",
+        "To the Branch Manager / Fraud Support Team",
+        "",
+        `Citizen name: ${citizenName}`,
+        `Account / card identifier: ${account}`,
+        "",
+        "Subject: Notification of unauthorised transactions",
+        "",
+        statement,
+        "",
+        "I am reporting the transactions listed below as unauthorised by me:",
+        "",
+        ...transactionLines,
+        "",
+        `Total loss: ${totalLoss}`,
+        `Caller / incident context: ${callerContext}`,
+        "Complaint acknowledgement/reference: __________",
+        "",
+        "Please acknowledge receipt of this notification. Please record and review the disputed transactions and this complaint.",
+        "",
+        `Name: ${citizenName}`,
+        `Contact: ${contact}`,
+      ].join("\n");
+
+  return { providerLabel, body };
+}
+
 export function buildCallBrief(
   draft: IncidentDraft,
   { locale, amountResolution }: HandoffOptions,
@@ -75,12 +368,9 @@ export function buildCallBrief(
   const hi = locale === "hi";
   const transaction = draft.transactions[0];
   const transactionCount = draft.transactions.length;
-  const hasUnresolvedConflict = Boolean(
-    amountResolution?.hasConflict && !amountResolution.selectedAmount,
-  );
-  const confirmedAmount = hasUnresolvedConflict
-    ? null
-    : amountResolution?.selectedAmount ?? resolveFinancialLoss(draft).resolvedLoss;
+  const facts = resolveHandoffFacts(draft, { locale, amountResolution });
+  const hasUnresolvedConflict = facts.hasUnresolvedConflict;
+  const confirmedAmount = facts.confirmedAmount;
   const date = formatDate(
     draft.incident.incidentDate ?? transaction?.transactionDate ?? null,
     locale,

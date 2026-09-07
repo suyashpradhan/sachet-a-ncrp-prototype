@@ -3,6 +3,7 @@
 import type { NcrpCompatibleComplaint } from "../../incident/ncrp-compatible-complaint";
 import type { IncidentDraft } from "../../incident/schema";
 import type { UiLocale } from "../../i18n/i18n-provider";
+import { resolveFinancialLoss } from "../../incident/financial-summary";
 import { formatCurrency } from "../../presentation/format";
 import { deriveIncidentTimeline } from "../../presentation/incident-timeline";
 import { IncidentTimeline } from "./incident-timeline";
@@ -62,6 +63,7 @@ export function ComplaintPacket({
 }: ComplaintPacketProps) {
   const hi = locale === "hi";
   const transactions = complaint.groups.transactions;
+  const totalLoss = resolveFinancialLoss(draft).resolvedLoss;
   const timeline = deriveIncidentTimeline(draft, { locale, isDemoIncident });
   const suspectFields = [
     [hi ? "नाम" : "Name", complaint.groups.suspect.name.value],
@@ -77,6 +79,34 @@ export function ComplaintPacket({
       complaint.groups.suspect.socialHandle.value,
     ],
   ] as const;
+  const hasCallerContact = suspectFields.some(([, value]) =>
+    printableValue(value)
+  );
+  const importantUnknowns = [
+    !printableDate(complaint.groups.incident.incidentDate.value, locale)
+      ? hi ? "घटना की तारीख" : "Incident date"
+      : null,
+    !printableValue(complaint.groups.incident.incidentTime.value)
+      ? hi ? "घटना का समय" : "Incident time"
+      : null,
+    ...transactions.flatMap((transaction, index) => {
+      const number = transactions.length > 1 ? ` ${index + 1}` : "";
+      return [
+        !printableValue(transaction.institution.value)
+          ? `${hi ? "बैंक या भुगतान संस्था" : "Bank or payment institution"}${number}`
+          : null,
+        !printableValue(transaction.sourceAccountOrPaymentId.value)
+          ? `${hi ? "प्रभावित खाता" : "Affected account"}${number}`
+          : null,
+        !printableValue(transaction.transactionIdOrUtr.value)
+          ? `${hi ? "लेन-देन संदर्भ" : "Transaction reference"}${number}`
+          : null,
+      ];
+    }),
+    draft.adaptiveFacts.impersonation && !hasCallerContact
+      ? hi ? "कॉलर या संपर्क की जानकारी" : "Caller or contact details"
+      : null,
+  ].filter((value): value is string => Boolean(value));
 
   return (
     <>
@@ -154,6 +184,14 @@ export function ComplaintPacket({
         {transactions.length > 0 ? (
           <section className="packet-section">
             <h2>{hi ? "पैसा और लेन-देन" : "Money & transactions"}</h2>
+            {totalLoss ? (
+              <dl>
+                <PacketField
+                  label={hi ? "कुल रिपोर्ट की गई हानि" : "Total reported loss"}
+                  value={formatCurrency(totalLoss)}
+                />
+              </dl>
+            ) : null}
             {transactions.map((transaction, index) => (
               <div className="packet-transaction" key={`packet-transaction-${index + 1}`}>
                 {transactions.length > 1 ? (
@@ -211,6 +249,35 @@ export function ComplaintPacket({
           </section>
         ) : null}
 
+        {draft.adaptiveFacts.impersonation ? (
+          <section className="packet-section">
+            <h2>{hi ? "बताई गई पहचान" : "Claimed identity"}</h2>
+            <dl>
+              <PacketField
+                label={hi ? "कॉलर ने अपनी पहचान क्या बताई" : "Identity claimed by the caller"}
+                value={draft.adaptiveFacts.impersonatedEntity}
+              />
+              <PacketField
+                label={hi ? "पुष्टि की स्थिति" : "Confirmation status"}
+                value={
+                  hi
+                    ? "पहचान की स्वतंत्र पुष्टि दर्ज नहीं है"
+                    : "No independent confirmation of the identity is recorded"
+                }
+              />
+            </dl>
+          </section>
+        ) : null}
+
+        {importantUnknowns.length > 0 ? (
+          <section className="packet-section">
+            <h2>{hi ? "जरूरी अज्ञात जानकारी" : "Important unknown details"}</h2>
+            <ul>
+              {importantUnknowns.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </section>
+        ) : null}
+
         <section className="packet-section">
           <h2>{hi ? "आपकी जानकारी" : "Your details"}</h2>
           <dl>
@@ -225,7 +292,8 @@ export function ComplaintPacket({
 
         <footer>
           <p>{hi ? "नागरिक द्वारा दी गई जानकारी से तैयार।" : "Prepared from information supplied by the citizen."}</p>
-          <p>{hi ? "केवल प्रोटोटाइप। यह रिपोर्ट एनसीआरपी या किसी अन्य सरकारी प्रणाली में जमा नहीं हुई।" : "Prototype only. This report was not submitted to NCRP or another government system."}</p>
+          <p>{hi ? "सचेत, एक स्वतंत्र प्रोटोटाइप, के साथ तैयार। यह सरकारी दस्तावेज़ नहीं है और एनसीआरपी, किसी बैंक या पुलिस से जुड़ा नहीं है।" : "Prepared with Sachet, an independent prototype. This is not a government document and is not connected to NCRP, a bank, or the police."}</p>
+          {isDemoIncident ? <p>{hi ? "केवल काल्पनिक डेमो।" : "Synthetic demo only."}</p> : null}
         </footer>
       </article>
     </>
