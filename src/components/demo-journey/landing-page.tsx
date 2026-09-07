@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useI18n } from "../../i18n/i18n-provider";
 
 type LandingPageProps = {
@@ -17,6 +18,26 @@ export function LandingPage({
 }: LandingPageProps) {
   const { locale } = useI18n();
   const hi = locale === "hi";
+  const rotatingWords = hi
+    ? ["रिपोर्ट करने", "समझने", "रोकने"]
+    : ["report", "understand", "prevent"];
+  const [rotatingWordIndex, setRotatingWordIndex] = useState(0);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    if (reducedMotion.matches) {
+      setRotatingWordIndex(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setRotatingWordIndex(
+        (current) => (current + 1) % rotatingWords.length,
+      );
+    }, 2500);
+    return () => window.clearInterval(timer);
+  }, [rotatingWords.length]);
 
   return (
     <div className="landing-page">
@@ -24,45 +45,62 @@ export function LandingPage({
         className="landing-public-hero"
         aria-labelledby="landing-heading"
       >
-        <div className="shell landing-public-hero-simple">
-          <p className="eyebrow landing-welcome">
-            {hi ? "सचेत में आपका स्वागत है" : "Welcome to सचेत"}
-          </p>
-          <h1 id="landing-heading">
-            {hi
-              ? "साइबर अपराध की रिपोर्ट करने और आगे क्या करना है, यह समझने की जगह।"
-              : "The place to report cybercrime and understand what to do next."}
-          </h1>
-          <p className="landing-public-lede">
-            {hi
-              ? "बताएं कि क्या हुआ। सचेत शिकायत तैयार करने, सही जानकारी सुरक्षित रखने और अगले कदम समझने में मदद करता है।"
-              : "Tell us what happened. सचेत helps you prepare the complaint, keep the right information safe, and understand the next steps."}
-          </p>
+        <div className="shell landing-public-hero-grid">
+          <div className="landing-public-hero-copy">
+            <p className="eyebrow landing-welcome">
+              {hi ? "सचेत में आपका स्वागत है" : "Welcome to Sachet"}
+            </p>
+            <h1 id="landing-heading">
+              <span className="sr-only">
+                {hi
+                  ? "साइबर अपराध को रिपोर्ट करने और आगे क्या करना है, यह जानने की जगह।"
+                  : "The place to report cybercrime — and know what to do next."}
+              </span>
+              <span className="landing-headline-visual" aria-hidden="true">
+                {hi ? "साइबर अपराध को " : "The place to "}
+                <span
+                  className="landing-rotating-word"
+                  key={`${locale}-${rotatingWordIndex}`}
+                >
+                  {rotatingWords[rotatingWordIndex]}
+                </span>{" "}
+                {hi
+                  ? "और आगे क्या करना है, यह जानने की जगह।"
+                  : "cybercrime — and know what to do next."}
+              </span>
+            </h1>
+            <p className="landing-public-lede">
+              {hi
+                ? "बताएं कि क्या हुआ। सचेत शिकायत तैयार करने, सही जानकारी सुरक्षित रखने और अगले कदम समझने में मदद करता है।"
+                : "Tell us what happened. Sachet helps you prepare the complaint, keep the right information safe, and understand the next steps."}
+            </p>
 
-          <div className="landing-primary-actions">
-            <button
-              className="primary-button"
-              type="button"
-              onClick={
-                hasSubmittedCase ? onViewSubmittedCase : onStartComplaint
-              }
-            >
-              {hasSubmittedCase
-                ? hi
-                  ? "जमा किया गया मामला देखें"
-                  : "View submitted case"
-                : hi
-                  ? "शिकायत शुरू करें"
-                  : "Start complaint"}
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={onViewDemo}
-            >
-              {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
-            </button>
+            <div className="landing-primary-actions">
+              <button
+                className="primary-button"
+                type="button"
+                onClick={
+                  hasSubmittedCase ? onViewSubmittedCase : onStartComplaint
+                }
+              >
+                {hasSubmittedCase
+                  ? hi
+                    ? "जमा किया गया मामला देखें"
+                    : "View submitted case"
+                  : hi
+                    ? "शिकायत शुरू करें"
+                    : "Start complaint"}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={onViewDemo}
+              >
+                {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
+              </button>
+            </div>
           </div>
+          <SachetHeroIllustration />
         </div>
       </section>
 
@@ -71,6 +109,82 @@ export function LandingPage({
       <FraudGuidance hi={hi} />
       <AfterReporting hi={hi} />
       <WhySachetExists hi={hi} />
+    </div>
+  );
+}
+
+function SachetHeroIllustration() {
+  return (
+    <div className="landing-hero-illustration" aria-hidden="true">
+      <svg viewBox="0 0 520 400" role="presentation">
+        <defs>
+          <marker
+            id="hero-flow-arrow"
+            markerWidth="8"
+            markerHeight="8"
+            refX="6"
+            refY="4"
+            orient="auto"
+          >
+            <path d="M1 1L7 4L1 7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+          </marker>
+        </defs>
+
+        <rect x="12" y="18" width="496" height="364" rx="24" className="hero-svg-backdrop" />
+
+        <path d="M122 112C160 112 164 92 202 92" className="hero-svg-flow" markerEnd="url(#hero-flow-arrow)" />
+        <path d="M150 274C176 274 177 286 204 286" className="hero-svg-flow" markerEnd="url(#hero-flow-arrow)" />
+        <path d="M390 196C420 196 421 174 446 174" className="hero-svg-flow" markerEnd="url(#hero-flow-arrow)" />
+
+        <g className="hero-svg-incident">
+          <rect x="42" y="61" width="80" height="112" rx="15" className="hero-svg-surface" />
+          <rect x="53" y="75" width="58" height="74" rx="8" className="hero-svg-soft" />
+          <path d="M71 98C75 112 84 121 98 125" className="hero-svg-stroke" />
+          <path d="M69 92L78 89L83 102L76 106M94 119L98 111L111 117L107 127" className="hero-svg-accent" />
+          <circle cx="82" cy="160" r="3" className="hero-svg-muted-fill" />
+          <path d="M55 50H102C111 50 116 44 116 36V31L106 39H55C47 39 42 43 42 50Z" className="hero-svg-message" />
+          <circle cx="60" cy="48" r="2" className="hero-svg-muted-fill" />
+          <circle cx="70" cy="48" r="2" className="hero-svg-muted-fill" />
+          <circle cx="80" cy="48" r="2" className="hero-svg-muted-fill" />
+        </g>
+
+        <g className="hero-svg-evidence">
+          <rect x="34" y="220" width="116" height="54" rx="9" className="hero-svg-surface" />
+          <circle cx="52" cy="238" r="7" className="hero-svg-accent-fill" />
+          <path d="M68 235H132M68 247H112" className="hero-svg-muted-line" />
+          <rect x="45" y="270" width="116" height="54" rx="9" className="hero-svg-surface hero-svg-layered-card" />
+          <circle cx="63" cy="288" r="7" className="hero-svg-accent-fill" />
+          <path d="M79 285H143M79 297H123" className="hero-svg-muted-line" />
+        </g>
+
+        <g className="hero-svg-document">
+          <rect x="202" y="52" width="190" height="282" rx="16" className="hero-svg-document-shadow" />
+          <rect x="194" y="44" width="190" height="282" rx="16" className="hero-svg-document-page" />
+          <path d="M222 81H306M222 96H352" className="hero-svg-title-line" />
+          <rect x="216" y="122" width="146" height="38" rx="8" className="hero-svg-row" />
+          <path d="M232 138C235 145 240 149 247 151M231 134L237 132L240 140M245 149L249 143L256 147" className="hero-svg-stroke" />
+          <path d="M269 137H335M269 147H318" className="hero-svg-muted-line" />
+          <rect x="216" y="171" width="146" height="38" rx="8" className="hero-svg-row" />
+          <circle cx="241" cy="190" r="10" className="hero-svg-money" />
+          <path d="M237 185H245M237 190H244M241 185V197" className="hero-svg-money-mark" />
+          <path d="M269 186H339M269 196H322" className="hero-svg-muted-line" />
+          <rect x="216" y="220" width="146" height="38" rx="8" className="hero-svg-row" />
+          <path d="M233 234H250V247H233ZM237 230H254V243" className="hero-svg-stroke" />
+          <path d="M269 235H342M269 245H326" className="hero-svg-muted-line" />
+          <path d="M228 286L239 297L260 274" className="hero-svg-confirm" />
+          <path d="M278 283H347M278 296H329" className="hero-svg-muted-line" />
+        </g>
+
+        <g className="hero-svg-next">
+          <circle cx="458" cy="142" r="42" className="hero-svg-action-circle" />
+          <path d="M444 128C448 142 455 150 468 155M443 123L451 121L455 133L449 137M464 151L468 144L479 150L475 160" className="hero-svg-accent" />
+          <path d="M430 247H487" className="hero-svg-muted-line" />
+          <path d="M430 265H474" className="hero-svg-muted-line" />
+          <path d="M430 283H481" className="hero-svg-muted-line" />
+          <path d="M417 245L422 250L430 240M417 263L422 268L430 258M417 281L422 286L430 276" className="hero-svg-confirm-small" />
+          <path d="M448 320C448 308 454 300 464 300C474 300 480 308 480 320L486 329H442L448 320ZM458 335H470" className="hero-svg-stroke" />
+        </g>
+      </svg>
     </div>
   );
 }

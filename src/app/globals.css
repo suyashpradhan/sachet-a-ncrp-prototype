@@ -943,9 +943,9 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 
 .landing-public-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.68fr);
+  grid-template-columns: minmax(0, 1.28fr) minmax(300px, 1fr);
   align-items: center;
-  gap: clamp(52px, 8vw, 112px);
+  gap: clamp(36px, 6vw, 88px);
 }
 
 .landing-public-hero-simple {
@@ -985,6 +985,162 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.035em;
+}
+
+.landing-headline-visual {
+  display: inline;
+}
+
+.landing-rotating-word {
+  min-width: 10.5ch;
+  margin-inline: 0.08em;
+  padding: 0.02em 0.18em 0.04em;
+  display: inline-block;
+  color: #fff;
+  background: var(--text);
+  border-bottom: 4px solid var(--primary);
+  border-radius: 6px;
+  line-height: 1.02;
+  text-align: center;
+  vertical-align: 0.04em;
+  animation: landing-word-enter 300ms ease-out both;
+}
+
+@keyframes landing-word-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.12em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-hero-illustration {
+  width: min(100%, 520px);
+  justify-self: end;
+  color: var(--primary);
+}
+
+.landing-hero-illustration svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.hero-svg-backdrop {
+  fill: var(--surface-subtle);
+  stroke: var(--border);
+}
+
+.hero-svg-surface,
+.hero-svg-document-page {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+}
+
+.hero-svg-document-shadow {
+  fill: #ded8d2;
+  opacity: 0.42;
+}
+
+.hero-svg-soft,
+.hero-svg-row {
+  fill: var(--surface-subtle);
+  stroke: var(--border);
+  stroke-width: 1.2;
+}
+
+.hero-svg-layered-card {
+  fill: #fffdfb;
+}
+
+.hero-svg-flow {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 4 6;
+}
+
+.hero-svg-stroke,
+.hero-svg-title-line {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-svg-title-line {
+  stroke-width: 4;
+}
+
+.hero-svg-accent {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-svg-accent-fill {
+  fill: var(--primary-100);
+  stroke: var(--primary);
+  stroke-width: 1.4;
+}
+
+.hero-svg-muted-fill {
+  fill: var(--muted);
+}
+
+.hero-svg-muted-line {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.hero-svg-message {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.hero-svg-money {
+  fill: var(--primary-050);
+  stroke: var(--primary);
+  stroke-width: 1.5;
+}
+
+.hero-svg-money-mark {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.hero-svg-confirm,
+.hero-svg-confirm-small {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-svg-confirm-small {
+  stroke-width: 2.4;
+}
+
+.hero-svg-action-circle {
+  fill: var(--primary-050);
+  stroke: var(--primary-100);
+  stroke-width: 1.5;
 }
 
 .landing-public-lede {
@@ -2455,6 +2611,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 .stay-informed {
   border-color: var(--primary-100);
   background: var(--primary-050);
+  padding: 20px;
 }
 
 .reminder-setup {
@@ -2466,6 +2623,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   display: grid;
   gap: 7px;
   font-weight: 700;
+  margin-bottom: 10px;
 }
 
 .reminder-contact-field input {
@@ -4942,6 +5100,11 @@ html[data-ui-locale="hi"] .companion-eyebrow {
     gap: 42px;
   }
 
+  .landing-hero-illustration {
+    width: min(86vw, 440px);
+    justify-self: center;
+  }
+
   .landing-path-grid,
   .landing-how ol {
     grid-template-columns: 1fr;
@@ -5095,6 +5258,15 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
   .landing-public-hero h1 {
     font-size: clamp(36px, 10.5vw, 44px);
+  }
+
+  .landing-rotating-word {
+    min-width: 10.2ch;
+    border-bottom-width: 3px;
+  }
+
+  .landing-hero-illustration {
+    width: min(92vw, 360px);
   }
 
   .landing-purpose-panel,
