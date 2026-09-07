@@ -981,7 +981,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 .landing-public-hero h1 {
   margin-bottom: 22px;
   max-width: 760px;
-  font-size: clamp(42px, 4.8vw, 62px);
+  font-size: clamp(42px, 4.8vw, 48px);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.035em;
@@ -1000,7 +1000,6 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 }
 
 .landing-rotating-word {
-  min-width: 10.5ch;
   margin-inline: 0.04em;
   padding: 0 0 0.04em;
   display: inline-block;

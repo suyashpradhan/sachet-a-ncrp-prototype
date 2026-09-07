@@ -66,7 +66,7 @@ export function LandingPage({
                 <span className="landing-headline-line landing-headline-next-line">
                   {hi
                     ? "और जानें कि आगे क्या करना है —"
-                    : "and know what to do next —"}
+                    : "and know what to do next"}
                 </span>
               </span>
             </h1>
