@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { appName } from "../config/brand";
 import { useI18n } from "../i18n/i18n-provider";
@@ -14,6 +15,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const { locale, setLocale, t } = useI18n();
   const { controls } = useJourneyNavigation();
+  const pathname = usePathname();
 
   return (
     <>
@@ -31,7 +33,7 @@ export function AppShell({ children }: AppShellProps) {
                 : `Go to the ${appName(locale)} home page`
             }
             onClick={(event) => {
-              if (!controls) return;
+              if (!controls || pathname !== "/") return;
               controls.onHome();
               event.preventDefault();
             }}
@@ -39,6 +41,9 @@ export function AppShell({ children }: AppShellProps) {
             <SachetLogo />
           </Link>
           <div className="header-actions">
+            <Link className="header-view-case" href="/view-case">
+              {t("case.view")}
+            </Link>
             {!controls ? (
               <nav className="landing-header-nav" aria-label={locale === "hi" ? "मुख्य पेज" : "Landing page"}>
                 <a href="/#how-sachet-works">{locale === "hi" ? "यह कैसे काम करता है" : "How it works"}</a>

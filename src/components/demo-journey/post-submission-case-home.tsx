@@ -41,6 +41,7 @@ type PostSubmissionCaseHomeProps = {
   complaint: NcrpCompatibleComplaint;
   prototypeReference: string;
   screenshots: File[];
+  unavailableEvidenceNames?: string[];
   isDemoIncident: boolean;
   demoCase: DemoCaseDefinition | null;
   milestones: PostReportMilestones;
@@ -370,20 +371,23 @@ function PrintableCaseReport({
 function EvidenceIncluded({
   draft,
   screenshots,
+  unavailableEvidenceNames = [],
   isDemoIncident,
   demoCase,
 }: Pick<
   PostSubmissionCaseHomeProps,
   "draft" | "screenshots" | "isDemoIncident" | "demoCase"
->) {
-  const { locale } = useI18n();
+> & { unavailableEvidenceNames?: string[] }) {
+  const { locale, t } = useI18n();
   const hi = locale === "hi";
   const items = deriveEvidenceContributions(draft, {
     locale,
     isDemoIncident,
     screenshotNames: isDemoIncident
       ? (demoCase?.evidence.map((item) => item.label) ?? [])
-      : screenshots.map((file) => file.name),
+      : screenshots.length > 0
+        ? screenshots.map((file) => file.name)
+        : unavailableEvidenceNames,
     demoEvidence: demoCase?.evidence,
   });
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
@@ -494,6 +498,11 @@ function EvidenceIncluded({
           ))}
         </div>
       )}
+      {!isDemoIncident && unavailableEvidenceNames.length > 0 ? (
+        <p className="evidence-reattach-note" role="status">
+          {t("case.evidenceReattach")}
+        </p>
+      ) : null}
 
       {activeItem ? (
         <dialog
@@ -548,6 +557,7 @@ export function PostSubmissionCaseHome({
   complaint,
   prototypeReference,
   screenshots,
+  unavailableEvidenceNames = [],
   isDemoIncident,
   demoCase,
   milestones,
@@ -557,7 +567,7 @@ export function PostSubmissionCaseHome({
   onDraftChange,
   onStartNewReport,
 }: PostSubmissionCaseHomeProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const hi = locale === "hi";
   const showPreparedFinancialHandoff =
     draft.classification.reportFamily === "FINANCIAL_FRAUD" &&
@@ -619,7 +629,9 @@ export function PostSubmissionCaseHome({
     .slice(0, 6);
   const evidenceToKeep = isDemoIncident
     ? (demoCase?.evidence.map((item) => (hi ? item.labelHi : item.label)) ?? [])
-    : screenshots.map((file) => file.name);
+    : screenshots.length > 0
+      ? screenshots.map((file) => file.name)
+      : unavailableEvidenceNames;
   const processBoundaries = Array.from(
     new Set([
       stateExplanation.whatItDoesNotMean,
@@ -740,7 +752,7 @@ export function PostSubmissionCaseHome({
               </h1>
             </div>
             <div className="prototype-reference-line">
-              <span>{hi ? "प्रोटोटाइप संदर्भ:" : "Prototype reference:"}</span>
+              <span>{t("case.reference")}:</span>
               <strong>{prototypeReference}</strong>
               <button
                 className="text-button"
@@ -751,11 +763,14 @@ export function PostSubmissionCaseHome({
                   ? hi
                     ? "कॉपी हो गया"
                     : "Copied"
-                  : hi
-                    ? "कॉपी करें"
-                    : "Copy"}
+                  : t("case.copyReference")}
               </button>
             </div>
+            {!isDemoIncident ? (
+              <p className="source-note">
+                {t("case.keepReference")}
+              </p>
+            ) : null}
             <p className="prototype-boundary">
               {isDemoIncident
                 ? hi
@@ -1362,6 +1377,7 @@ export function PostSubmissionCaseHome({
           <EvidenceIncluded
             draft={draft}
             screenshots={screenshots}
+            unavailableEvidenceNames={unavailableEvidenceNames}
             isDemoIncident={isDemoIncident}
             demoCase={demoCase}
           />

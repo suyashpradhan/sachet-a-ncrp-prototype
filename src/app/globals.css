@@ -1170,6 +1170,105 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   gap: 14px;
 }
 
+.header-view-case {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.header-view-case:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.view-case-shell {
+  max-width: 700px;
+}
+
+.view-case-shell h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(34px, 5vw, 48px);
+}
+
+.view-case-intro {
+  max-width: 620px;
+  color: var(--secondary);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.view-case-form {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: end;
+}
+
+.view-case-form label {
+  grid-column: 1 / -1;
+  font-weight: 700;
+}
+
+.view-case-form input {
+  width: 100%;
+  min-height: 52px;
+  padding: 11px 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.view-case-not-found,
+.view-case-demo {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.view-case-not-found h2 {
+  margin: 0 0 8px;
+  font-size: 21px;
+}
+
+.view-case-not-found p,
+.view-case-demo p,
+.view-case-boundary {
+  color: var(--secondary);
+}
+
+.view-case-demo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--surface-muted);
+}
+
+.view-case-demo p {
+  margin: 4px 0 8px;
+}
+
+.view-case-demo code {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.view-case-boundary {
+  margin-top: 24px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .landing-resume-complaint {
   max-width: 620px;
   margin-top: 22px;
@@ -5504,6 +5603,20 @@ html[data-ui-locale="hi"] .companion-eyebrow {
     width: 100%;
   }
 
+  .view-case-form {
+    grid-template-columns: 1fr;
+  }
+
+  .view-case-form .primary-button,
+  .view-case-demo .secondary-button {
+    width: 100%;
+  }
+
+  .view-case-demo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .case-knowledge-summary {
     grid-template-columns: 1fr;
   }
@@ -5560,6 +5673,10 @@ html[data-ui-locale="hi"] .companion-eyebrow {
   .header-actions,
   .language-switch {
     gap: 7px;
+  }
+
+  .header-view-case {
+    font-size: 13px;
   }
 
   .language-switch button {

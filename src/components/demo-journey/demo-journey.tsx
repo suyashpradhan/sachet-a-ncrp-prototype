@@ -58,6 +58,13 @@ import {
 import { DEMO_CASE_ACCESS, useDemoCase } from "../demo-case/demo-case-provider";
 import { PostSubmissionCaseHome } from "./post-submission-case-home";
 import { LandingPage } from "./landing-page";
+import { ViewCaseScreen } from "./view-case-screen";
+import {
+  createSachetCaseReference,
+  findSavedCase,
+  readSavedCases,
+  saveCaseRecord,
+} from "../../persistence/saved-cases";
 import {
   ReportWorkspace,
   type PreparationFailure,
@@ -72,6 +79,7 @@ type JourneyView =
   | "ANALYSIS_RESULT"
   | "REVIEW"
   | "SUCCESS"
+  | "CASE_LOOKUP"
   | "ANALYSIS_ERROR";
 
 const DEMO_SESSION_KEY = "sachet-deterministic-demo-v3";
@@ -347,8 +355,12 @@ async function compressScreenshot(file: File): Promise<File> {
   });
 }
 
-export function DemoJourney() {
-  const { locale, t } = useI18n();
+export function DemoJourney({
+  initialView = "ENTRY",
+}: {
+  initialView?: "ENTRY" | "CASE_LOOKUP";
+} = {}) {
+  const { locale, setLocale, t } = useI18n();
   const { registerControls } = useJourneyNavigation();
   const {
     experienceMode,
@@ -358,7 +370,7 @@ export function DemoJourney() {
     hydrateComplaintCase,
     resetDemo,
   } = useDemoCase();
-  const [view, setView] = useState<JourneyView>("ENTRY");
+  const [view, setView] = useState<JourneyView>(initialView);
   const [reportMethod, setReportMethod] = useState<ReportMethod>("SPEAK");
   const [draft, setDraft] = useState<IncidentDraft | null>(null);
   const [narrative, setNarrative] = useState("");
@@ -410,11 +422,13 @@ export function DemoJourney() {
     string[]
   >([]);
   const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [hasSavedLiveCases, setHasSavedLiveCases] = useState(false);
+  const [reopenedEvidenceNames, setReopenedEvidenceNames] = useState<string[]>([]);
   const preparedAtRef = useRef<string | null>(null);
   const [preparedSourceSignature, setPreparedSourceSignature] = useState<
     string | null
   >(null);
-  const viewRef = useRef<JourneyView>("ENTRY");
+  const viewRef = useRef<JourneyView>(initialView);
   const journeyHistoryRef = useRef<JourneyView[]>([]);
   const attemptedDemoRestoreRef = useRef(false);
   const analysisRunRef = useRef(0);
@@ -442,6 +456,7 @@ export function DemoJourney() {
           source: "TEST_INPUT" as const,
         }
       : baseProfile;
+  const activeProfileSignature = JSON.stringify(activeProfile);
   const currentSourceSignature = reportSourceSignature({
     narrative,
     reporterName: activeProfile.displayName,
@@ -460,6 +475,7 @@ export function DemoJourney() {
   useEffect(() => {
     const unfinished = readUnfinishedReport();
     if (unfinished) setRecoverableReport(unfinished);
+    setHasSavedLiveCases(readSavedCases().length > 0);
     draftRecoveryReadyRef.current = true;
   }, []);
 
@@ -573,6 +589,7 @@ export function DemoJourney() {
   useEffect(() => {
     if (attemptedDemoRestoreRef.current) return;
     attemptedDemoRestoreRef.current = true;
+    if (initialView === "CASE_LOOKUP") return;
 
     try {
       const stored = window.sessionStorage.getItem(DEMO_SESSION_KEY);
@@ -659,7 +676,51 @@ export function DemoJourney() {
     } catch {
       clearPersistedDemoSession();
     }
-  }, [beginExperience]);
+  }, [beginExperience, initialView]);
+
+  useEffect(() => {
+    if (
+      view !== "SUCCESS" ||
+      isDemoIncident ||
+      !submittedReference ||
+      !submittedDraft ||
+      !submittedComplaint ||
+      !postReportMilestones
+    ) {
+      return;
+    }
+    saveCaseRecord({
+      version: 1,
+      reference: submittedReference,
+      savedAt: new Date().toISOString(),
+      completionState: "PREPARED",
+      draft: submittedDraft,
+      complaint: submittedComplaint,
+      reporterProfile: activeProfile,
+      transcription: submittedTranscription,
+      milestones: postReportMilestones,
+      reminderPreferences,
+      evidenceNames:
+        screenshots.length > 0
+          ? screenshots.map((file) => file.name)
+          : reopenedEvidenceNames,
+      locale,
+    });
+    setHasSavedLiveCases(true);
+  }, [
+    activeProfileSignature,
+    isDemoIncident,
+    locale,
+    postReportMilestones,
+    reminderPreferences,
+    reopenedEvidenceNames,
+    screenshots,
+    submittedComplaint,
+    submittedDraft,
+    submittedReference,
+    submittedTranscription,
+    view,
+  ]);
 
   useEffect(() => {
     if (view === "SUCCESS") {
@@ -820,6 +881,7 @@ export function DemoJourney() {
     setSubmittedTranscription(null);
     setReminderPreferences(createReminderPreferences(false));
     setUnavailableEvidenceNames([]);
+    setReopenedEvidenceNames([]);
     setIsDraftSaved(false);
     preparedAtRef.current = null;
     setPreparedSourceSignature(null);
@@ -895,6 +957,72 @@ export function DemoJourney() {
   function openSubmittedCase() {
     if (!hasSubmittedCase) return;
     journeyHistoryRef.current = ["ENTRY"];
+    setCurrentView("SUCCESS");
+  }
+
+  function openSavedCase(reference: string): boolean {
+    const saved = findSavedCase(reference);
+    if (!saved) return false;
+    resetDemo();
+    resetInputs();
+    beginExperience("LIVE_TEST", saved.reporterProfile);
+    setReporterProfile(saved.reporterProfile);
+    setReporterName(saved.reporterProfile.displayName);
+    setReportingPeople(saved.draft.reportingPeople ?? null);
+    setDraft(saved.draft);
+    setSubmittedDraft(saved.draft);
+    setSubmittedComplaint(saved.complaint);
+    setTranscription(saved.transcription);
+    setSubmittedTranscription(saved.transcription);
+    setPostReportMilestones(saved.milestones);
+    setSubmittedReference(saved.reference);
+    setReminderPreferences(saved.reminderPreferences);
+    setUnavailableEvidenceNames(saved.evidenceNames);
+    setReopenedEvidenceNames(saved.evidenceNames);
+    setLocale(saved.locale);
+    setIsDemoIncident(false);
+    journeyHistoryRef.current = ["CASE_LOOKUP"];
+    setCurrentView("SUCCESS");
+    return true;
+  }
+
+  function openDemoSavedCase() {
+    const demoCase = getDemoCase(DEFAULT_DEMO_CASE_ID);
+    const profile = demoCase.reporter ?? demoCase.citizen;
+    const demoTranscription = demoCase.narrations["hi-IN"];
+    const complaint = buildNcrpCompatibleComplaint({
+      draft: demoCase.draft,
+      profile,
+      transcription: demoTranscription,
+      typedNarrative: demoCase.statement,
+      isDemoIncident: true,
+      screenshotNames: demoCase.evidence.map((item) => item.label),
+      demoEvidencePaths: demoCase.evidence.map((item) => item.src),
+      identityDocumentProvided: true,
+    });
+    resetDemo();
+    resetInputs();
+    setSelectedDemoCaseId(demoCase.id);
+    beginExperience("DEMO_CASE", profile);
+    setReporterProfile(profile);
+    setReporterName(profile.displayName);
+    setReportingPeople(demoCase.draft.reportingPeople ?? null);
+    setNarrative(demoCase.statement);
+    setDraft(demoCase.draft);
+    setSubmittedDraft(demoCase.draft);
+    setSubmittedComplaint(complaint);
+    setTranscription(demoTranscription);
+    setSubmittedTranscription(demoTranscription);
+    setPostReportMilestones(DEMO_POST_REPORT_MILESTONES);
+    setSubmittedReference(demoCase.reference);
+    setReminderPreferences(
+      createReminderPreferences(true, {
+        email: demoCase.citizen.email,
+        whatsapp: demoCase.citizen.registeredMobile,
+      }),
+    );
+    setIsDemoIncident(true);
+    journeyHistoryRef.current = ["CASE_LOOKUP"];
     setCurrentView("SUCCESS");
   }
 
@@ -1538,7 +1666,7 @@ export function DemoJourney() {
       const submittedCaseTranscription = transcription ? structuredClone(transcription) : null;
       const reference = isDemoIncident
         ? activeDemoCase.reference
-        : `SACHET-${Date.now().toString().slice(-8)}`;
+        : createSachetCaseReference();
       if (
         draft.classification.reportFamily !== "FINANCIAL_FRAUD" ||
         draft.incident.financialLossState !== "YES"
@@ -1598,6 +1726,15 @@ export function DemoJourney() {
         onContinueComplaint={continueRecoveredReport}
         onViewDemo={() => useDemoIncident()}
         onViewSubmittedCase={openSubmittedCase}
+      />
+    );
+  } else if (view === "CASE_LOOKUP") {
+    content = (
+      <ViewCaseScreen
+        hasSavedCases={hasSavedLiveCases}
+        demoReference={getDemoCase(DEFAULT_DEMO_CASE_ID).reference}
+        onFindCase={openSavedCase}
+        onUseDemoReference={openDemoSavedCase}
       />
     );
   } else if (
@@ -1775,6 +1912,7 @@ export function DemoJourney() {
         complaint={submittedComplaint}
         prototypeReference={submittedReference}
         screenshots={screenshots}
+        unavailableEvidenceNames={reopenedEvidenceNames}
         isDemoIncident={isDemoIncident}
         demoCase={isDemoIncident ? activeDemoCase : null}
         milestones={postReportMilestones}
