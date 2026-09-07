@@ -430,6 +430,7 @@ export function DemoJourney({
   const [hasSavedLiveCases, setHasSavedLiveCases] = useState(false);
   const [reopenedEvidenceNames, setReopenedEvidenceNames] = useState<string[]>([]);
   const [caseUpdates, setCaseUpdates] = useState<CaseUpdate[]>([]);
+  const [caseUpdateEvidenceFiles, setCaseUpdateEvidenceFiles] = useState<File[]>([]);
   const preparedAtRef = useRef<string | null>(null);
   const [preparedSourceSignature, setPreparedSourceSignature] = useState<
     string | null
@@ -891,6 +892,7 @@ export function DemoJourney({
     setUnavailableEvidenceNames([]);
     setReopenedEvidenceNames([]);
     setCaseUpdates([]);
+    setCaseUpdateEvidenceFiles([]);
     setIsDraftSaved(false);
     preparedAtRef.current = null;
     setPreparedSourceSignature(null);
@@ -989,6 +991,7 @@ export function DemoJourney({
     setUnavailableEvidenceNames(saved.evidenceNames);
     setReopenedEvidenceNames(saved.evidenceNames);
     setCaseUpdates(saved.caseUpdates);
+    setCaseUpdateEvidenceFiles([]);
     setLocale(saved.locale);
     setIsDemoIncident(false);
     journeyHistoryRef.current = ["CASE_LOOKUP"];
@@ -1033,6 +1036,7 @@ export function DemoJourney({
     );
     setIsDemoIncident(true);
     setCaseUpdates([]);
+    setCaseUpdateEvidenceFiles([]);
     journeyHistoryRef.current = ["CASE_LOOKUP"];
     setCurrentView("SUCCESS");
   }
@@ -1056,6 +1060,10 @@ export function DemoJourney({
     const result: unknown = await response.json().catch(() => null);
     if (!response.ok) throw new Error("EVIDENCE_UPDATE_FAILED");
     const extracted = normalizeIncidentDraft(IncidentDraftSchema.parse(result));
+    setCaseUpdateEvidenceFiles((current) => [
+      ...current.filter((item) => item.name !== preparedFile.name),
+      preparedFile,
+    ]);
     return deriveEvidenceUpdateCandidate(
       original,
       extracted,
@@ -1951,6 +1959,7 @@ export function DemoJourney({
         complaint={submittedComplaint}
         prototypeReference={submittedReference}
         screenshots={screenshots}
+        caseUpdateEvidenceFiles={caseUpdateEvidenceFiles}
         unavailableEvidenceNames={reopenedEvidenceNames}
         caseUpdates={caseUpdates}
         isDemoIncident={isDemoIncident}

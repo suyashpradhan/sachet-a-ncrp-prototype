@@ -113,12 +113,14 @@ export function CaseUpdates({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [evidencePreviews, setEvidencePreviews] = useState<Record<string, string>>({});
   const evidencePreviewUrls = useRef<string[]>([]);
   const fields = useMemo(
     () => updateFields(originalDraft, updates, hi),
     [hi, originalDraft, updates],
   );
+  const latestUpdate = updates[updates.length - 1] ?? null;
   const demoFixtureAlreadyAdded = Boolean(
     demoCase?.caseUpdateFixture &&
       updates.some((update) =>
@@ -238,10 +240,16 @@ export function CaseUpdates({
     <section className="companion-section case-updates-section" aria-labelledby="case-updates-heading">
       <div className="case-updates-intro">
         <div>
-          <h2 id="case-updates-heading">{t("updates.foundSomething")}</h2>
+          <h2 id="case-updates-heading">
+            {latestUpdate
+              ? hi
+                ? "मामले के अपडेट"
+                : "Case updates"
+              : t("updates.foundSomething")}
+          </h2>
           <p>{t("updates.support")}</p>
         </div>
-        {!mode && !candidate ? (
+        {!mode && !candidate && !latestUpdate ? (
           <div className="entry-actions">
             <button className="secondary-button" type="button" onClick={() => setMode("EVIDENCE")}>
               {t("updates.addEvidence")}
@@ -252,6 +260,52 @@ export function CaseUpdates({
           </div>
         ) : null}
       </div>
+
+      {latestUpdate && !mode && !candidate ? (
+        <article className="case-update-latest">
+          <div className="case-update-history-heading">
+            <strong>{t("updates.number", { number: updates.length })}</strong>
+            <time dateTime={latestUpdate.createdAt}>
+              {new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Asia/Kolkata",
+              }).format(new Date(latestUpdate.createdAt))}
+            </time>
+          </div>
+          <h3>{latestUpdate.summary}</h3>
+          <dl>
+            {latestUpdate.changes.slice(0, 2).map((change, index) => (
+              <div key={`${change.label}-${index}`}>
+                <dt>{change.label}</dt>
+                <dd>
+                  <span>{change.previousValue ?? t("updates.notKnown")}</span>
+                  <strong aria-label={hi ? "अब" : "Now"}>→ {change.newValue}</strong>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {latestUpdate.addedEvidenceNames.length > 0 ? (
+            <p className="source-note">
+              {t("updates.supportedBy")}: {latestUpdate.addedEvidenceNames.join(", ")}
+            </p>
+          ) : null}
+          <p className="original-case-preserved">✓ {t("updates.originalPreserved")}</p>
+          <div className="entry-actions">
+            <button className="text-button" type="button" onClick={() => setHistoryOpen((open) => !open)}>
+              {historyOpen
+                ? hi ? "अपडेट छिपाएँ" : "Hide updates"
+                : hi ? "अपडेट देखें" : "View update"}
+            </button>
+            <button className="secondary-button" type="button" onClick={() => setMode("EVIDENCE")}>
+              {hi ? "एक और अपडेट जोड़ें" : "Add another update"}
+            </button>
+            <button className="text-button" type="button" onClick={() => setMode("DETAIL")}>
+              {t("updates.correctDetail")}
+            </button>
+          </div>
+        </article>
+      ) : null}
 
       {mode === "EVIDENCE" && !candidate ? (
         <div className="case-update-editor">
@@ -309,6 +363,7 @@ export function CaseUpdates({
           <h3>{candidate.summary}</h3>
           {isDemoFixtureEvidence(candidate.addedEvidenceNames) && demoCase?.caseUpdateFixture ? (
             <Image
+              className="case-update-evidence-thumbnail"
               src={demoCase.caseUpdateFixture.evidenceSrc}
               alt={candidate.addedEvidenceNames[0]}
               width={720}
@@ -316,6 +371,7 @@ export function CaseUpdates({
             />
           ) : candidate.addedEvidenceNames[0] && evidencePreviews[candidate.addedEvidenceNames[0]] ? (
             <Image
+              className="case-update-evidence-thumbnail"
               src={evidencePreviews[candidate.addedEvidenceNames[0]]}
               alt={candidate.addedEvidenceNames[0]}
               width={720}
@@ -352,7 +408,7 @@ export function CaseUpdates({
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {savedMessage ? <p className="update-saved-message" role="status">{savedMessage}</p> : null}
 
-      {updates.length > 0 ? (
+      {updates.length > 0 && historyOpen ? (
         <div className="case-update-history">
           <h3>{t("updates.history")}</h3>
           {updates.map((update, index) => (
@@ -370,24 +426,9 @@ export function CaseUpdates({
               <p className="eyebrow">{t(`updates.type.${update.type}`)}</p>
               <h4>{update.summary}</h4>
               {update.addedEvidenceNames[0] ? (
-                isDemoFixtureEvidence(update.addedEvidenceNames) && demoCase?.caseUpdateFixture ? (
-                  <Image
-                    src={demoCase.caseUpdateFixture.evidenceSrc}
-                    alt={update.addedEvidenceNames[0]}
-                    width={720}
-                    height={460}
-                  />
-                ) : evidencePreviews[update.addedEvidenceNames[0]] ? (
-                  <Image
-                    src={evidencePreviews[update.addedEvidenceNames[0]]}
-                    alt={update.addedEvidenceNames[0]}
-                    width={720}
-                    height={460}
-                    unoptimized
-                  />
-                ) : (
-                  <p className="source-note">{t("updates.fileUnavailable")}</p>
-                )
+                <p className="source-note">
+                  {t("updates.supportedBy")}: {update.addedEvidenceNames.join(", ")}
+                </p>
               ) : null}
               {update.changes.map((change, changeIndex) => (
                 <dl key={`${change.label}-${changeIndex}`}>

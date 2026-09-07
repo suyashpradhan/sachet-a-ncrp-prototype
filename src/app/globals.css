@@ -6209,6 +6209,444 @@ html[data-ui-locale="hi"] .companion-eyebrow {
   }
 }
 
+/* Compact post-submission case home */
+.post-submission-content {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.post-submission-content > .post-submission-header { order: 1; }
+.post-submission-content > .case-home-anchor-nav { order: 2; }
+.post-submission-content > #case-updates { order: 3; }
+.post-submission-content > #case-overview { order: 4; }
+.post-submission-content > .stay-informed { order: 5; }
+.post-submission-content > .post-submission-priority-grid { order: 6; }
+.post-submission-content > .post-report-evidence { order: 7; }
+.post-submission-content > .post-report-timeline-section { order: 8; }
+.post-submission-content > .secondary-process-section { order: 9; }
+.post-submission-content > .case-copy-section { order: 10; }
+.post-submission-content > .complaint-packet { order: 11; }
+
+.post-submission-header {
+  padding-bottom: 18px;
+}
+
+.post-submission-header > .companion-eyebrow {
+  margin: 0 0 5px;
+}
+
+.post-submission-title-row {
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.post-submission-title-row h1 {
+  font-size: clamp(24px, 3vw, 32px);
+  overflow-wrap: anywhere;
+}
+
+.case-at-a-glance {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.post-submission-header .prototype-reference-line {
+  margin-top: 9px;
+}
+
+.post-submission-header .success-mark {
+  width: 22px;
+  height: 22px;
+  color: var(--success);
+  font-size: 13px;
+}
+
+.case-home-anchor-nav {
+  position: sticky;
+  z-index: 4;
+  top: 64px;
+  margin-inline: -1px;
+  padding: 9px 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+
+.case-home-anchor-nav a {
+  min-height: 40px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: var(--text);
+  border-radius: 7px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.case-home-anchor-nav a:hover,
+.case-home-anchor-nav a:focus-visible {
+  color: var(--primary);
+  background: var(--primary-050);
+}
+
+#case-updates,
+#case-overview,
+.post-submission-priority-grid,
+.post-report-evidence,
+.post-report-timeline-section,
+.secondary-process-section,
+.case-copy-section,
+.stay-informed {
+  scroll-margin-top: 124px;
+}
+
+#case-updates .case-updates-section {
+  padding: 22px 0;
+}
+
+.case-update-latest {
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.case-update-latest h3 {
+  margin: 8px 0 12px;
+  font-size: 18px;
+}
+
+.case-update-latest dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+}
+
+.case-update-latest dt {
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.case-update-latest dd {
+  margin: 3px 0 0;
+  display: grid;
+  gap: 2px;
+}
+
+.case-update-latest dd span {
+  color: var(--secondary);
+}
+
+.case-update-evidence-thumbnail,
+.demo-update-fixture img {
+  width: min(100%, 220px) !important;
+  max-height: 160px;
+  object-fit: cover;
+  object-position: top;
+}
+
+.prepared-handoff {
+  padding-top: 22px;
+}
+
+.prepared-handoff-header h2 {
+  font-size: 24px;
+}
+
+.handoff-action-list {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.handoff-action-card {
+  min-width: 0;
+  padding: 16px;
+  display: block;
+  background: var(--surface);
+  border: 0;
+}
+
+.handoff-action-card .handoff-action-icon {
+  margin-bottom: 10px;
+}
+
+.handoff-action-card h3 {
+  font-size: 17px;
+}
+
+.handoff-action-card .primary-button,
+.handoff-action-card .secondary-button {
+  min-height: 42px;
+  padding: 9px 12px;
+}
+
+.post-submission-content > .stay-informed {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--primary-100);
+  border-radius: 10px;
+}
+
+.stay-informed > div:first-child h2 {
+  margin-bottom: 4px;
+  font-size: 22px;
+}
+
+.stay-informed > div:first-child p {
+  margin: 0;
+}
+
+.reminders-confirmed,
+.reminder-setup {
+  margin-top: 12px;
+}
+
+.reminder-preview {
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.reminder-preview article {
+  padding: 10px 0;
+}
+
+.post-submission-priority-grid {
+  margin-top: 22px;
+  grid-template-columns: 1fr;
+}
+
+.post-submission-priority-grid > .companion-section {
+  padding: 20px;
+}
+
+.current-case-summary-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+}
+
+.updated-after-report {
+  margin-top: 3px;
+  display: block;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.current-case-details,
+.keep-safe-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.keep-safe-details > summary,
+.secondary-process-disclosure > summary {
+  min-height: 44px;
+  padding-block: 10px;
+  color: var(--link);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.post-report-evidence,
+.post-report-timeline-section,
+.secondary-process-section,
+.case-copy-section {
+  padding-block: 22px;
+}
+
+.post-report-evidence .evidence-contribution-list {
+  gap: 10px;
+}
+
+.post-report-evidence .evidence-contribution {
+  padding: 13px 14px;
+}
+
+.update-evidence-thumbnail-button {
+  width: fit-content;
+  margin-top: 12px;
+  padding: 0;
+  display: block;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.update-evidence-thumbnail-button img {
+  width: 200px;
+  height: 128px;
+  display: block;
+  object-fit: cover;
+  object-position: top;
+}
+
+.update-evidence-findings {
+  margin-top: 12px;
+}
+
+.update-evidence-findings > strong,
+.evidence-privacy-context h4 {
+  font-size: 14px;
+}
+
+.update-evidence-findings dl {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.update-evidence-findings dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.45fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.update-evidence-findings dt {
+  color: var(--secondary);
+}
+
+.update-evidence-findings dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.evidence-privacy-context {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface-muted);
+  border-radius: 8px;
+}
+
+.evidence-privacy-context h4 {
+  margin: 0 0 6px;
+}
+
+.evidence-privacy-context h4:not(:first-child) {
+  margin-top: 12px;
+}
+
+.evidence-privacy-context ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.evidence-privacy-context p {
+  margin: 10px 0 0;
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.secondary-process-section {
+  background: transparent;
+}
+
+.secondary-process-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  list-style-position: inside;
+}
+
+.secondary-process-disclosure > summary > span:first-child {
+  display: grid;
+  gap: 3px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.secondary-process-disclosure > summary small {
+  color: var(--secondary);
+  font-weight: 400;
+}
+
+.secondary-process-content {
+  padding-top: 8px;
+}
+
+.case-copy-section .case-copy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .case-home-anchor-nav {
+    top: 64px;
+    margin-inline: -4px;
+  }
+
+  .case-update-latest dl,
+  .current-case-summary-list,
+  .handoff-action-list {
+    grid-template-columns: 1fr;
+  }
+
+  .handoff-action-card {
+    padding: 15px;
+  }
+
+  .update-evidence-findings dl > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .secondary-process-disclosure > summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .post-submission-header {
+    padding-bottom: 14px;
+  }
+
+  .post-submission-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .case-at-a-glance {
+    font-size: 14px;
+  }
+
+  .case-update-latest,
+  .post-submission-priority-grid > .companion-section,
+  .post-submission-content > .stay-informed {
+    padding: 15px;
+  }
+
+  .case-update-latest .entry-actions > *,
+  .case-copy-section .case-copy-actions > * {
+    width: 100%;
+  }
+
+  .update-evidence-thumbnail-button,
+  .update-evidence-thumbnail-button img {
+    width: 100%;
+  }
+}
+
 @media print {
   @page {
     margin: 16mm;

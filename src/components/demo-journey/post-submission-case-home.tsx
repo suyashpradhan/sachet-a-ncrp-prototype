@@ -23,7 +23,7 @@ import {
 } from "../../presentation/post-report-case";
 import { IncidentTimeline } from "./incident-timeline";
 import { JourneyProgress } from "./journey-progress";
-import { formatIndiaShortDateWithYear } from "../../presentation/format";
+import { formatCurrency, formatIndiaShortDateWithYear } from "../../presentation/format";
 import type { DemoCaseDefinition } from "../../incident/demo-incident";
 import {
   deriveCitizenNudges,
@@ -46,12 +46,22 @@ import {
   type CaseUpdate,
   type CaseUpdateCandidate,
 } from "../../incident/case-update";
+import type { IncidentTimelineEvent } from "../../presentation/incident-timeline";
+
+function formatCaseTimestamp(value: string, hi: boolean) {
+  return new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(value));
+}
 
 type PostSubmissionCaseHomeProps = {
   draft: IncidentDraft;
   complaint: NcrpCompatibleComplaint;
   prototypeReference: string;
   screenshots: File[];
+  caseUpdateEvidenceFiles: File[];
   unavailableEvidenceNames?: string[];
   caseUpdates: CaseUpdate[];
   isDemoIncident: boolean;
@@ -385,16 +395,18 @@ function PrintableCaseReport({
 function EvidenceIncluded({
   draft,
   screenshots,
+  caseUpdateEvidenceFiles,
   unavailableEvidenceNames = [],
+  caseUpdates,
   isDemoIncident,
   demoCase,
 }: Pick<
   PostSubmissionCaseHomeProps,
-  "draft" | "screenshots" | "isDemoIncident" | "demoCase"
+  "draft" | "screenshots" | "caseUpdateEvidenceFiles" | "caseUpdates" | "isDemoIncident" | "demoCase"
 > & { unavailableEvidenceNames?: string[] }) {
   const { locale, t } = useI18n();
   const hi = locale === "hi";
-  const items = deriveEvidenceContributions(draft, {
+  const originalItems = deriveEvidenceContributions(draft, {
     locale,
     isDemoIncident,
     screenshotNames: isDemoIncident
@@ -404,16 +416,36 @@ function EvidenceIncluded({
         : unavailableEvidenceNames,
     demoEvidence: demoCase?.evidence,
   });
-  const privacySummary = derivePrivacyFirewallSummary(
-    draft.evidence.flatMap((item) => item.extractedFacts),
+  const sourceEvidence = draft.evidence.filter(
+    (item) => item.type !== "VOICE_STATEMENT",
   );
-  const usedDetails = Array.from(
-    new Set(
-      items.flatMap((item) =>
-        item.contributions.map((contribution) => contribution.displayValue),
+  const originalEvidenceNames = new Set(originalItems.map((item) => item.evidenceLabel));
+  const updateEvidenceNames = Array.from(
+    new Set(caseUpdates.flatMap((update) => update.addedEvidenceNames)),
+  ).filter((name) => !originalEvidenceNames.has(name));
+  const items = [
+    ...originalItems.map((item, index) => ({
+      ...item,
+      rawFacts: sourceEvidence[index]?.extractedFacts ?? [],
+      updateEvidence: false,
+    })),
+    ...updateEvidenceNames.map((name, index) => ({
+      evidenceId: `case-update-evidence-${index}`,
+      evidenceLabel: name,
+      evidenceType: hi ? "मामले के अपडेट का सबूत" : "Case update evidence",
+      contributions: caseUpdates.flatMap((update) =>
+        update.changes
+          .filter((change) => change.sourceEvidenceIds.includes(name))
+          .map((change) => ({
+            fieldKey: change.fieldId ?? `${update.id}-${change.label}`,
+            label: change.label,
+            displayValue: change.newValue,
+          })),
       ),
-    ),
-  ).slice(0, 5);
+      rawFacts: [] as string[],
+      updateEvidence: true,
+    })),
+  ];
   const keptLabel = (value: string) => {
     if (value === "Authentication code") return t("privacy.authenticationCode");
     if (value === "Full account or card details") return t("privacy.fullIdentifier");
@@ -428,7 +460,15 @@ function EvidenceIncluded({
   const activeItem = items.find((item) => item.evidenceId === activeEvidenceId);
   const demoEvidencePath = demoCase?.evidence.find(
     (item) => item.id === activeEvidenceId,
-  )?.src;
+  )?.src ?? (
+    activeItem?.updateEvidence &&
+    demoCase?.caseUpdateFixture &&
+    activeItem.evidenceLabel === (hi
+      ? demoCase.caseUpdateFixture.evidenceNameHi
+      : demoCase.caseUpdateFixture.evidenceName)
+      ? demoCase.caseUpdateFixture.evidenceSrc
+      : undefined
+  );
 
   useEffect(() => {
     if (!activeEvidenceId || isDemoIncident) {
@@ -436,12 +476,16 @@ function EvidenceIncluded({
       return;
     }
     const match = /^uploaded-(\d+)$/.exec(activeEvidenceId);
-    const file = match ? screenshots[Number(match[1])] : null;
+    const file = match
+      ? screenshots[Number(match[1])]
+      : activeItem?.updateEvidence
+        ? caseUpdateEvidenceFiles.find((item) => item.name === activeItem.evidenceLabel)
+        : null;
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
     setUploadedPreviewUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
-  }, [activeEvidenceId, isDemoIncident, screenshots]);
+  }, [activeEvidenceId, activeItem?.evidenceLabel, activeItem?.updateEvidence, caseUpdateEvidenceFiles, isDemoIncident, screenshots]);
 
   useEffect(() => {
     if (activeItem && dialogRef.current && !dialogRef.current.open) {
@@ -505,6 +549,37 @@ function EvidenceIncluded({
                   {hi ? "देखें" : "View"} →
                 </button>
               </div>
+              {item.updateEvidence && demoCase?.caseUpdateFixture &&
+              item.evidenceLabel === (hi
+                ? demoCase.caseUpdateFixture.evidenceNameHi
+                : demoCase.caseUpdateFixture.evidenceName) ? (
+                <button
+                  className="update-evidence-thumbnail-button"
+                  type="button"
+                  aria-label={`${hi ? "मूल सबूत देखें" : "View original evidence"}: ${item.evidenceLabel}`}
+                  onClick={() => requestEvidencePreview(item.evidenceId)}
+                >
+                  <Image
+                    src={demoCase.caseUpdateFixture.evidenceSrc}
+                    alt=""
+                    width={220}
+                    height={150}
+                  />
+                </button>
+              ) : null}
+              {item.updateEvidence && item.contributions.length > 0 ? (
+                <div className="update-evidence-findings">
+                  <strong>{hi ? "इस सबूत में मिला" : "Found in this evidence"}</strong>
+                  <dl>
+                    {item.contributions.slice(0, 3).map((fact) => (
+                      <div key={`finding-${item.evidenceId}-${fact.fieldKey}`}>
+                        <dt>{fact.label}</dt>
+                        <dd>{fact.displayValue}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
               {item.contributions.length > 0 ? (
                 <details className="evidence-linkage-details">
                   <summary>
@@ -522,6 +597,27 @@ function EvidenceIncluded({
                       </li>
                     ))}
                   </ul>
+                  <div className="evidence-privacy-context">
+                    <h4>{t("privacy.used")}</h4>
+                    <ul>
+                      {item.contributions.slice(0, 5).map((fact) => (
+                        <li key={`used-${item.evidenceId}-${fact.fieldKey}`}>
+                          {fact.label}: {fact.displayValue}
+                        </li>
+                      ))}
+                    </ul>
+                    {derivePrivacyFirewallSummary(item.rawFacts).keptOnlyInOriginal.length > 0 ? (
+                      <>
+                        <h4>{t("privacy.kept")}</h4>
+                        <ul>
+                          {derivePrivacyFirewallSummary(item.rawFacts).keptOnlyInOriginal.map((detail) => (
+                            <li key={`${item.evidenceId}-${detail}`}>{keptLabel(detail)}</li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : null}
+                    <p>{t("privacy.principle")}</p>
+                  </div>
                 </details>
               ) : null}
             </article>
@@ -533,31 +629,6 @@ function EvidenceIncluded({
           {t("case.evidenceReattach")}
         </p>
       ) : null}
-      {items.length > 0 ? (
-        <aside className="privacy-firewall-summary">
-          <p>{t("privacy.principle")}</p>
-          <div>
-            <h3>{t("privacy.used")}</h3>
-            {usedDetails.length > 0 ? (
-              <ul>{usedDetails.map((detail) => <li key={detail}>{detail}</li>)}</ul>
-            ) : null}
-          </div>
-          <div>
-            <h3>{t("privacy.kept")}</h3>
-            {privacySummary.keptOnlyInOriginal.length > 0 ? (
-              <ul>
-                {privacySummary.keptOnlyInOriginal.map((detail) => (
-                  <li key={detail}>{keptLabel(detail)}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>{t("privacy.noneSensitive")}</p>
-            )}
-          </div>
-          <p className="source-note">{t("privacy.notRepeated")}</p>
-        </aside>
-      ) : null}
-
       {activeItem ? (
         <dialog
           ref={dialogRef}
@@ -611,6 +682,7 @@ export function PostSubmissionCaseHome({
   complaint,
   prototypeReference,
   screenshots,
+  caseUpdateEvidenceFiles,
   unavailableEvidenceNames = [],
   caseUpdates,
   isDemoIncident,
@@ -674,7 +746,27 @@ export function PostSubmissionCaseHome({
     (nudge) =>
       missingReferenceIndex >= 0 || nudge.id !== "missing-transaction-reference",
   );
-  const timeline = baseTimeline;
+  const updateTimeline: IncidentTimelineEvent[] = caseUpdates.map(
+    (update, index) => ({
+      id: `case-update-${update.id}`,
+      timeLabel: formatCaseTimestamp(update.createdAt, hi).replace(",", " ·"),
+      title: hi
+        ? `मामले का अपडेट #${index + 1} जोड़ा गया — ${update.summary}`
+        : `Case update #${index + 1} added — ${update.summary}`,
+      sourceRefs: [
+        {
+          type: "USER_CONFIRMED" as const,
+          label:
+            update.addedEvidenceNames.length > 0
+              ? `${hi ? "स्रोत" : "Source"}: ${update.addedEvidenceNames.join(", ")}`
+              : hi
+                ? "स्रोत: नागरिक का अपडेट"
+                : "Source: Citizen update",
+        },
+      ],
+    }),
+  );
+  const timeline = [...baseTimeline, ...updateTimeline];
   const stateExplanation = getCaseStateExplanation(
     missingReferenceIndex >= 0 ? "ADDITIONAL_INFO_REQUESTED" : "SUBMITTED",
     locale,
@@ -696,11 +788,65 @@ export function PostSubmissionCaseHome({
     .map((id) => summary.find((item) => item.id === id))
     .filter((item): item is (typeof summary)[number] => Boolean(item))
     .slice(0, 6);
+  const latestUpdateValues = new Map<string, string>();
+  caseUpdates.forEach((update) =>
+    update.changes.forEach((change) => {
+      if (change.fieldId) latestUpdateValues.set(change.fieldId, change.newValue);
+    }),
+  );
+  const currentCaseSummary = compactSummary.map((item) => {
+    const fieldId =
+      item.id === "reported-loss"
+        ? "incident.totalLoss"
+        : item.id === "incident-date"
+          ? "incident.incidentDate"
+          : item.id === "claimed-identity"
+            ? "adaptive.impersonatedEntity"
+            : null;
+    const updatedValue = fieldId ? latestUpdateValues.get(fieldId) : null;
+    return {
+      ...item,
+      value:
+        item.id === "incident-date" && updatedValue && /^\d{4}-\d{2}-\d{2}$/.test(updatedValue)
+          ? formatIndiaShortDateWithYear(updatedValue, locale)
+          : updatedValue ?? item.value,
+      updated: Boolean(updatedValue),
+    };
+  });
+  const currentIncidentTime = latestUpdateValues.get("incident.approximateTime");
+  if (currentIncidentTime) {
+    currentCaseSummary.splice(
+      Math.min(4, currentCaseSummary.length),
+      0,
+      {
+        id: "incident-time",
+        label: hi ? "घटना का समय" : "Incident time",
+        value: currentIncidentTime,
+        updated: true,
+      },
+    );
+  }
+  const reportedLoss = summary.find((item) => item.id === "reported-loss")?.value;
   const evidenceToKeep = isDemoIncident
     ? (demoCase?.evidence.map((item) => (hi ? item.labelHi : item.label)) ?? [])
     : screenshots.length > 0
       ? screenshots.map((file) => file.name)
       : unavailableEvidenceNames;
+  const updateEvidenceNames = Array.from(
+    new Set(caseUpdates.flatMap((update) => update.addedEvidenceNames)),
+  );
+  const totalEvidenceCount = evidenceToKeep.length + updateEvidenceNames.length;
+  const caseAtAGlance = [
+    reportedLoss ? `${reportedLoss} ${hi ? "रिपोर्ट किया गया" : "reported"}` : null,
+    draft.transactions.length > 0
+      ? hi
+        ? `${draft.transactions.length} लेन-देन`
+        : `${draft.transactions.length} ${draft.transactions.length === 1 ? "transaction" : "transactions"}`
+      : null,
+    hi
+      ? `${totalEvidenceCount} सबूत आइटम`
+      : `${totalEvidenceCount} evidence ${totalEvidenceCount === 1 ? "item" : "items"}`,
+  ].filter((item): item is string => Boolean(item));
   const processBoundaries = Array.from(
     new Set([
       stateExplanation.whatItDoesNotMean,
@@ -816,34 +962,28 @@ export function PostSubmissionCaseHome({
         <JourneyProgress current="RESOLUTION" completeCurrent />
         <div className="reading-shell post-submission-content">
           <header className="post-submission-header">
+            <p className="companion-eyebrow">{hi ? "आपका मामला" : "Your case"}</p>
             <div className="post-submission-title-row">
-              <span className="success-mark" aria-hidden="true">
-                ✓
-              </span>
-              <h1 tabIndex={-1}>
-                {isDemoIncident
-                  ? hi
-                    ? "डेमो शिकायत जमा हो गई"
-                    : "Demo complaint submitted"
-                  : hi
-                    ? "आपकी शिकायत तैयार है"
-                    : "Your complaint is ready"}
-              </h1>
-            </div>
-            <div className="prototype-reference-line">
-              <span>{t("case.reference")}:</span>
-              <strong>{prototypeReference}</strong>
+              <h1 tabIndex={-1}>{prototypeReference}</h1>
               <button
                 className="text-button"
                 type="button"
                 onClick={() => void copyText(prototypeReference, "REFERENCE")}
               >
                 {copiedValue === "REFERENCE"
-                  ? hi
-                    ? "कॉपी हो गया"
-                    : "Copied"
+                  ? hi ? "कॉपी हो गया" : "Copied"
                   : t("case.copyReference")}
               </button>
+            </div>
+            <p className="case-at-a-glance">{caseAtAGlance.join(" · ")}</p>
+            <div className="prototype-reference-line">
+              <span className="success-mark" aria-hidden="true">✓</span>
+              <strong>
+                {isDemoIncident
+                  ? hi ? "डेमो शिकायत जमा हो गई" : "Demo complaint submitted"
+                  : hi ? "शिकायत सचेत में तैयार है" : "Complaint ready in Sachet"}
+              </strong>
+              <span>· {formatCaseTimestamp(milestones.submittedAt, hi)}</span>
             </div>
             {!isDemoIncident ? (
               <p className="source-note">
@@ -861,30 +1001,51 @@ export function PostSubmissionCaseHome({
             </p>
           </header>
 
-          {showPreparedFinancialHandoff ? (
-            <ImmediateHandoff
-              draft={draft}
-              complaint={complaint}
-              amountResolution={resolveReportedAmount(draft)}
-              reference={prototypeReference}
+          <nav className="case-home-anchor-nav" aria-label={hi ? "मामले के हिस्से" : "Case sections"}>
+            <a href="#case-overview">{hi ? "सारांश" : "Overview"}</a>
+            <a href="#case-updates-heading">{hi ? "अपडेट" : "Updates"}</a>
+            <a href="#post-report-evidence-heading">{hi ? "सबूत" : "Evidence"}</a>
+            <a href="#incident-timeline-heading">{hi ? "इतिहास" : "History"}</a>
+          </nav>
+
+          <div id="case-updates">
+            <CaseUpdates
+              originalDraft={draft}
+              updates={caseUpdates}
               isDemoIncident={isDemoIncident}
-              sourceLanguageCode={transcription?.languageCode}
-              onViewCaseSummary={() => {
-                const target = document.querySelector<HTMLElement>(
-                  "#post-submission-case-summary",
-                );
-                target?.scrollIntoView({
-                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                    ? "auto"
-                    : "smooth",
-                  block: "start",
-                });
-                target?.focus({ preventScroll: true });
-              }}
+              demoCase={demoCase}
+              onAddUpdate={onAddCaseUpdate}
+              onProcessEvidence={onProcessUpdateEvidence}
             />
+          </div>
+
+          {showPreparedFinancialHandoff ? (
+            <div id="case-overview">
+              <ImmediateHandoff
+                draft={draft}
+                complaint={complaint}
+                amountResolution={resolveReportedAmount(draft)}
+                reference={prototypeReference}
+                isDemoIncident={isDemoIncident}
+                sourceLanguageCode={transcription?.languageCode}
+                onViewCaseSummary={() => {
+                  const target = document.querySelector<HTMLElement>(
+                    "#post-submission-case-summary",
+                  );
+                  target?.scrollIntoView({
+                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                      ? "auto"
+                      : "smooth",
+                    block: "start",
+                  });
+                  target?.focus({ preventScroll: true });
+                }}
+              />
+            </div>
           ) : null}
 
           <div
+            id={showPreparedFinancialHandoff ? undefined : "case-overview"}
             className={`post-submission-priority-grid${showPreparedFinancialHandoff ? " post-submission-priority-grid-single" : ""}`}
           >
             {!showPreparedFinancialHandoff ? (
@@ -940,59 +1101,51 @@ export function PostSubmissionCaseHome({
               tabIndex={-1}
             >
               <h2 id="case-summary-heading">
-                {hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}
+                {hi ? "मौजूदा मामला" : "Current case"}
               </h2>
-              <ul className="post-submit-keep-list">
-                {evidenceToKeep.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-                <li>{hi ? "शिकायत की प्रति" : "Complaint copy"}</li>
-              </ul>
-              <div className="case-copy-actions post-submit-primary-actions">
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={() =>
-                    void copyText(
-                      getSafeCaseSummary(draft, prototypeReference, locale),
-                      "SUMMARY",
-                    )
-                  }
-                >
-                  {copiedValue === "SUMMARY"
-                    ? hi
-                      ? "सार कॉपी हो गया"
-                      : "Summary copied"
-                    : hi
-                      ? "मामले का सार कॉपी करें"
-                      : "Copy case summary"}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={printReport}
-                >
-                  {hi ? "प्रिंट करें या PDF सहेजें" : "Print or save PDF"}
-                </button>
-              </div>
-              <h3 className="post-submit-summary-heading">
-                {t("updates.originalComplaint")}
-              </h3>
-              <dl className="companion-summary-list">
-                {compactSummary.map((item) => (
+              <dl className="companion-summary-list current-case-summary-list">
+                {currentCaseSummary.map((item) => (
                   <div key={item.id}>
                     <dt>{item.label}</dt>
-                    <dd>{item.value}</dd>
+                    <dd>
+                      {item.value}
+                      {item.updated ? (
+                        <small className="updated-after-report">
+                          {hi ? "मूल रिपोर्ट के बाद अपडेट हुआ" : "Updated after original report"}
+                        </small>
+                      ) : null}
+                    </dd>
                   </div>
                 ))}
               </dl>
+              <details className="submitted-complaint-details current-case-details">
+                <summary>{hi ? "मौजूदा मामले की पूरी जानकारी देखें" : "View full complaint"}</summary>
+                <dl className="companion-summary-list">
+                  {currentCaseSummary.map((item) => (
+                    <div key={`current-${item.id}`}>
+                      <dt>{item.label}</dt>
+                      <dd>{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+              <details className="keep-safe-details">
+                <summary>{hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}</summary>
+                <ul className="post-submit-keep-list">
+                  {[...evidenceToKeep, ...updateEvidenceNames].map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                  <li>{hi ? "शिकायत की प्रति" : "Complaint copy"}</li>
+                </ul>
+              </details>
               <details className="submitted-complaint-details">
                 <summary>
                   {hi
-                    ? "शिकायत की पूरी जानकारी देखें"
-                    : "View complaint details"}
+                    ? "मूल शिकायत देखें"
+                    : "View original complaint"}
                 </summary>
                 <div className="submitted-complaint-details-content">
+                  <h3 className="post-submit-summary-heading">{t("updates.originalComplaint")}</h3>
                   <dl className="companion-summary-list">
                     {summary.map((item) => (
                       <div key={`full-${item.id}`}>
@@ -1195,47 +1348,50 @@ export function PostSubmissionCaseHome({
             </section>
           </div>
 
-          <CaseUpdates
-            originalDraft={draft}
-            updates={caseUpdates}
-            isDemoIncident={isDemoIncident}
-            demoCase={demoCase}
-            onAddUpdate={onAddCaseUpdate}
-            onProcessEvidence={onProcessUpdateEvidence}
-          />
-
           <section
-            className="companion-section"
+            className="companion-section secondary-process-section"
             aria-labelledby="post-report-process-heading"
           >
-            <h2 id="post-report-process-heading">
-              {hi ? "आगे क्या हो सकता है" : "What may happen next"}
-            </h2>
-            <ol className="post-report-stage-list compact-process-list">
-              {process.possibleNextStages.slice(0, 3).map((stage, index) => (
-                <li key={stage.id}>
-                  <span aria-hidden="true">{index + 1}</span>
-                  <div>
-                    <strong>{stage.title}</strong>
-                    <p>{stage.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <p className="source-note">
-              {hi
-                ? "सचेत के पास सरकार, पुलिस, बैंक या भुगतान प्रदाता की लाइव केस स्थिति उपलब्ध नहीं है।"
-                : "Sachet does not have live access to government, police, bank or payment-provider case status."}
-            </p>
-            <details className="process-boundaries-disclosure">
+            <details className="secondary-process-disclosure">
               <summary>
-                {hi ? "इसका क्या अर्थ नहीं है" : "What this does not mean"}
+                <span id="post-report-process-heading">
+                  <strong>{hi ? "आगे क्या हो सकता है" : "What may happen next"}</strong>
+                  <small>
+                    {hi
+                      ? "आधिकारिक पावती, शिकायत की प्रक्रिया और वित्तीय धोखाधड़ी की कार्रवाई आगे हो सकती है।"
+                      : "Official acknowledgement, complaint handling and financial-fraud response may follow."}
+                  </small>
+                </span>
+                <span>{hi ? "प्रक्रिया समझें" : "Understand the process"}</span>
               </summary>
-              <ul className="post-report-boundary-list">
-                {processBoundaries.map((boundary) => (
-                  <li key={boundary}>{boundary}</li>
-                ))}
-              </ul>
+              <div className="secondary-process-content">
+                <ol className="post-report-stage-list compact-process-list">
+                  {process.possibleNextStages.slice(0, 3).map((stage, index) => (
+                    <li key={stage.id}>
+                      <span aria-hidden="true">{index + 1}</span>
+                      <div>
+                        <strong>{stage.title}</strong>
+                        <p>{stage.description}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <p className="source-note">
+                  {hi
+                    ? "सचेत के पास सरकार, पुलिस, बैंक या भुगतान प्रदाता की लाइव केस स्थिति उपलब्ध नहीं है।"
+                    : "Sachet does not have live access to government, police, bank or payment-provider case status."}
+                </p>
+                <details className="process-boundaries-disclosure">
+                  <summary>
+                    {hi ? "इसका क्या अर्थ नहीं है" : "What this does not mean"}
+                  </summary>
+                  <ul className="post-report-boundary-list">
+                    {processBoundaries.map((boundary) => (
+                      <li key={boundary}>{boundary}</li>
+                    ))}
+                  </ul>
+                </details>
+              </div>
             </details>
           </section>
 
@@ -1465,7 +1621,9 @@ export function PostSubmissionCaseHome({
           <EvidenceIncluded
             draft={draft}
             screenshots={screenshots}
+            caseUpdateEvidenceFiles={caseUpdateEvidenceFiles}
             unavailableEvidenceNames={unavailableEvidenceNames}
+            caseUpdates={caseUpdates}
             isDemoIncident={isDemoIncident}
             demoCase={demoCase}
           />
@@ -1475,9 +1633,26 @@ export function PostSubmissionCaseHome({
             aria-labelledby="complaint-actions-heading"
           >
             <h2 id="complaint-actions-heading">
-              {hi ? "शिकायत के विकल्प" : "Complaint actions"}
+              {hi ? "मामले के विकल्प" : "Case actions"}
             </h2>
             <div className="case-copy-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() =>
+                  void copyText(
+                    getSafeCaseSummary(draft, prototypeReference, locale),
+                    "SUMMARY",
+                  )
+                }
+              >
+                {copiedValue === "SUMMARY"
+                  ? hi ? "सार कॉपी हो गया" : "Summary copied"
+                  : hi ? "मामले का सार कॉपी करें" : "Copy case summary"}
+              </button>
+              <button className="secondary-button" type="button" onClick={printReport}>
+                {hi ? "प्रिंट करें या PDF सहेजें" : "Print or save PDF"}
+              </button>
               <button
                 className="text-button"
                 type="button"
