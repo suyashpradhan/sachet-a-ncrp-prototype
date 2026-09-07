@@ -8,8 +8,8 @@ export type PrivacyFirewallSummary = {
 const SECRET_LABEL_PATTERN = /\b(?:otp|one[\s-]?time password|pin|cvv|cvc|password|passcode|authentication code)\b/i;
 const BALANCE_PATTERN = /\b(?:available|closing|current|account)\s+balance\b/i;
 const FULL_CARD_PATTERN = /\b(?:card(?:\s+number)?|account(?:\s+number)?|a\/?c)\s*(?:is|was|:|#|-)?\s*([0-9][0-9\s-]{7,22}[0-9])\b/gi;
-const PHONE_PATTERN = /(?<!\d)(?:\+?91[\s-]?)?([6-9]\d{9})(?!\d)/g;
-const PHONE_CONTEXT_PATTERN = /\b(?:caller|phone|mobile|contact)(?:\s+(?:number|no\.?))?\s*(?:is|was|:|=|-)?\s*((?:\+?91[\s-]?)?[6-9]\d{9})\b/gi;
+const PHONE_PATTERN = /(?<!\d)(?:\+?91[\s-]?)?([6-9](?:[\s-]?\d){9})(?!\d)/g;
+const PHONE_CONTEXT_PATTERN = /\b(?:caller|phone|mobile|contact)(?:\s+(?:number|no\.?))?\s*(?:is|was|:|=|-)?\s*((?:\+?91[\s-]?)?[6-9](?:[\s-]?\d){9})(?!\d)/gi;
 
 export function evidenceFactShouldStayOnlyInOriginal(fact: string): boolean {
   return SECRET_LABEL_PATTERN.test(fact) || BALANCE_PATTERN.test(fact);

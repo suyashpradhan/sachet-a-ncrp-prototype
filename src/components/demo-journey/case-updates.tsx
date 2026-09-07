@@ -129,6 +129,17 @@ export function CaseUpdates({
         ),
       ),
   );
+  const isDemoFixtureEvidence = (evidenceNames: readonly string[]) => {
+    const fixture = demoCase?.caseUpdateFixture;
+    return Boolean(
+      isDemoIncident &&
+        fixture &&
+        evidenceNames.some(
+          (name) =>
+            name === fixture.evidenceName || name === fixture.evidenceNameHi,
+        ),
+    );
+  };
 
   useEffect(
     () => () => {
@@ -148,7 +159,10 @@ export function CaseUpdates({
 
   function previewDetail() {
     const selected = fields.find((field) => field.id === selectedFieldId);
-    const safeValue = sanitizeDerivedText(newValue).trim();
+    const safeValue =
+      selected?.id === "suspect.phone"
+        ? safeDerivedIdentifier(newValue, "PHONE")?.trim() ?? ""
+        : sanitizeDerivedText(newValue).trim();
     if (!selected || !safeValue) return;
     setCandidate({
       type: selected.previousValue ? "CORRECTION" : "NEW_INFORMATION",
@@ -293,7 +307,7 @@ export function CaseUpdates({
         <div className="case-update-preview">
           <p className="eyebrow">{t("updates.previewHeading")}</p>
           <h3>{candidate.summary}</h3>
-          {isDemoIncident && demoCase?.caseUpdateFixture && candidate.addedEvidenceNames.length > 0 ? (
+          {isDemoFixtureEvidence(candidate.addedEvidenceNames) && demoCase?.caseUpdateFixture ? (
             <Image
               src={demoCase.caseUpdateFixture.evidenceSrc}
               alt={candidate.addedEvidenceNames[0]}
@@ -356,7 +370,7 @@ export function CaseUpdates({
               <p className="eyebrow">{t(`updates.type.${update.type}`)}</p>
               <h4>{update.summary}</h4>
               {update.addedEvidenceNames[0] ? (
-                isDemoIncident && demoCase?.caseUpdateFixture ? (
+                isDemoFixtureEvidence(update.addedEvidenceNames) && demoCase?.caseUpdateFixture ? (
                   <Image
                     src={demoCase.caseUpdateFixture.evidenceSrc}
                     alt={update.addedEvidenceNames[0]}

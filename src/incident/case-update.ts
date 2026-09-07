@@ -15,7 +15,7 @@ export const CaseUpdateChangeSchema = z.object({
 
 export const CaseUpdateSchema = z.object({
   id: z.string(),
-  createdAt: z.string(),
+  createdAt: z.string().datetime(),
   type: z.enum(["NEW_EVIDENCE", "NEW_INFORMATION", "CORRECTION"]),
   summary: z.string(),
   changes: z.array(CaseUpdateChangeSchema),
@@ -28,6 +28,22 @@ export type CaseUpdateChange = z.infer<typeof CaseUpdateChangeSchema>;
 
 export type CaseUpdateCandidate = Omit<CaseUpdate, "id" | "createdAt">;
 
+function sanitizeUpdateValue(
+  fieldId: string | null,
+  value: string,
+): string {
+  if (fieldId === "suspect.phone") {
+    return safeDerivedIdentifier(value, "PHONE") ?? "";
+  }
+  if (fieldId?.toLowerCase().includes("account")) {
+    return safeDerivedIdentifier(value, "ACCOUNT") ?? "";
+  }
+  if (fieldId?.toLowerCase().includes("card")) {
+    return safeDerivedIdentifier(value, "CARD") ?? "";
+  }
+  return sanitizeDerivedText(value);
+}
+
 export function createCaseUpdate(candidate: CaseUpdateCandidate): CaseUpdate {
   const bytes = new Uint32Array(2);
   window.crypto.getRandomValues(bytes);
@@ -39,9 +55,9 @@ export function createCaseUpdate(candidate: CaseUpdateCandidate): CaseUpdate {
     changes: candidate.changes.map((change) => ({
       ...change,
       previousValue: change.previousValue
-        ? sanitizeDerivedText(change.previousValue)
+        ? sanitizeUpdateValue(change.fieldId, change.previousValue)
         : null,
-      newValue: sanitizeDerivedText(change.newValue),
+      newValue: sanitizeUpdateValue(change.fieldId, change.newValue),
       sourceEvidenceIds: change.sourceEvidenceIds.map(sanitizeDerivedText),
     })),
     addedEvidenceNames: candidate.addedEvidenceNames.map(sanitizeDerivedText),
