@@ -44,6 +44,21 @@ export type DemoCaseDefinition = {
   incidentTrailHi?: string;
   citizen: ReporterProfile;
   reporter?: ReporterProfile;
+  caseUpdateFixture?: {
+    evidenceName: string;
+    evidenceNameHi: string;
+    evidenceSrc: string;
+    summary: string;
+    summaryHi: string;
+    changes: readonly {
+      fieldId: string;
+      label: string;
+      labelHi: string;
+      previousValue: string | null;
+      previousValueHi: string | null;
+      newValue: string;
+    }[];
+  };
   citizenNameHi?: string;
   sourceLanguage: string;
   statement: string;
@@ -241,12 +256,12 @@ const rajeshBankOtpDraft: IncidentDraft = {
       status: "KNOWN",
     },
   ],
-  suspectIdentifiers: [{ type: "PHONE", value: "98XX XX6400" }],
+  suspectIdentifiers: [],
   evidence: [
     {
       type: "OTHER",
       extractedFacts: [
-        "Incoming call from synthetic number 98XX XX6400 at about 6:40 PM",
+        "Rajesh remembered that the incoming call happened in the evening; the exact time was not known",
         "Caller claimed to represent the bank's card-security team",
         "Caller used Rajesh's name and basic banking context",
         "Caller identity was not independently verified",
@@ -257,6 +272,7 @@ const rajeshBankOtpDraft: IncidentDraft = {
       extractedFacts: [
         "₹12,000 unauthorized debit alert",
         "Reference SYN-RAJESH-12000-01",
+        "OTP was 483201",
       ],
     },
     {
@@ -264,6 +280,8 @@ const rajeshBankOtpDraft: IncidentDraft = {
       extractedFacts: [
         "₹18,000 unauthorized debit alert",
         "Reference SYN-RAJESH-18000-02",
+        "Full account number 12345678906400",
+        "Available balance ₹84,221",
       ],
     },
     {
@@ -1085,6 +1103,31 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
       relationshipWithVictim: "Son",
     },
     citizenNameHi: "राजेश",
+    caseUpdateFixture: {
+      evidenceName: "Later call log",
+      evidenceNameHi: "बाद में मिला कॉल लॉग",
+      evidenceSrc: "/demo/evidence/rajesh-call-log-update.svg",
+      summary: "Exact call time and masked caller number found",
+      summaryHi: "कॉल का सही समय और छिपा हुआ कॉलर नंबर मिला",
+      changes: [
+        {
+          fieldId: "incident.approximateTime",
+          label: "Exact call time",
+          labelHi: "कॉल का सही समय",
+          previousValue: "Evening only — exact time not known",
+          previousValueHi: "केवल शाम — सही समय पता नहीं था",
+          newValue: "18:47",
+        },
+        {
+          fieldId: "suspect.phone",
+          label: "Caller number",
+          labelHi: "कॉलर का नंबर",
+          previousValue: null,
+          previousValueHi: null,
+          newValue: "98XX XX6400",
+        },
+      ],
+    },
     sourceLanguage: "Hindi · English translation available",
     statement: rajeshBankOtpHindi,
     narrations: {

@@ -1,5 +1,5 @@
 import { CITIZEN_DOES_NOT_HAVE, type IncidentDraft } from "../incident/schema";
-import { sanitizeSensitiveText } from "../incident/sensitive-text";
+import { sanitizeDerivedText } from "./evidence-privacy";
 import type { UiLocale } from "../i18n/i18n-provider";
 import { formatCurrency } from "./format";
 import { getIncidentCapabilities } from "../incident/capabilities";
@@ -7,7 +7,7 @@ import { resolveFinancialLoss } from "../incident/financial-summary";
 
 function line(label: string, value: string | null | undefined) {
   if (!value || value === CITIZEN_DOES_NOT_HAVE || value === "UNKNOWN") return null;
-  return `${label}: ${sanitizeSensitiveText(value).text}`;
+  return `${label}: ${sanitizeDerivedText(value)}`;
 }
 
 function citizenDate(value: string | null, locale: UiLocale): string | null {

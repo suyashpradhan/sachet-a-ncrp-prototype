@@ -35,6 +35,17 @@ import {
   requestEvidencePreview,
 } from "./evidence-preview-events";
 import { ImmediateHandoff } from "./immediate-handoff";
+import {
+  derivePrivacyFirewallSummary,
+  safeDerivedIdentifier,
+  sanitizeDerivedText,
+} from "../../presentation/evidence-privacy";
+import { CaseUpdates } from "./case-updates";
+import {
+  createCaseUpdate,
+  type CaseUpdate,
+  type CaseUpdateCandidate,
+} from "../../incident/case-update";
 
 type PostSubmissionCaseHomeProps = {
   draft: IncidentDraft;
@@ -42,13 +53,15 @@ type PostSubmissionCaseHomeProps = {
   prototypeReference: string;
   screenshots: File[];
   unavailableEvidenceNames?: string[];
+  caseUpdates: CaseUpdate[];
   isDemoIncident: boolean;
   demoCase: DemoCaseDefinition | null;
   milestones: PostReportMilestones;
   transcription: TranscriptionResult | null;
   reminderPreferences: ReminderPreferences;
   onReminderPreferencesChange: (preferences: ReminderPreferences) => void;
-  onDraftChange: (draft: IncidentDraft) => void;
+  onAddCaseUpdate: (update: CaseUpdate) => void;
+  onProcessUpdateEvidence: (file: File) => Promise<CaseUpdateCandidate>;
   onStartNewReport: () => void;
 };
 
@@ -83,8 +96,9 @@ function PrintableCaseReport({
     .map((value) => citizenVisibleValue(value))
     .filter((value): value is string => Boolean(value));
   const affectedPlatform = citizenVisibleValue(draft.adaptiveFacts.platform);
-  const affectedAccount = citizenVisibleValue(
-    draft.adaptiveFacts.affectedAccount,
+  const affectedAccount = safeDerivedIdentifier(
+    citizenVisibleValue(draft.adaptiveFacts.affectedAccount),
+    "ACCOUNT",
   );
   const profileUrl = citizenVisibleValue(draft.adaptiveFacts.profileUrl);
   const accountAccessStatus = citizenVisibleValue(
@@ -165,7 +179,7 @@ function PrintableCaseReport({
                 : `What ${draft.reportingPeople.victimName} told us`
               : hi ? "घटना का विवरण" : "Incident summary"}
           </h2>
-          <p>{displayedStatement}</p>
+          <p>{sanitizeDerivedText(displayedStatement)}</p>
         </section>
       ) : null}
       {draft.transactions.length > 0 ? (
@@ -390,6 +404,22 @@ function EvidenceIncluded({
         : unavailableEvidenceNames,
     demoEvidence: demoCase?.evidence,
   });
+  const privacySummary = derivePrivacyFirewallSummary(
+    draft.evidence.flatMap((item) => item.extractedFacts),
+  );
+  const usedDetails = Array.from(
+    new Set(
+      items.flatMap((item) =>
+        item.contributions.map((contribution) => contribution.displayValue),
+      ),
+    ),
+  ).slice(0, 5);
+  const keptLabel = (value: string) => {
+    if (value === "Authentication code") return t("privacy.authenticationCode");
+    if (value === "Full account or card details") return t("privacy.fullIdentifier");
+    if (value === "Unrelated balance") return t("privacy.unrelatedBalance");
+    return value;
+  };
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string | null>(
     null,
@@ -503,6 +533,30 @@ function EvidenceIncluded({
           {t("case.evidenceReattach")}
         </p>
       ) : null}
+      {items.length > 0 ? (
+        <aside className="privacy-firewall-summary">
+          <p>{t("privacy.principle")}</p>
+          <div>
+            <h3>{t("privacy.used")}</h3>
+            {usedDetails.length > 0 ? (
+              <ul>{usedDetails.map((detail) => <li key={detail}>{detail}</li>)}</ul>
+            ) : null}
+          </div>
+          <div>
+            <h3>{t("privacy.kept")}</h3>
+            {privacySummary.keptOnlyInOriginal.length > 0 ? (
+              <ul>
+                {privacySummary.keptOnlyInOriginal.map((detail) => (
+                  <li key={detail}>{keptLabel(detail)}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>{t("privacy.noneSensitive")}</p>
+            )}
+          </div>
+          <p className="source-note">{t("privacy.notRepeated")}</p>
+        </aside>
+      ) : null}
 
       {activeItem ? (
         <dialog
@@ -558,13 +612,15 @@ export function PostSubmissionCaseHome({
   prototypeReference,
   screenshots,
   unavailableEvidenceNames = [],
+  caseUpdates,
   isDemoIncident,
   demoCase,
   milestones,
   transcription,
   reminderPreferences,
   onReminderPreferencesChange,
-  onDraftChange,
+  onAddCaseUpdate,
+  onProcessUpdateEvidence,
   onStartNewReport,
 }: PostSubmissionCaseHomeProps) {
   const { locale, t } = useI18n();
@@ -589,9 +645,19 @@ export function PostSubmissionCaseHome({
   const [copiedValue, setCopiedValue] = useState<
     "REFERENCE" | "SUMMARY" | null
   >(null);
-  const missingReferenceIndex = draft.transactions.findIndex((transaction) => {
+  const missingReferenceIndex = draft.transactions.findIndex((transaction, index) => {
     if (transaction.transactionIdOrUtr === CITIZEN_DOES_NOT_HAVE) return false;
-    return !transaction.transactionIdOrUtr && !transaction.referenceNumber;
+    const resolvedByUpdate = caseUpdates.some((update) =>
+      update.changes.some(
+        (change) =>
+          change.fieldId === `transactions.${index}.transactionIdOrUtr`,
+      ),
+    );
+    return (
+      !resolvedByUpdate &&
+      !transaction.transactionIdOrUtr &&
+      !transaction.referenceNumber
+    );
   });
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [followUpValue, setFollowUpValue] = useState("");
@@ -604,6 +670,9 @@ export function PostSubmissionCaseHome({
     reminderPreferences,
     isDemoIncident ? "DEMO" : "LIVE",
     prototypeReference,
+  ).filter(
+    (nudge) =>
+      missingReferenceIndex >= 0 || nudge.id !== "missing-transaction-reference",
   );
   const timeline = baseTimeline;
   const stateExplanation = getCaseStateExplanation(
@@ -687,23 +756,33 @@ export function PostSubmissionCaseHome({
 
   function saveTransactionReference(value: string) {
     if (missingReferenceIndex < 0) return;
-    const nextTransactions = draft.transactions.map((transaction, index) =>
-      index === missingReferenceIndex
-        ? {
-            ...transaction,
-            transactionIdOrUtr: value,
-            status: "KNOWN" as const,
-          }
-        : transaction,
+    const displayedValue =
+      value === CITIZEN_DOES_NOT_HAVE
+        ? hi
+          ? "नागरिक के पास यह जानकारी नहीं है"
+          : "Citizen does not have this information"
+        : value;
+    onAddCaseUpdate(
+      createCaseUpdate({
+        type: "NEW_INFORMATION",
+        summary: hi
+          ? `लेन-देन ${missingReferenceIndex + 1} संदर्भ जोड़ा गया`
+          : `Transaction ${missingReferenceIndex + 1} reference added`,
+        changes: [
+          {
+            fieldId: `transactions.${missingReferenceIndex}.transactionIdOrUtr`,
+            label: hi
+              ? `लेन-देन ${missingReferenceIndex + 1} संदर्भ`
+              : `Transaction ${missingReferenceIndex + 1} reference`,
+            previousValue: null,
+            newValue: displayedValue,
+            sourceEvidenceIds: [],
+          },
+        ],
+        addedEvidenceNames: [],
+        citizenNote: null,
+      }),
     );
-    const confirmedField = `transactions.${missingReferenceIndex}.transactionIdOrUtr`;
-    onDraftChange({
-      ...draft,
-      transactions: nextTransactions,
-      citizenConfirmedFields: Array.from(
-        new Set([...(draft.citizenConfirmedFields ?? []), confirmedField]),
-      ),
-    });
     setFollowUpOpen(false);
     setFollowUpSaved(true);
   }
@@ -897,7 +976,7 @@ export function PostSubmissionCaseHome({
                 </button>
               </div>
               <h3 className="post-submit-summary-heading">
-                {hi ? "शिकायत का सार" : "Complaint summary"}
+                {t("updates.originalComplaint")}
               </h3>
               <dl className="companion-summary-list">
                 {compactSummary.map((item) => (
@@ -925,7 +1004,7 @@ export function PostSubmissionCaseHome({
                   {draft.incident.narrative ? (
                     <div className="submitted-statement">
                       <h3>{hi ? "बयान" : "Statement"}</h3>
-                      <p>{draft.incident.narrative}</p>
+                      <p>{sanitizeDerivedText(draft.incident.narrative)}</p>
                     </div>
                   ) : null}
                   {draft.transactions.length > 0 ? (
@@ -1115,6 +1194,15 @@ export function PostSubmissionCaseHome({
               </details>
             </section>
           </div>
+
+          <CaseUpdates
+            originalDraft={draft}
+            updates={caseUpdates}
+            isDemoIncident={isDemoIncident}
+            demoCase={demoCase}
+            onAddUpdate={onAddCaseUpdate}
+            onProcessEvidence={onProcessUpdateEvidence}
+          />
 
           <section
             className="companion-section"

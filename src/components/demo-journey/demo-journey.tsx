@@ -60,6 +60,11 @@ import { PostSubmissionCaseHome } from "./post-submission-case-home";
 import { LandingPage } from "./landing-page";
 import { ViewCaseScreen } from "./view-case-screen";
 import {
+  deriveEvidenceUpdateCandidate,
+  type CaseUpdate,
+  type CaseUpdateCandidate,
+} from "../../incident/case-update";
+import {
   createSachetCaseReference,
   findSavedCase,
   readSavedCases,
@@ -424,6 +429,7 @@ export function DemoJourney({
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [hasSavedLiveCases, setHasSavedLiveCases] = useState(false);
   const [reopenedEvidenceNames, setReopenedEvidenceNames] = useState<string[]>([]);
+  const [caseUpdates, setCaseUpdates] = useState<CaseUpdate[]>([]);
   const preparedAtRef = useRef<string | null>(null);
   const [preparedSourceSignature, setPreparedSourceSignature] = useState<
     string | null
@@ -705,6 +711,7 @@ export function DemoJourney({
           ? screenshots.map((file) => file.name)
           : reopenedEvidenceNames,
       locale,
+      caseUpdates,
     });
     setHasSavedLiveCases(true);
   }, [
@@ -719,6 +726,7 @@ export function DemoJourney({
     submittedDraft,
     submittedReference,
     submittedTranscription,
+    caseUpdates,
     view,
   ]);
 
@@ -882,6 +890,7 @@ export function DemoJourney({
     setReminderPreferences(createReminderPreferences(false));
     setUnavailableEvidenceNames([]);
     setReopenedEvidenceNames([]);
+    setCaseUpdates([]);
     setIsDraftSaved(false);
     preparedAtRef.current = null;
     setPreparedSourceSignature(null);
@@ -979,6 +988,7 @@ export function DemoJourney({
     setReminderPreferences(saved.reminderPreferences);
     setUnavailableEvidenceNames(saved.evidenceNames);
     setReopenedEvidenceNames(saved.evidenceNames);
+    setCaseUpdates(saved.caseUpdates);
     setLocale(saved.locale);
     setIsDemoIncident(false);
     journeyHistoryRef.current = ["CASE_LOOKUP"];
@@ -1022,8 +1032,37 @@ export function DemoJourney({
       }),
     );
     setIsDemoIncident(true);
+    setCaseUpdates([]);
     journeyHistoryRef.current = ["CASE_LOOKUP"];
     setCurrentView("SUCCESS");
+  }
+
+  async function processCaseUpdateEvidence(
+    file: File,
+  ): Promise<CaseUpdateCandidate> {
+    const original = submittedDraft ?? draft;
+    if (!original) throw new Error("CASE_NOT_AVAILABLE");
+    const preparedFile = await compressScreenshot(file).catch(() => file);
+    const data = new FormData();
+    data.append("narrative", original.incident.narrative ?? original.citizenSummary.shortSummary);
+    data.append("englishTranscript", submittedTranscription?.englishTranscript ?? "");
+    data.append("reportingFor", original.reportingPeople?.reportingFor ?? "SELF");
+    data.append("reportingDate", currentIndiaDate());
+    data.append("screenshots", preparedFile, preparedFile.name);
+    const response = await fetch("/api/analyze-incident", {
+      method: "POST",
+      body: data,
+    });
+    const result: unknown = await response.json().catch(() => null);
+    if (!response.ok) throw new Error("EVIDENCE_UPDATE_FAILED");
+    const extracted = normalizeIncidentDraft(IncidentDraftSchema.parse(result));
+    return deriveEvidenceUpdateCandidate(
+      original,
+      extracted,
+      preparedFile.name,
+      locale,
+      caseUpdates,
+    );
   }
 
   function startReport() {
@@ -1913,16 +1952,21 @@ export function DemoJourney({
         prototypeReference={submittedReference}
         screenshots={screenshots}
         unavailableEvidenceNames={reopenedEvidenceNames}
+        caseUpdates={caseUpdates}
         isDemoIncident={isDemoIncident}
         demoCase={isDemoIncident ? activeDemoCase : null}
         milestones={postReportMilestones}
         transcription={submittedTranscription}
         reminderPreferences={reminderPreferences}
         onReminderPreferencesChange={setReminderPreferences}
-        onDraftChange={(nextDraft) => {
-          setDraft(nextDraft);
-          setSubmittedDraft(nextDraft);
-        }}
+        onAddCaseUpdate={(update) =>
+          setCaseUpdates((current) =>
+            [...current, update].sort((left, right) =>
+              left.createdAt.localeCompare(right.createdAt),
+            ),
+          )
+        }
+        onProcessUpdateEvidence={processCaseUpdateEvidence}
         onStartNewReport={startReport}
       />
     );

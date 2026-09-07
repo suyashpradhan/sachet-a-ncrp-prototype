@@ -8,6 +8,10 @@ import { formatCurrency } from "../../presentation/format";
 import { deriveIncidentTimeline } from "../../presentation/incident-timeline";
 import { IncidentTimeline } from "./incident-timeline";
 import { isInternalCaseValue } from "../../presentation/citizen-visible-value";
+import {
+  safeDerivedIdentifier,
+  sanitizeDerivedText,
+} from "../../presentation/evidence-privacy";
 
 type ComplaintPacketProps = {
   complaint: NcrpCompatibleComplaint;
@@ -21,7 +25,7 @@ function printableValue(value: string | number | boolean | null): string | null 
   if (value === null || value === "") return null;
   if (isInternalCaseValue(value)) return null;
   if (typeof value === "boolean") return value ? "Yes" : "No";
-  return String(value);
+  return sanitizeDerivedText(String(value));
 }
 
 function printableDate(value: string | number | boolean | null, locale: UiLocale) {
@@ -69,7 +73,12 @@ export function ComplaintPacket({
     [hi ? "नाम" : "Name", complaint.groups.suspect.name.value],
     [
       hi ? "मोबाइल" : "Mobile",
-      complaint.groups.suspect.mobileNumber.value,
+      typeof complaint.groups.suspect.mobileNumber.value === "string"
+        ? safeDerivedIdentifier(
+            complaint.groups.suspect.mobileNumber.value,
+            "PHONE",
+          )
+        : complaint.groups.suspect.mobileNumber.value,
     ],
     ["Email", complaint.groups.suspect.email.value],
     [hi ? "वेबसाइट" : "Website", complaint.groups.suspect.url.value],

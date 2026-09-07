@@ -3,11 +3,11 @@
   <rect width="720" height="460" fill="#faf8f6"/><rect x="54" y="42" width="612" height="376" rx="18" fill="#fff" stroke="#e2ded9"/>
   <text x="88" y="91" font-family="Arial,sans-serif" font-size="18" fill="#6b6b6b">SYNTHETIC CALL DETAILS</text>
   <circle cx="120" cy="166" r="34" fill="#fff4f5"/><path d="M105 151c8 26 19 37 45 45l11-12-17-13-10 8c-8-4-13-9-17-17l8-10-13-17z" fill="#a61e2d"/>
-  <text x="176" y="158" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#1f1f1f">98XX XX6400</text>
-  <text x="176" y="191" font-family="Arial,sans-serif" font-size="17" fill="#6b6b6b">Incoming call · 3 Sep 2026 · about 6:40 PM</text>
+  <text x="176" y="158" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#1f1f1f">Unknown caller</text>
+  <text x="176" y="191" font-family="Arial,sans-serif" font-size="17" fill="#6b6b6b">Incoming call · 3 Sep 2026 · evening</text>
   <line x1="88" y1="236" x2="632" y2="236" stroke="#e2ded9"/>
   <text x="88" y="281" font-family="Arial,sans-serif" font-size="17" fill="#6b6b6b">Rajesh's note</text>
   <text x="88" y="312" font-family="Arial,sans-serif" font-size="19" fill="#1f1f1f">Caller used his name and basic banking context.</text>
   <text x="88" y="342" font-family="Arial,sans-serif" font-size="17" fill="#1f1f1f">Claimed to be from the bank's card-security team.</text>
-  <text x="88" y="375" font-family="Arial,sans-serif" font-size="16" fill="#a61e2d">Caller identity not confirmed</text>
+  <text x="88" y="375" font-family="Arial,sans-serif" font-size="16" fill="#a61e2d">Exact call time and caller identity not confirmed</text>
 </svg>

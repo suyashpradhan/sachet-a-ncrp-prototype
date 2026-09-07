@@ -3,7 +3,7 @@ import { deriveMissingQuestions } from "../incident/missing-information";
 import { CITIZEN_DOES_NOT_HAVE, type IncidentDraft } from "../incident/schema";
 import type { ReporterProfile } from "../experience/profile";
 import { SYNTHETIC_NCRP_PROFILE } from "../experience/profile";
-import { sanitizeSensitiveText } from "../incident/sensitive-text";
+import { safeDerivedIdentifier, sanitizeDerivedText } from "./evidence-privacy";
 import { deriveFinancialFactsFromText } from "../incident/normalization";
 import { getIncidentCapabilities, getPlatformConfig } from "../incident/capabilities";
 import { resolveFinancialLoss } from "../incident/financial-summary";
@@ -112,7 +112,7 @@ function display(value: string | null | undefined, locale: UiLocale): string {
   const visibleValue = citizenVisibleValue(value);
   if (isInternalCaseValue(value)) return textForLocale(locale, "field.notAvailable");
   return visibleValue
-    ? sanitizeSensitiveText(visibleValue).text
+    ? sanitizeDerivedText(visibleValue)
     : textForLocale(locale, "field.notProvided");
 }
 
@@ -436,7 +436,7 @@ export function deriveReportGroups(
           makeField(`transaction-${index}-institution`, copy("field.institution"), transaction.institution === "SBI" && locale === "hi" ? "एसबीआई" : transaction.institution, {
             missingQuestion: transactionMissingQuestion("institution", index),
           }),
-          makeField(`transaction-${index}-account`, copy("field.account"), transaction.accountOrUpiId === "Synthetic SBI account ending 0024" ? copy("field.syntheticSbiAccount") : transaction.accountOrUpiId, {
+          makeField(`transaction-${index}-account`, copy("field.account"), transaction.accountOrUpiId === "Synthetic SBI account ending 0024" ? copy("field.syntheticSbiAccount") : safeDerivedIdentifier(transaction.accountOrUpiId, "ACCOUNT"), {
             missingQuestion: transactionMissingQuestion("accountOrUpiId", index),
           }),
           makeField(`transaction-${index}-utr`, copy("field.transactionReference"), transaction.transactionIdOrUtr ?? transaction.referenceNumber, {
@@ -583,7 +583,7 @@ export function deriveReportGroups(
         makeField(
           "affected-account",
           locale === "hi" ? "खाता या प्रोफ़ाइल नाम / ID" : platformConfig.identifierLabel,
-          draft.adaptiveFacts.affectedAccount,
+          safeDerivedIdentifier(draft.adaptiveFacts.affectedAccount, "ACCOUNT"),
           { missingQuestion: missingByField.get("affectedAccount") },
         ),
         ...(platformConfig.urlLabel

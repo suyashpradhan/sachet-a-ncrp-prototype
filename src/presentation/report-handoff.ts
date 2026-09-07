@@ -5,7 +5,10 @@ import {
   isInternalCaseValue,
 } from "./citizen-visible-value";
 import type { IncidentDraft } from "../incident/schema";
-import { sanitizeSensitiveText } from "../incident/sensitive-text";
+import {
+  safeDerivedIdentifier,
+  sanitizeDerivedText,
+} from "./evidence-privacy";
 import type { UiLocale } from "../i18n/i18n-provider";
 import { formatCurrency } from "./format";
 import { getIncidentCapabilities } from "../incident/capabilities";
@@ -87,7 +90,7 @@ function callBriefItem(
   value: string | null | undefined,
   locale: UiLocale,
 ): CallBriefItem {
-  const safeValue = value ? sanitizeSensitiveText(value).text.trim() : "";
+  const safeValue = value ? sanitizeDerivedText(value).trim() : "";
   return safeValue
     ? { label, value: safeValue, isKnown: true }
     : { label, value: unknownCallValue(locale), isKnown: false };
@@ -109,7 +112,10 @@ function resolveHandoffFacts(
   const transactionDate = formatDate(transaction?.transactionDate ?? null, locale);
   const transactionTime = formatTime(transaction?.approximateTime ?? null, locale);
   const institution = citizenVisibleValue(transaction?.institution);
-  const affectedAccount = citizenVisibleValue(transaction?.accountOrUpiId);
+  const affectedAccount = safeDerivedIdentifier(
+    citizenVisibleValue(transaction?.accountOrUpiId),
+    "ACCOUNT",
+  );
   const paymentMethod = citizenVisibleValue(transaction?.paymentMethod);
   const references = draft.transactions
     .map((item) => citizenVisibleValue(
@@ -124,7 +130,12 @@ function resolveHandoffFacts(
     .filter((item) =>
       ["PHONE", "EMAIL", "SOCIAL_HANDLE", "NAME"].includes(item.type)
     )
-    .map((item) => citizenVisibleValue(item.value))
+    .map((item) =>
+      safeDerivedIdentifier(
+        citizenVisibleValue(item.value),
+        item.type === "PHONE" ? "PHONE" : "GENERAL",
+      ),
+    )
     .filter((value): value is string => Boolean(value));
   const claimedIdentity = citizenVisibleValue(
     draft.adaptiveFacts.impersonatedEntity,
@@ -231,7 +242,7 @@ function safeComplaintValue(
   if (typeof value === "string" && /(?:\.invalid|^test[-_ ])/i.test(value)) {
     return null;
   }
-  return sanitizeSensitiveText(String(value)).text;
+  return sanitizeDerivedText(String(value));
 }
 
 function currentLetterDate(locale: UiLocale, now: Date) {
@@ -272,16 +283,18 @@ export function buildBankNotification(
     safeComplaintValue(complaint.groups.complainant.email),
   ].filter(Boolean).join(" · ") || unknown;
   const accountIdentifiers = draft.transactions
-    .map((item) => citizenVisibleValue(item.accountOrUpiId))
+    .map((item) =>
+      safeDerivedIdentifier(citizenVisibleValue(item.accountOrUpiId), "ACCOUNT"),
+    )
     .filter((value): value is string => Boolean(value));
   const account = accountIdentifiers.length > 0
     ? [...new Set(accountIdentifiers)].join(", ")
     : unknown;
-  const statement = sanitizeSensitiveText(
+  const statement = sanitizeDerivedText(
     (hi
       ? draft.incident.narrative || draft.citizenSummary.shortSummary
       : draft.citizenSummary.shortSummary || draft.incident.narrative) || unknown,
-  ).text;
+  );
   const transactionLines = draft.transactions.map((transaction, index) => {
     const date = formatDate(transaction.transactionDate, locale) ?? unknown;
     const time = formatTime(transaction.approximateTime, locale) ?? unknown;
@@ -443,7 +456,7 @@ export function buildCallBrief(
     );
   }
 
-  return sanitizeSensitiveText(lines.join("\n\n")).text;
+  return sanitizeDerivedText(lines.join("\n\n"));
 }
 
 export function getNextActions(

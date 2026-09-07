@@ -1,5 +1,8 @@
 import type { IncidentDraft } from "../incident/schema";
-import { sanitizeSensitiveText } from "../incident/sensitive-text";
+import {
+  evidenceFactShouldStayOnlyInOriginal,
+  sanitizeDerivedText,
+} from "./evidence-privacy";
 import type { UiLocale } from "../i18n/i18n-provider";
 import { formatCurrency } from "./format";
 import { citizenVisibleValue } from "./citizen-visible-value";
@@ -58,9 +61,12 @@ function contribution(
   label: string,
   displayValue: string | null | undefined,
 ): EvidenceFact | null {
+  if (displayValue && evidenceFactShouldStayOnlyInOriginal(displayValue)) {
+    return null;
+  }
   const value = citizenVisibleValue(displayValue);
   return value
-    ? { fieldKey, label, displayValue: sanitizeSensitiveText(value).text }
+    ? { fieldKey, label, displayValue: sanitizeDerivedText(value) }
     : null;
 }
 

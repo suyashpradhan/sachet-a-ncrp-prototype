@@ -8,6 +8,7 @@ import {
   formatIndiaShortDateWithYear,
 } from "./format";
 import { citizenVisibleValue, isInternalCaseValue } from "./citizen-visible-value";
+import { safeDerivedIdentifier, sanitizeDerivedText } from "./evidence-privacy";
 
 export type PostReportMilestones = {
   preparedAt: string;
@@ -266,10 +267,13 @@ export function getCaseSummary(
     items.push({
       id: "claimed-identity",
       label: hi ? "दावा की गई पहचान" : "Claimed identity",
-      value: claimedIdentity,
+      value: sanitizeDerivedText(claimedIdentity),
     });
   }
-  const affectedAccount = citizenVisibleValue(draft.adaptiveFacts.affectedAccount);
+  const affectedAccount = safeDerivedIdentifier(
+    citizenVisibleValue(draft.adaptiveFacts.affectedAccount),
+    "ACCOUNT",
+  );
   const affectedPlatforms = draft.adaptiveFacts.affectedPlatforms
     .map((value) => citizenVisibleValue(value))
     .filter((value): value is string => Boolean(value));
@@ -673,8 +677,8 @@ export function getKeepReadyPacket(
   if (affectedAccount) {
     items.push(
       hi
-        ? `प्रभावित खाता या प्लेटफ़ॉर्म: ${affectedAccount}`
-        : `Affected account or platform: ${affectedAccount}`,
+        ? `प्रभावित खाता या प्लेटफ़ॉर्म: ${safeDerivedIdentifier(affectedAccount, "ACCOUNT")}`
+        : `Affected account or platform: ${safeDerivedIdentifier(affectedAccount, "ACCOUNT")}`,
     );
   }
 

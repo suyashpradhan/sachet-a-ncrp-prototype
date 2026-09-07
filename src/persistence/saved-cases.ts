@@ -15,6 +15,10 @@ import {
 } from "../incident/ncrp-compatible-complaint";
 import type { ReminderPreferences } from "../notifications/citizen-nudges";
 import type { PostReportMilestones } from "../presentation/post-report-case";
+import {
+  CaseUpdateSchema,
+  type CaseUpdate,
+} from "../incident/case-update";
 
 const SAVED_CASES_KEY = "sachet-saved-cases-v1";
 const MAX_SAVED_CASES = 8;
@@ -32,6 +36,7 @@ export type SavedCaseRecord = {
   reminderPreferences: ReminderPreferences;
   evidenceNames: string[];
   locale: UiLocale;
+  caseUpdates: CaseUpdate[];
 };
 
 function isReporterProfile(value: unknown): value is ReporterProfile {
@@ -76,6 +81,13 @@ function parseRecord(value: unknown): SavedCaseRecord | null {
     : null;
   const milestones = candidate.milestones;
   const reminders = candidate.reminderPreferences;
+  const caseUpdates = Array.isArray(candidate.caseUpdates)
+    ? candidate.caseUpdates
+        .map((update) => CaseUpdateSchema.safeParse(update))
+        .filter((result) => result.success)
+        .map((result) => result.data)
+        .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+    : [];
   if (
     candidate.version !== 1 ||
     typeof candidate.reference !== "string" ||
@@ -109,6 +121,7 @@ function parseRecord(value: unknown): SavedCaseRecord | null {
     reminderPreferences: reminders,
     evidenceNames: candidate.evidenceNames,
     locale: candidate.locale,
+    caseUpdates,
   };
 }
 
