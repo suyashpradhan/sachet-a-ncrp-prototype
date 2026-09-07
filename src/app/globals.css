@@ -991,16 +991,24 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   display: inline;
 }
 
+.landing-headline-line {
+  display: block;
+}
+
+.landing-headline-next-line {
+  margin-top: 0.12em;
+}
+
 .landing-rotating-word {
   min-width: 10.5ch;
-  margin-inline: 0.08em;
-  padding: 0.02em 0.18em 0.04em;
+  margin-inline: 0.04em;
+  padding: 0 0 0.04em;
   display: inline-block;
-  color: #fff;
-  background: var(--text);
-  border-bottom: 4px solid var(--primary);
-  border-radius: 6px;
-  line-height: 1.02;
+  color: var(--text);
+  background: transparent;
+  border-bottom: 3px solid var(--primary);
+  border-radius: 0;
+  line-height: 1.05;
   text-align: center;
   vertical-align: 0.04em;
   animation: landing-word-enter 300ms ease-out both;
