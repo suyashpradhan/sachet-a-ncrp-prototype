@@ -16,6 +16,28 @@ import { ComplaintPacket } from "./complaint-packet";
 type HandoffView = "CALL" | "BANK" | "SUMMARY" | null;
 type CopyTarget = "CALL" | "BANK" | null;
 
+function HandoffIcon({ type }: { type: "CALL" | "BANK" | "SUMMARY" }) {
+  if (type === "CALL") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7.4 3.5 10 7.7 8.3 9.5c1.2 2.4 3.1 4.3 5.5 5.5l1.8-1.7 4.2 2.6-.6 3.2c-.2 1-1.1 1.7-2.1 1.6C9.7 20.1 3.9 14.3 3.3 6.9c-.1-1 .6-1.9 1.6-2.1l2.5-.5Z" />
+      </svg>
+    );
+  }
+  if (type === "BANK") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m3 9 9-5 9 5M5 10v7m4-7v7m6-7v7m4-7v7M3 20h18M2 8h20" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 3h9l4 4v14H6V3Zm9 0v5h4M9 12h7M9 16h7" />
+    </svg>
+  );
+}
+
 async function copyToClipboard(value: string) {
   if (navigator.clipboard && window.isSecureContext) {
     await navigator.clipboard.writeText(value);
@@ -40,12 +62,16 @@ export function ImmediateHandoff({
   amountResolution,
   reference,
   isDemoIncident,
+  sourceLanguageCode,
+  onViewCaseSummary,
 }: {
   draft: IncidentDraft;
   complaint: NcrpCompatibleComplaint;
   amountResolution: ReportedAmountResolution | null;
   reference: string;
   isDemoIncident: boolean;
+  sourceLanguageCode?: string | null;
+  onViewCaseSummary?: () => void;
 }) {
   const { locale, t } = useI18n();
   const [activeView, setActiveView] = useState<HandoffView>(null);
@@ -54,6 +80,14 @@ export function ImmediateHandoff({
   const options = { locale, amountResolution };
   const callBrief = buildCallBrief(draft, options);
   const callItems = buildCallBriefItems(draft, options);
+  const showHindiCompanion = sourceLanguageCode?.startsWith("hi") ?? false;
+  const companionLocale = locale === "hi" ? "en" : "hi";
+  const companionCallItems = showHindiCompanion
+    ? buildCallBriefItems(draft, {
+        locale: companionLocale,
+        amountResolution,
+      })
+    : null;
   const bankNotification = buildBankNotification(draft, complaint, options);
   const actions = getNextActions(draft, locale);
   const showPreparedFinancialHandoff = Boolean(
@@ -112,8 +146,14 @@ export function ImmediateHandoff({
   }
 
   const callCopy = callItems!
-    .map((item) => `${item.label}: ${item.value}`)
-    .join("\n");
+    .map((item, index) => {
+      const companion = companionCallItems?.[index];
+      return [
+        `${item.label}: ${item.value}`,
+        companion ? `${companion.label}: ${companion.value}` : null,
+      ].filter(Boolean).join("\n");
+    })
+    .join("\n\n");
 
   return (
     <section className="immediate-handoff prepared-handoff" aria-labelledby="prepared-handoff-heading">
@@ -124,7 +164,7 @@ export function ImmediateHandoff({
 
       <div className="handoff-action-list">
         <article className="handoff-action-card">
-          <span className="handoff-action-number" aria-hidden="true">1</span>
+          <span className="handoff-action-icon"><HandoffIcon type="CALL" /></span>
           <div>
             <h3>{t("handoff.call.title")}</h3>
             <p>{t("handoff.call.description")}</p>
@@ -146,7 +186,7 @@ export function ImmediateHandoff({
         </article>
 
         <article className="handoff-action-card">
-          <span className="handoff-action-number" aria-hidden="true">2</span>
+          <span className="handoff-action-icon"><HandoffIcon type="BANK" /></span>
           <div>
             <h3>{t("handoff.bank.title")}</h3>
             <p>{t("handoff.bank.description")}</p>
@@ -163,7 +203,7 @@ export function ImmediateHandoff({
         </article>
 
         <article className="handoff-action-card">
-          <span className="handoff-action-number" aria-hidden="true">3</span>
+          <span className="handoff-action-icon"><HandoffIcon type="SUMMARY" /></span>
           <div>
             <h3>{t("handoff.summary.title")}</h3>
             <p>{t("handoff.summary.description")}</p>
@@ -172,7 +212,13 @@ export function ImmediateHandoff({
               type="button"
               aria-expanded={activeView === "SUMMARY"}
               aria-controls="prepared-case-summary"
-              onClick={() => setActiveView(activeView === "SUMMARY" ? null : "SUMMARY")}
+              onClick={() => {
+                if (onViewCaseSummary) {
+                  onViewCaseSummary();
+                  return;
+                }
+                setActiveView(activeView === "SUMMARY" ? null : "SUMMARY");
+              }}
             >
               {t("handoff.summary.view")}
             </button>
@@ -192,15 +238,28 @@ export function ImmediateHandoff({
             </button>
           </div>
           <ol className="call-brief-items">
-            {callItems!.map((item) => (
+            {callItems!.map((item, index) => {
+              const companion = companionCallItems?.[index];
+              return (
               <li className={item.isKnown ? undefined : "call-brief-item-unknown"} key={item.label}>
-                <span aria-hidden="true">{callItems!.indexOf(item) + 1}</span>
+                <span aria-hidden="true">{index + 1}</span>
                 <div>
-                  <strong>{item.label}</strong>
-                  <p>{item.value}</p>
+                  <div className="call-brief-language-block">
+                    <small>{locale === "hi" ? t("language.hindi") : t("language.english")}</small>
+                    <strong>{item.label}</strong>
+                    <p>{item.value}</p>
+                  </div>
+                  {companion ? (
+                    <div className="call-brief-language-block call-brief-language-companion" lang={companionLocale}>
+                      <small>{companionLocale === "hi" ? "हिन्दी" : "English"}</small>
+                      <strong>{companion.label}</strong>
+                      <p>{companion.value}</p>
+                    </div>
+                  ) : null}
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ol>
           <div className="call-brief-actions">
             <a className="primary-button call-1930-button" href="tel:1930">

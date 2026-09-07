@@ -7,6 +7,8 @@ import {
   type IncidentDraft,
   type TranscriptionResult,
 } from "../../incident/schema";
+import type { NcrpCompatibleComplaint } from "../../incident/ncrp-compatible-complaint";
+import { resolveReportedAmount } from "../../incident/complaint-case";
 import { useI18n } from "../../i18n/i18n-provider";
 import { deriveEvidenceContributions } from "../../presentation/evidence-contributions";
 import { getSafeCaseSummary } from "../../presentation/safe-case-copy";
@@ -32,9 +34,11 @@ import {
   OPEN_EVIDENCE_PREVIEW_EVENT,
   requestEvidencePreview,
 } from "./evidence-preview-events";
+import { ImmediateHandoff } from "./immediate-handoff";
 
 type PostSubmissionCaseHomeProps = {
   draft: IncidentDraft;
+  complaint: NcrpCompatibleComplaint;
   prototypeReference: string;
   screenshots: File[];
   isDemoIncident: boolean;
@@ -515,6 +519,7 @@ function EvidenceIncluded({
 
 export function PostSubmissionCaseHome({
   draft,
+  complaint,
   prototypeReference,
   screenshots,
   isDemoIncident,
@@ -528,6 +533,11 @@ export function PostSubmissionCaseHome({
 }: PostSubmissionCaseHomeProps) {
   const { locale } = useI18n();
   const hi = locale === "hi";
+  const showPreparedFinancialHandoff =
+    draft.classification.reportFamily === "FINANCIAL_FRAUD" &&
+    draft.incident.moneyLost === true &&
+    draft.transactions.length > 0 &&
+    draft.incident.delayInReporting !== true;
   const summary = getCaseSummary(draft, locale);
   const actions = getPostReportActions(draft, locale).slice(0, 3);
   const primaryAction = actions[0];
@@ -731,11 +741,37 @@ export function PostSubmissionCaseHome({
             </p>
           </header>
 
-          <div className="post-submission-priority-grid">
-            <section
+          {showPreparedFinancialHandoff ? (
+            <ImmediateHandoff
+              draft={draft}
+              complaint={complaint}
+              amountResolution={resolveReportedAmount(draft)}
+              reference={prototypeReference}
+              isDemoIncident={isDemoIncident}
+              sourceLanguageCode={transcription?.languageCode}
+              onViewCaseSummary={() => {
+                const target = document.querySelector<HTMLElement>(
+                  "#post-submission-case-summary",
+                );
+                target?.scrollIntoView({
+                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    ? "auto"
+                    : "smooth",
+                  block: "start",
+                });
+                target?.focus({ preventScroll: true });
+              }}
+            />
+          ) : null}
+
+          <div
+            className={`post-submission-priority-grid${showPreparedFinancialHandoff ? " post-submission-priority-grid-single" : ""}`}
+          >
+            {!showPreparedFinancialHandoff ? (
+              <section
               className="companion-section immediate-action-section"
               aria-labelledby="post-report-actions-heading"
-            >
+              >
               <h2 id="post-report-actions-heading">
                 {hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}
               </h2>
@@ -774,11 +810,14 @@ export function PostSubmissionCaseHome({
                   ))}
                 </ol>
               ) : null}
-            </section>
+              </section>
+            ) : null}
 
             <section
+              id="post-submission-case-summary"
               className="companion-section complaint-summary-section"
               aria-labelledby="case-summary-heading"
+              tabIndex={-1}
             >
               <h2 id="case-summary-heading">
                 {hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}

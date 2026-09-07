@@ -4826,6 +4826,7 @@ function ReportDetailsPane({
               amountResolution={props.amountResolution}
               reference={props.reportReference}
               isDemoIncident={props.isDemoIncident}
+              sourceLanguageCode={props.transcription?.languageCode}
             />
           ) : null}
         </>

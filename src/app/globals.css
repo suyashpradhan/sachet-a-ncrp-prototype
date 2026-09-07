@@ -3783,14 +3783,14 @@ html[data-ui-locale="hi"] .utr-example text {
 }
 
 .handoff-action-card {
-  padding: 22px 0;
+  padding: 18px 0;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr);
   gap: 14px;
   border-top: 1px solid var(--border);
 }
 
-.handoff-action-number {
+.handoff-action-icon {
   width: 30px;
   height: 30px;
   display: grid;
@@ -3798,8 +3798,16 @@ html[data-ui-locale="hi"] .utr-example text {
   color: var(--primary);
   background: var(--primary-050);
   border-radius: 50%;
-  font-size: 13px;
-  font-weight: 700;
+}
+
+.handoff-action-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .handoff-action-card h3 {
@@ -3898,6 +3906,30 @@ html[data-ui-locale="hi"] .utr-example text {
   overflow-wrap: anywhere;
   font-size: 17px;
   line-height: 1.55;
+}
+
+.call-brief-language-block small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.call-brief-language-companion {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px dashed var(--border);
+}
+
+html[data-ui-locale="en"] .call-brief-language-companion[lang="hi"] {
+  font-family: var(--font-devanagari), system-ui, sans-serif;
+}
+
+.post-submission-priority-grid-single {
+  grid-template-columns: 1fr;
 }
 
 .call-brief-item-unknown p {

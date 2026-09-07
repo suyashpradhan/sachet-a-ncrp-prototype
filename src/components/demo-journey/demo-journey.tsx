@@ -370,6 +370,8 @@ export function DemoJourney() {
   const [postReportMilestones, setPostReportMilestones] =
     useState<PostReportMilestones | null>(null);
   const [submittedDraft, setSubmittedDraft] = useState<IncidentDraft | null>(null);
+  const [submittedComplaint, setSubmittedComplaint] =
+    useState<NcrpCompatibleComplaint | null>(null);
   const [submittedTranscription, setSubmittedTranscription] = useState<TranscriptionResult | null>(null);
   const [reminderPreferences, setReminderPreferences] =
     useState<ReminderPreferences>(() => createReminderPreferences(false));
@@ -597,6 +599,7 @@ export function DemoJourney() {
       } else {
         setPostReportMilestones(null);
         setSubmittedDraft(null);
+        setSubmittedComplaint(null);
         setSubmittedTranscription(null);
         preparedAtRef.current = DEMO_POST_REPORT_MILESTONES.preparedAt;
       }
@@ -774,6 +777,7 @@ export function DemoJourney() {
     setSubmittedReference("");
     setPostReportMilestones(null);
     setSubmittedDraft(null);
+    setSubmittedComplaint(null);
     setSubmittedTranscription(null);
     setReminderPreferences(createReminderPreferences(false));
     setUnavailableEvidenceNames([]);
@@ -1460,6 +1464,7 @@ export function DemoJourney() {
       ) {
         setSubmittedReference(reference);
         setSubmittedDraft(submittedCaseDraft);
+        setSubmittedComplaint(structuredClone(complaint));
         setSubmittedTranscription(submittedCaseTranscription);
         setPostReportMilestones(milestones);
         setFormError(null);
@@ -1480,6 +1485,7 @@ export function DemoJourney() {
       hydrateComplaintCase(built.caseData, built.now);
       setSubmittedReference(reference);
       setSubmittedDraft(submittedCaseDraft);
+      setSubmittedComplaint(structuredClone(complaint));
       setSubmittedTranscription(submittedCaseTranscription);
       setPostReportMilestones(milestones);
       setFormError(null);
@@ -1638,10 +1644,16 @@ export function DemoJourney() {
         onSubmit={submitComplaint}
       />
     );
-  } else if (view === "SUCCESS" && submittedDraft && postReportMilestones) {
+  } else if (
+    view === "SUCCESS" &&
+    submittedDraft &&
+    submittedComplaint &&
+    postReportMilestones
+  ) {
     content = (
       <PostSubmissionCaseHome
         draft={submittedDraft}
+        complaint={submittedComplaint}
         prototypeReference={submittedReference}
         screenshots={screenshots}
         isDemoIncident={isDemoIncident}
