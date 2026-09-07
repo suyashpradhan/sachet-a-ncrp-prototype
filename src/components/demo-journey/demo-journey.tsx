@@ -22,7 +22,10 @@ import {
   applyMissingAnswer,
   type MissingQuestion,
 } from "../../incident/missing-information";
-import { normalizeIncidentDraft } from "../../incident/normalization";
+import {
+  alignEvidenceToUploadedFiles,
+  normalizeIncidentDraft,
+} from "../../incident/normalization";
 import { sanitizeSensitiveText } from "../../incident/sensitive-text";
 import {
   buildNcrpCompatibleComplaint,
@@ -916,7 +919,11 @@ export function DemoJourney() {
     setReporterName(recoverableReport.reporterName);
     setNarrative(recoverableReport.narrative);
     setTranscription(recoverableReport.transcription);
-    setDraft(recoverableReport.draft);
+    setDraft(
+      recoverableReport.draft
+        ? alignEvidenceToUploadedFiles(recoverableReport.draft, 0)
+        : null,
+    );
     setMissingAnswers(recoverableReport.missingAnswers);
     setSelectedReportedAmount(recoverableReport.selectedReportedAmount);
     setRecordingSeconds(recoverableReport.recordingSeconds);
@@ -1313,7 +1320,12 @@ export function DemoJourney() {
       const result: unknown = await response.json().catch(() => null);
       if (analysisRunRef.current !== analysisRun) return;
       if (!response.ok) throw new Error("REPORT_PREPARATION_FAILED");
-      setDraft(normalizeIncidentDraft(IncidentDraftSchema.parse(result)));
+      setDraft(
+        alignEvidenceToUploadedFiles(
+          normalizeIncidentDraft(IncidentDraftSchema.parse(result)),
+          screenshots.length,
+        ),
+      );
       preparedAtRef.current = new Date().toISOString();
       setPreparedSourceSignature(
         reportSourceSignature({

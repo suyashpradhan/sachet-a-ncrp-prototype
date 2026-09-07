@@ -9,9 +9,7 @@ import {
 } from "../../incident/schema";
 import { useI18n } from "../../i18n/i18n-provider";
 import { deriveEvidenceContributions } from "../../presentation/evidence-contributions";
-import {
-  getSafeCaseSummary,
-} from "../../presentation/safe-case-copy";
+import { getSafeCaseSummary } from "../../presentation/safe-case-copy";
 import {
   getCaseSummary,
   getCaseStateExplanation,
@@ -55,7 +53,10 @@ function PrintableCaseReport({
   prototypeReference,
   milestones,
   transcription,
-}: Pick<PostSubmissionCaseHomeProps, "draft" | "prototypeReference" | "milestones" | "transcription">) {
+}: Pick<
+  PostSubmissionCaseHomeProps,
+  "draft" | "prototypeReference" | "milestones" | "transcription"
+>) {
   const { locale } = useI18n();
   const hi = locale === "hi";
   const summary = getCaseSummary(draft, locale);
@@ -91,38 +92,248 @@ function PrintableCaseReport({
   );
   const showAffectedAccount = Boolean(
     draft.adaptiveFacts.accountCompromise ||
-      affectedAccount ||
-      affectedPlatform ||
-      affectedPlatforms.length > 0,
+    affectedAccount ||
+    affectedPlatform ||
+    affectedPlatforms.length > 0,
   );
   return (
-    <article className="complaint-packet" aria-label={hi ? "प्रिंट करने योग्य रिपोर्ट" : "Printable report"}>
+    <article
+      className="complaint-packet"
+      aria-label={hi ? "प्रिंट करने योग्य रिपोर्ट" : "Printable report"}
+    >
       <header>
         <p className="packet-brand">सचेत</p>
-        <h1>{hi ? "तैयार साइबर अपराध रिपोर्ट" : "Prepared cybercrime report"}</h1>
-        <p>{draft.officialMapping.subCategoryLabel ?? draft.officialMapping.categoryLabel ?? draft.citizenSummary.incidentLabel}</p>
+        <h1>
+          {hi ? "तैयार साइबर अपराध रिपोर्ट" : "Prepared cybercrime report"}
+        </h1>
+        <p>
+          {draft.officialMapping.subCategoryLabel ??
+            draft.officialMapping.categoryLabel ??
+            draft.citizenSummary.incidentLabel}
+        </p>
       </header>
-      {prototypeReference ? <section><h2>{hi ? "संदर्भ" : "Reference"}</h2><p>{prototypeReference}</p><p>{hi ? "जमा किया गया" : "Submitted"}: {submitted}</p></section> : null}
-      <section><h2>{hi ? "शिकायत की जानकारी" : "Complaint details"}</h2><dl>{summary.map((item) => <div key={item.id}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>
-      {displayedStatement ? <section><h2>{hi ? "घटना का विवरण" : "Incident summary"}</h2><p>{displayedStatement}</p></section> : null}
-      {draft.transactions.length > 0 ? <section><h2>{hi ? "लेन-देन" : "Transactions"}</h2>{draft.transactions.map((transaction, index) => { const reference = citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber); const credit = transaction.direction === "CREDIT"; return <dl key={transaction.id}><div><dt>{hi ? "लेन-देन" : "Transaction"}</dt><dd>{index + 1}</dd></div><div><dt>{hi ? "प्रकार" : "Type"}</dt><dd>{credit ? (hi ? "वापस मिला क्रेडिट" : "Credit received back") : (hi ? "भुगतान / डेबिट" : "Payment / debit")}</dd></div>{transaction.amount ? <div><dt>{hi ? "राशि" : "Amount"}</dt><dd>₹{transaction.amount.toLocaleString("en-IN")}</dd></div> : null}{citizenVisibleValue(transaction.institution) ? <div><dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt><dd>{citizenVisibleValue(transaction.institution)}</dd></div> : null}{transaction.transactionDate ? <div><dt>{hi ? "तारीख" : "Date"}</dt><dd>{formatIndiaShortDateWithYear(transaction.transactionDate, locale)}</dd></div> : null}{citizenVisibleValue(transaction.approximateTime) ? <div><dt>{hi ? "समय" : "Time"}</dt><dd>{citizenVisibleValue(transaction.approximateTime)}</dd></div> : null}{reference ? <div><dt>{hi ? "लेन-देन संदर्भ / UTR" : "Transaction reference / UTR"}</dt><dd>{reference}</dd></div> : null}</dl>; })}</section> : null}
+      {prototypeReference ? (
+        <section>
+          <h2>{hi ? "संदर्भ" : "Reference"}</h2>
+          <p>{prototypeReference}</p>
+          <p>
+            {hi ? "जमा किया गया" : "Submitted"}: {submitted}
+          </p>
+        </section>
+      ) : null}
+      <section>
+        <h2>{hi ? "शिकायत की जानकारी" : "Complaint details"}</h2>
+        <dl>
+          {summary.map((item) => (
+            <div key={item.id}>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      {displayedStatement ? (
+        <section>
+          <h2>{hi ? "घटना का विवरण" : "Incident summary"}</h2>
+          <p>{displayedStatement}</p>
+        </section>
+      ) : null}
+      {draft.transactions.length > 0 ? (
+        <section>
+          <h2>{hi ? "लेन-देन" : "Transactions"}</h2>
+          {draft.transactions.map((transaction, index) => {
+            const reference = citizenVisibleValue(
+              transaction.transactionIdOrUtr ?? transaction.referenceNumber,
+            );
+            const credit = transaction.direction === "CREDIT";
+            return (
+              <dl key={transaction.id}>
+                <div>
+                  <dt>{hi ? "लेन-देन" : "Transaction"}</dt>
+                  <dd>{index + 1}</dd>
+                </div>
+                <div>
+                  <dt>{hi ? "प्रकार" : "Type"}</dt>
+                  <dd>
+                    {credit
+                      ? hi
+                        ? "वापस मिला क्रेडिट"
+                        : "Credit received back"
+                      : hi
+                        ? "भुगतान / डेबिट"
+                        : "Payment / debit"}
+                  </dd>
+                </div>
+                {transaction.amount ? (
+                  <div>
+                    <dt>{hi ? "राशि" : "Amount"}</dt>
+                    <dd>₹{transaction.amount.toLocaleString("en-IN")}</dd>
+                  </div>
+                ) : null}
+                {citizenVisibleValue(transaction.institution) ? (
+                  <div>
+                    <dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt>
+                    <dd>{citizenVisibleValue(transaction.institution)}</dd>
+                  </div>
+                ) : null}
+                {transaction.transactionDate ? (
+                  <div>
+                    <dt>{hi ? "तारीख" : "Date"}</dt>
+                    <dd>
+                      {formatIndiaShortDateWithYear(
+                        transaction.transactionDate,
+                        locale,
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+                {citizenVisibleValue(transaction.approximateTime) ? (
+                  <div>
+                    <dt>{hi ? "समय" : "Time"}</dt>
+                    <dd>{citizenVisibleValue(transaction.approximateTime)}</dd>
+                  </div>
+                ) : null}
+                {reference ? (
+                  <div>
+                    <dt>
+                      {hi
+                        ? "लेन-देन संदर्भ / UTR"
+                        : "Transaction reference / UTR"}
+                    </dt>
+                    <dd>{reference}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            );
+          })}
+        </section>
+      ) : null}
       {showAffectedAccount ? (
         <section>
           <h2>{hi ? "प्रभावित खाता" : "Affected account"}</h2>
           <dl>
-            {affectedPlatforms.length > 0 ? <div><dt>{hi ? "प्रभावित खाते या सेवाएँ" : "Affected accounts or services"}</dt><dd>{affectedPlatforms.join(", ")}</dd></div> : affectedPlatform ? <div><dt>{hi ? "प्लेटफ़ॉर्म" : "Platform"}</dt><dd>{affectedPlatform}</dd></div> : null}
-            {messageSourcePlatforms.length > 0 ? <div><dt>{hi ? "संदेश में बताई गई सेवा" : "Message source platform"}</dt><dd>{messageSourcePlatforms.join(", ")}</dd></div> : null}
-            {affectedAccount ? <div><dt>{hi ? "खाता या प्रोफ़ाइल" : "Account or profile"}</dt><dd>{affectedAccount}</dd></div> : null}
-            {profileUrl ? <div><dt>{hi ? "प्रोफ़ाइल URL" : "Profile URL"}</dt><dd>{profileUrl}</dd></div> : null}
-            {accountAccessStatus ? <div><dt>{hi ? "पहुँच की स्थिति" : "Access status"}</dt><dd>{accountAccessStatus}</dd></div> : null}
-            {draft.adaptiveFacts.multipleIncidentThreads ? <div><dt>{hi ? "घटना के हिस्से" : "Incident threads"}</dt><dd>{hi ? "दो अलग घटना-क्रम दर्ज हैं" : "Two separate incident threads are recorded"}</dd></div> : null}
+            {affectedPlatforms.length > 0 ? (
+              <div>
+                <dt>
+                  {hi
+                    ? "प्रभावित खाते या सेवाएँ"
+                    : "Affected accounts or services"}
+                </dt>
+                <dd>{affectedPlatforms.join(", ")}</dd>
+              </div>
+            ) : affectedPlatform ? (
+              <div>
+                <dt>{hi ? "प्लेटफ़ॉर्म" : "Platform"}</dt>
+                <dd>{affectedPlatform}</dd>
+              </div>
+            ) : null}
+            {messageSourcePlatforms.length > 0 ? (
+              <div>
+                <dt>
+                  {hi ? "संदेश में बताई गई सेवा" : "Message source platform"}
+                </dt>
+                <dd>{messageSourcePlatforms.join(", ")}</dd>
+              </div>
+            ) : null}
+            {affectedAccount ? (
+              <div>
+                <dt>{hi ? "खाता या प्रोफ़ाइल" : "Account or profile"}</dt>
+                <dd>{affectedAccount}</dd>
+              </div>
+            ) : null}
+            {profileUrl ? (
+              <div>
+                <dt>{hi ? "प्रोफ़ाइल URL" : "Profile URL"}</dt>
+                <dd>{profileUrl}</dd>
+              </div>
+            ) : null}
+            {accountAccessStatus ? (
+              <div>
+                <dt>{hi ? "पहुँच की स्थिति" : "Access status"}</dt>
+                <dd>{accountAccessStatus}</dd>
+              </div>
+            ) : null}
+            {draft.adaptiveFacts.multipleIncidentThreads ? (
+              <div>
+                <dt>{hi ? "घटना के हिस्से" : "Incident threads"}</dt>
+                <dd>
+                  {hi
+                    ? "दो अलग घटना-क्रम दर्ज हैं"
+                    : "Two separate incident threads are recorded"}
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </section>
       ) : null}
-      {draft.adaptiveFacts.threatOrExtortion || draft.adaptiveFacts.impersonation ? <section><h2>{hi ? "धमकी या प्रतिरूपण" : "Threat or impersonation"}</h2><dl>{draft.adaptiveFacts.demandedAmount ? <div><dt>{hi ? "मांगी गई राशि" : "Amount demanded"}</dt><dd>₹{draft.adaptiveFacts.demandedAmount.toLocaleString("en-IN")}</dd></div> : null}{threatChannel ? <div><dt>{hi ? "माध्यम" : "Channel"}</dt><dd>{threatChannel}</dd></div> : null}{impersonatedEntity ? <div><dt>{hi ? "दावा की गई पहचान" : "Claimed identity"}</dt><dd>{impersonatedEntity}</dd></div> : null}</dl></section> : null}
-      {draft.adaptiveFacts.requestedSensitiveInfo.length > 0 || draft.adaptiveFacts.sharedSensitiveInfo.length > 0 ? <section><h2>{hi ? "मांगी या साझा की गई जानकारी" : "Information requested or shared"}</h2>{draft.adaptiveFacts.requestedSensitiveInfo.length > 0 ? <p><strong>{hi ? "मांगी गई:" : "Requested:"}</strong> {draft.adaptiveFacts.requestedSensitiveInfo.join(", ")}</p> : null}{draft.adaptiveFacts.sharedSensitiveInfo.length > 0 ? <p><strong>{hi ? "साझा की गई:" : "Shared:"}</strong> {draft.adaptiveFacts.sharedSensitiveInfo.join(", ")}</p> : null}</section> : null}
-      {draft.evidence.length > 0 ? <section><h2>{hi ? "सबूत" : "Evidence"}</h2><p>{draft.evidence.length} {hi ? "सबूत आइटम रिपोर्ट में शामिल" : "evidence items included with the report"}</p></section> : null}
-      <footer><p>{hi ? "प्रोटोटाइप प्रति। यह आधिकारिक NCRP पावती या सरकारी सबमिशन रसीद नहीं है।" : "Prototype copy. Not an official NCRP acknowledgement or government submission receipt."}</p></footer>
+      {draft.adaptiveFacts.threatOrExtortion ||
+      draft.adaptiveFacts.impersonation ? (
+        <section>
+          <h2>{hi ? "धमकी या प्रतिरूपण" : "Threat or impersonation"}</h2>
+          <dl>
+            {draft.adaptiveFacts.demandedAmount ? (
+              <div>
+                <dt>{hi ? "मांगी गई राशि" : "Amount demanded"}</dt>
+                <dd>
+                  ₹{draft.adaptiveFacts.demandedAmount.toLocaleString("en-IN")}
+                </dd>
+              </div>
+            ) : null}
+            {threatChannel ? (
+              <div>
+                <dt>{hi ? "माध्यम" : "Channel"}</dt>
+                <dd>{threatChannel}</dd>
+              </div>
+            ) : null}
+            {impersonatedEntity ? (
+              <div>
+                <dt>{hi ? "दावा की गई पहचान" : "Claimed identity"}</dt>
+                <dd>{impersonatedEntity}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
+      {draft.adaptiveFacts.requestedSensitiveInfo.length > 0 ||
+      draft.adaptiveFacts.sharedSensitiveInfo.length > 0 ? (
+        <section>
+          <h2>
+            {hi
+              ? "मांगी या साझा की गई जानकारी"
+              : "Information requested or shared"}
+          </h2>
+          {draft.adaptiveFacts.requestedSensitiveInfo.length > 0 ? (
+            <p>
+              <strong>{hi ? "मांगी गई:" : "Requested:"}</strong>{" "}
+              {draft.adaptiveFacts.requestedSensitiveInfo.join(", ")}
+            </p>
+          ) : null}
+          {draft.adaptiveFacts.sharedSensitiveInfo.length > 0 ? (
+            <p>
+              <strong>{hi ? "साझा की गई:" : "Shared:"}</strong>{" "}
+              {draft.adaptiveFacts.sharedSensitiveInfo.join(", ")}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+      {draft.evidence.length > 0 ? (
+        <section>
+          <h2>{hi ? "सबूत" : "Evidence"}</h2>
+          <p>
+            {draft.evidence.length}{" "}
+            {hi
+              ? "सबूत आइटम रिपोर्ट में शामिल"
+              : "evidence items included with the report"}
+          </p>
+        </section>
+      ) : null}
+      <footer>
+        <p>
+          {hi
+            ? "प्रोटोटाइप प्रति। यह आधिकारिक NCRP पावती या सरकारी सबमिशन रसीद नहीं है।"
+            : "Prototype copy. Not an official NCRP acknowledgement or government submission receipt."}
+        </p>
+      </footer>
     </article>
   );
 }
@@ -147,7 +358,9 @@ function EvidenceIncluded({
     demoEvidence: demoCase?.evidence,
   });
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
-  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string | null>(null);
+  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string | null>(
+    null,
+  );
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const activeItem = items.find((item) => item.evidenceId === activeEvidenceId);
   const demoEvidencePath = demoCase?.evidence.find(
@@ -182,7 +395,10 @@ function EvidenceIncluded({
     };
     window.addEventListener(OPEN_EVIDENCE_PREVIEW_EVENT, openRequestedEvidence);
     return () =>
-      window.removeEventListener(OPEN_EVIDENCE_PREVIEW_EVENT, openRequestedEvidence);
+      window.removeEventListener(
+        OPEN_EVIDENCE_PREVIEW_EVENT,
+        openRequestedEvidence,
+      );
   }, [items]);
 
   function closePreview() {
@@ -228,11 +444,15 @@ function EvidenceIncluded({
               </div>
               {item.contributions.length > 0 ? (
                 <details className="evidence-linkage-details">
-                  <summary>{hi ? "जुड़ी हुई जानकारी" : "Linked complaint details"}</summary>
+                  <summary>
+                    {hi ? "जुड़ी हुई जानकारी" : "Linked complaint details"}
+                  </summary>
                   <ul className="evidence-used-list">
                     {item.contributions.map((fact) => (
                       <li key={`${item.evidenceId}-${fact.fieldKey}`}>
-                        {/^(Detail found|सबूत में मिली जानकारी)$/.test(fact.label) ? null : (
+                        {/^(Detail found|सबूत में मिली जानकारी)$/.test(
+                          fact.label,
+                        ) ? null : (
                           <span>{fact.label}: </span>
                         )}
                         {fact.displayValue}
@@ -259,9 +479,15 @@ function EvidenceIncluded({
                 <p className="companion-eyebrow">
                   {hi ? "शामिल सबूत" : "Evidence included"}
                 </p>
-                <h2 id="case-evidence-preview-title">{activeItem.evidenceLabel}</h2>
+                <h2 id="case-evidence-preview-title">
+                  {activeItem.evidenceLabel}
+                </h2>
               </div>
-              <button className="secondary-button" type="button" onClick={closePreview}>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={closePreview}
+              >
                 {hi ? "बंद करें" : "Close"}
               </button>
             </div>
@@ -275,7 +501,11 @@ function EvidenceIncluded({
                 unoptimized={Boolean(uploadedPreviewUrl)}
               />
             ) : (
-              <p>{hi ? "पूर्वावलोकन उपलब्ध नहीं है।" : "Preview is not available."}</p>
+              <p>
+                {hi
+                  ? "पूर्वावलोकन उपलब्ध नहीं है।"
+                  : "Preview is not available."}
+              </p>
             )}
           </>
         </dialog>
@@ -311,7 +541,9 @@ export function PostSubmissionCaseHome({
     isDemoIncident,
     milestones,
   );
-  const [copiedValue, setCopiedValue] = useState<"REFERENCE" | "SUMMARY" | null>(null);
+  const [copiedValue, setCopiedValue] = useState<
+    "REFERENCE" | "SUMMARY" | null
+  >(null);
   const missingReferenceIndex = draft.transactions.findIndex((transaction) => {
     if (transaction.transactionIdOrUtr === CITIZEN_DOES_NOT_HAVE) return false;
     return !transaction.transactionIdOrUtr && !transaction.referenceNumber;
@@ -331,28 +563,44 @@ export function PostSubmissionCaseHome({
   const timeline = [
     ...baseTimeline,
     ...(reminderPreferences.enabled && reminderPreferences.scheduledAt
-      ? [{
-          id: "reminders-enabled",
-          timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
-            dateStyle: "medium",
-            timeStyle: "short",
-            timeZone: "Asia/Kolkata",
-          }).format(new Date(reminderPreferences.scheduledAt)),
-          title: hi ? "सचेत रिमाइंडर तय हुआ" : "Sachet reminder scheduled",
-          sourceRefs: [{ type: "SYSTEM" as const, label: hi ? "स्रोत: सचेत" : "Source: सचेत" }],
-        }]
+      ? [
+          {
+            id: "reminders-enabled",
+            timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+              timeZone: "Asia/Kolkata",
+            }).format(new Date(reminderPreferences.scheduledAt)),
+            title: hi ? "सचेत रिमाइंडर तय हुआ" : "सचेत reminder scheduled",
+            sourceRefs: [
+              {
+                type: "SYSTEM" as const,
+                label: hi ? "स्रोत: सचेत" : "Source: सचेत",
+              },
+            ],
+          },
+        ]
       : []),
     ...(reminderPreferences.sentAt
-      ? [{
-          id: "demo-reminder-sent",
-          timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
-            dateStyle: "medium",
-            timeStyle: "short",
-            timeZone: "Asia/Kolkata",
-          }).format(new Date(reminderPreferences.sentAt)),
-          title: hi ? "सिंथेटिक डेमो रिमाइंडर भेजा गया" : "Synthetic demo reminder sent",
-          sourceRefs: [{ type: "PROTOTYPE" as const, label: hi ? "स्रोत: सिंथेटिक डेमो" : "Source: Synthetic demo" }],
-        }]
+      ? [
+          {
+            id: "demo-reminder-sent",
+            timeLabel: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+              timeZone: "Asia/Kolkata",
+            }).format(new Date(reminderPreferences.sentAt)),
+            title: hi
+              ? "सिंथेटिक डेमो रिमाइंडर भेजा गया"
+              : "Synthetic demo reminder sent",
+            sourceRefs: [
+              {
+                type: "PROTOTYPE" as const,
+                label: hi ? "स्रोत: सिंथेटिक डेमो" : "Source: Synthetic demo",
+              },
+            ],
+          },
+        ]
       : []),
   ];
   const stateExplanation = getCaseStateExplanation(
@@ -376,20 +624,26 @@ export function PostSubmissionCaseHome({
     .filter((item): item is (typeof summary)[number] => Boolean(item))
     .slice(0, 6);
   const evidenceToKeep = isDemoIncident
-    ? (demoCase?.evidence.map((item) => hi ? item.labelHi : item.label) ?? [])
+    ? (demoCase?.evidence.map((item) => (hi ? item.labelHi : item.label)) ?? [])
     : screenshots.map((file) => file.name);
   const processBoundaries = Array.from(
-    new Set([stateExplanation.whatItDoesNotMean, ...process.importantBoundaries]),
+    new Set([
+      stateExplanation.whatItDoesNotMean,
+      ...process.importantBoundaries,
+    ]),
   );
-  const activeRecipient = reminderPreferences.channel === "EMAIL"
-    ? reminderPreferences.email.trim()
-    : reminderPreferences.whatsapp.trim();
-  const recipientIsValid = reminderPreferences.channel === "EMAIL"
-    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activeRecipient)
-    : /^\+?91\s?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
-  const maskedRecipient = reminderPreferences.channel === "EMAIL"
-    ? activeRecipient.replace(/^(.{1,2}).*(@.*)$/, "$1••••$2")
-    : `+91 ••••• ${activeRecipient.replace(/\D/g, "").slice(-4)}`;
+  const activeRecipient =
+    reminderPreferences.channel === "EMAIL"
+      ? reminderPreferences.email.trim()
+      : reminderPreferences.whatsapp.trim();
+  const recipientIsValid =
+    reminderPreferences.channel === "EMAIL"
+      ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activeRecipient)
+      : /^\+?91\s?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
+  const maskedRecipient =
+    reminderPreferences.channel === "EMAIL"
+      ? activeRecipient.replace(/^(.{1,2}).*(@.*)$/, "$1••••$2")
+      : `+91 ••••• ${activeRecipient.replace(/\D/g, "").slice(-4)}`;
   const reminderCategoryLabels: Record<ReminderCategory, string> = hi
     ? {
         IMPORTANT_ACTIONS: "जरूरी कार्रवाई",
@@ -404,9 +658,7 @@ export function PostSubmissionCaseHome({
         FOLLOW_UP: "Case-status changes when available",
       };
 
-  function updateReminderPreferences(
-    update: Partial<ReminderPreferences>,
-  ) {
+  function updateReminderPreferences(update: Partial<ReminderPreferences>) {
     onReminderPreferencesChange({ ...reminderPreferences, ...update });
   }
 
@@ -414,24 +666,36 @@ export function PostSubmissionCaseHome({
     if (!recipientIsValid) {
       setReminderError(
         reminderPreferences.channel === "EMAIL"
-          ? hi ? "सही ईमेल पता दर्ज करें।" : "Enter a valid email address."
-          : hi ? "सही भारतीय मोबाइल नंबर दर्ज करें।" : "Enter a valid Indian mobile number.",
+          ? hi
+            ? "सही ईमेल पता दर्ज करें।"
+            : "Enter a valid email address."
+          : hi
+            ? "सही भारतीय मोबाइल नंबर दर्ज करें।"
+            : "Enter a valid Indian mobile number.",
       );
       return;
     }
     if (!Object.values(reminderPreferences.categories).some(Boolean)) {
-      setReminderError(hi ? "कम से कम एक रिमाइंडर प्रकार चुनें।" : "Choose at least one reminder type.");
+      setReminderError(
+        hi
+          ? "कम से कम एक रिमाइंडर प्रकार चुनें।"
+          : "Choose at least one reminder type.",
+      );
       return;
     }
     setReminderError(null);
     setManagingReminders(false);
-    const normalizedWhatsapp = `+91 ${activeRecipient.replace(/\D/g, "").slice(-10).replace(/(\d{5})(\d{5})/, "$1 $2")}`;
+    const normalizedWhatsapp = `+91 ${activeRecipient
+      .replace(/\D/g, "")
+      .slice(-10)
+      .replace(/(\d{5})(\d{5})/, "$1 $2")}`;
     updateReminderPreferences({
       enabled: true,
       email: reminderPreferences.email.trim(),
-      whatsapp: reminderPreferences.channel === "WHATSAPP"
-        ? normalizedWhatsapp
-        : reminderPreferences.whatsapp.trim(),
+      whatsapp:
+        reminderPreferences.channel === "WHATSAPP"
+          ? normalizedWhatsapp
+          : reminderPreferences.whatsapp.trim(),
       scheduledAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
       sentAt: null,
     });
@@ -452,10 +716,9 @@ export function PostSubmissionCaseHome({
     onDraftChange({
       ...draft,
       transactions: nextTransactions,
-      citizenConfirmedFields: Array.from(new Set([
-        ...(draft.citizenConfirmedFields ?? []),
-        confirmedField,
-      ])),
+      citizenConfirmedFields: Array.from(
+        new Set([...(draft.citizenConfirmedFields ?? []), confirmedField]),
+      ),
     });
     setFollowUpOpen(false);
     setFollowUpSaved(true);
@@ -470,7 +733,13 @@ export function PostSubmissionCaseHome({
   function printReport() {
     const previousTitle = document.title;
     document.title = "सचेत — Prepared cybercrime report";
-    window.addEventListener("afterprint", () => { document.title = previousTitle; }, { once: true });
+    window.addEventListener(
+      "afterprint",
+      () => {
+        document.title = previousTitle;
+      },
+      { once: true },
+    );
     window.print();
   }
 
@@ -485,18 +754,34 @@ export function PostSubmissionCaseHome({
         <div className="reading-shell post-submission-content">
           <header className="post-submission-header">
             <div className="post-submission-title-row">
-              <span className="success-mark" aria-hidden="true">✓</span>
+              <span className="success-mark" aria-hidden="true">
+                ✓
+              </span>
               <h1 tabIndex={-1}>
                 {isDemoIncident
-                  ? hi ? "डेमो शिकायत जमा हो गई" : "Demo complaint submitted"
-                  : hi ? "आपकी शिकायत तैयार है" : "Your complaint is ready"}
+                  ? hi
+                    ? "डेमो शिकायत जमा हो गई"
+                    : "Demo complaint submitted"
+                  : hi
+                    ? "आपकी शिकायत तैयार है"
+                    : "Your complaint is ready"}
               </h1>
             </div>
             <div className="prototype-reference-line">
               <span>{hi ? "प्रोटोटाइप संदर्भ:" : "Prototype reference:"}</span>
               <strong>{prototypeReference}</strong>
-              <button className="text-button" type="button" onClick={() => void copyText(prototypeReference, "REFERENCE")}>
-                {copiedValue === "REFERENCE" ? (hi ? "कॉपी हो गया" : "Copied") : (hi ? "कॉपी करें" : "Copy")}
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => void copyText(prototypeReference, "REFERENCE")}
+              >
+                {copiedValue === "REFERENCE"
+                  ? hi
+                    ? "कॉपी हो गया"
+                    : "Copied"
+                  : hi
+                    ? "कॉपी करें"
+                    : "Copy"}
               </button>
             </div>
             <p className="prototype-boundary">
@@ -511,143 +796,317 @@ export function PostSubmissionCaseHome({
           </header>
 
           <div className="post-submission-priority-grid">
-          <section className="companion-section immediate-action-section" aria-labelledby="post-report-actions-heading">
-            <h2 id="post-report-actions-heading">{hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}</h2>
-            {primaryAction ? (
-              <article className="post-report-primary-action">
-                <p className="companion-eyebrow">{hi ? "सबसे पहले" : "First"}</p>
-                <h3>{primaryAction.title}</h3>
-                <p>{primaryAction.description}</p>
-                {primaryAction.href ? (
-                  <a className="primary-button" href={primaryAction.href}>{primaryAction.title}</a>
-                ) : null}
-              </article>
-            ) : null}
-            {secondaryActions.length > 0 ? (
-              <ol className="post-report-action-list post-report-secondary-actions">
-              {secondaryActions.map((action, index) => (
-                <li key={action.id}>
-                  <span aria-hidden="true">{String(index + 2).padStart(2, "0")}</span>
-                  <div>
-                    <h3>
-                      {action.href ? (
-                        <a href={action.href}>{action.title}</a>
-                      ) : (
-                        action.title
-                      )}
-                    </h3>
-                    <p>{action.description}</p>
-                  </div>
-                </li>
-              ))}
-              </ol>
-            ) : null}
-          </section>
-
-          <section className="companion-section complaint-summary-section" aria-labelledby="case-summary-heading">
-            <h2 id="case-summary-heading">{hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}</h2>
-            <ul className="post-submit-keep-list">
-              {evidenceToKeep.map((item) => <li key={item}>{item}</li>)}
-              <li>{hi ? "शिकायत की प्रति" : "Complaint copy"}</li>
-            </ul>
-            <div className="case-copy-actions post-submit-primary-actions">
-              <button className="secondary-button" type="button" onClick={() => void copyText(getSafeCaseSummary(draft, prototypeReference, locale), "SUMMARY")}>
-                {copiedValue === "SUMMARY" ? (hi ? "सार कॉपी हो गया" : "Summary copied") : (hi ? "मामले का सार कॉपी करें" : "Copy case summary")}
-              </button>
-              <button className="secondary-button" type="button" onClick={printReport}>
-                {hi ? "प्रिंट करें या PDF सहेजें" : "Print or save PDF"}
-              </button>
-            </div>
-            <h3 className="post-submit-summary-heading">{hi ? "शिकायत का सार" : "Complaint summary"}</h3>
-            <dl className="companion-summary-list">
-              {compactSummary.map((item) => (
-                <div key={item.id}>
-                  <dt>{item.label}</dt>
-                  <dd>{item.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <details className="submitted-complaint-details">
-              <summary>{hi ? "शिकायत की पूरी जानकारी देखें" : "View complaint details"}</summary>
-              <div className="submitted-complaint-details-content">
-                <dl className="companion-summary-list">
-                  {summary.map((item) => (
-                    <div key={`full-${item.id}`}>
-                      <dt>{item.label}</dt>
-                      <dd>{item.value}</dd>
-                    </div>
+            <section
+              className="companion-section immediate-action-section"
+              aria-labelledby="post-report-actions-heading"
+            >
+              <h2 id="post-report-actions-heading">
+                {hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}
+              </h2>
+              {primaryAction ? (
+                <article className="post-report-primary-action">
+                  <p className="companion-eyebrow">
+                    {hi ? "सबसे पहले" : "First"}
+                  </p>
+                  <h3>{primaryAction.title}</h3>
+                  <p>{primaryAction.description}</p>
+                  {primaryAction.href ? (
+                    <a className="primary-button" href={primaryAction.href}>
+                      {primaryAction.title}
+                    </a>
+                  ) : null}
+                </article>
+              ) : null}
+              {secondaryActions.length > 0 ? (
+                <ol className="post-report-action-list post-report-secondary-actions">
+                  {secondaryActions.map((action, index) => (
+                    <li key={action.id}>
+                      <span aria-hidden="true">
+                        {String(index + 2).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <h3>
+                          {action.href ? (
+                            <a href={action.href}>{action.title}</a>
+                          ) : (
+                            action.title
+                          )}
+                        </h3>
+                        <p>{action.description}</p>
+                      </div>
+                    </li>
                   ))}
-                </dl>
-                {draft.incident.narrative ? (
-                  <div className="submitted-statement">
-                    <h3>{hi ? "बयान" : "Statement"}</h3>
-                    <p>{draft.incident.narrative}</p>
-                  </div>
-                ) : null}
-                {draft.transactions.length > 0 ? (
-                  <div className="submitted-transaction-details">
-                    <h3>{hi ? "लेन-देन" : "Transactions"}</h3>
-                    <div className="submitted-transaction-list">
-                      {draft.transactions.map((transaction, index) => (
-                        <article key={transaction.id}>
-                          <h4>
-                            {transaction.direction === "CREDIT"
-                              ? hi ? `वापस मिला क्रेडिट ${index + 1}` : `Credit received ${index + 1}`
-                              : hi ? `लेन-देन ${index + 1}` : `Transaction ${index + 1}`}
-                          </h4>
-                          <dl>
-                            {transaction.amount ? <div><dt>{hi ? "राशि" : "Amount"}</dt><dd>₹{transaction.amount.toLocaleString("en-IN")}</dd></div> : null}
-                            {citizenVisibleValue(transaction.institution) ? <div><dt>{hi ? "बैंक या भुगतान ऐप" : "Bank or payment app"}</dt><dd>{citizenVisibleValue(transaction.institution)}</dd></div> : null}
-                            {transaction.transactionDate ? <div><dt>{hi ? "तारीख" : "Date"}</dt><dd>{formatIndiaShortDateWithYear(transaction.transactionDate, locale)}</dd></div> : null}
-                            {citizenVisibleValue(transaction.approximateTime) ? <div><dt>{hi ? "समय" : "Time"}</dt><dd>{citizenVisibleValue(transaction.approximateTime)}</dd></div> : null}
-                            {citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber) ? <div><dt>{hi ? "लेन-देन संदर्भ / UTR" : "Transaction reference / UTR"}</dt><dd>{citizenVisibleValue(transaction.transactionIdOrUtr ?? transaction.referenceNumber)}</dd></div> : null}
-                          </dl>
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                {keepReady.length > 0 ? (
-                  <div className="case-keep-ready">
-                    <h3>{hi ? "ये जानकारी तैयार रखें" : "Keep these details ready"}</h3>
-                    <ul>{keepReady.map((item) => <li key={item}>{item}</li>)}</ul>
-                  </div>
-                ) : null}
-                {missingReferenceIndex >= 0 || followUpSaved ? (
-                  <div className="prototype-follow-up" aria-labelledby="follow-up-heading">
-                    <h3 id="follow-up-heading">
-                      {followUpSaved
-                        ? (hi ? "जानकारी अपडेट हो गई" : "Detail updated")
-                        : (hi ? "लेन-देन संदर्भ जोड़ें" : "Add transaction reference")}
-                    </h3>
-                    {followUpSaved ? (
-                      <p>{hi ? "लेन-देन संदर्भ की पुष्टि आपने की है।" : "The transaction reference is now confirmed by you."}</p>
-                    ) : (
-                      <>
-                        <p>{hi ? `लेन-देन ${missingReferenceIndex + 1} का UTR या संदर्भ उपलब्ध हो तो जोड़ें।` : `Add the UTR or reference for transaction ${missingReferenceIndex + 1} if it is available.`}</p>
-                        {followUpOpen ? (
-                          <div className="prototype-follow-up-form">
-                            <label htmlFor="post-report-transaction-reference">{hi ? "लेन-देन संदर्भ / UTR" : "Transaction reference / UTR"}</label>
-                            <input id="post-report-transaction-reference" value={followUpValue} onChange={(event) => setFollowUpValue(event.target.value)} autoFocus />
-                            <div className="entry-actions">
-                              <button className="primary-button" type="button" disabled={!followUpValue.trim()} onClick={() => saveTransactionReference(followUpValue.trim())}>{hi ? "जानकारी जोड़ें" : "Add detail"}</button>
-                              <button className="secondary-button" type="button" onClick={() => saveTransactionReference(CITIZEN_DOES_NOT_HAVE)}>{hi ? "यह मेरे पास नहीं है" : "I don’t have this"}</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button className="secondary-button" type="button" onClick={() => setFollowUpOpen(true)}>{hi ? "जानकारी जोड़ें" : "Add detail"}</button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ) : null}
+                </ol>
+              ) : null}
+            </section>
+
+            <section
+              className="companion-section complaint-summary-section"
+              aria-labelledby="case-summary-heading"
+            >
+              <h2 id="case-summary-heading">
+                {hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}
+              </h2>
+              <ul className="post-submit-keep-list">
+                {evidenceToKeep.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+                <li>{hi ? "शिकायत की प्रति" : "Complaint copy"}</li>
+              </ul>
+              <div className="case-copy-actions post-submit-primary-actions">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() =>
+                    void copyText(
+                      getSafeCaseSummary(draft, prototypeReference, locale),
+                      "SUMMARY",
+                    )
+                  }
+                >
+                  {copiedValue === "SUMMARY"
+                    ? hi
+                      ? "सार कॉपी हो गया"
+                      : "Summary copied"
+                    : hi
+                      ? "मामले का सार कॉपी करें"
+                      : "Copy case summary"}
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={printReport}
+                >
+                  {hi ? "प्रिंट करें या PDF सहेजें" : "Print or save PDF"}
+                </button>
               </div>
-            </details>
-          </section>
+              <h3 className="post-submit-summary-heading">
+                {hi ? "शिकायत का सार" : "Complaint summary"}
+              </h3>
+              <dl className="companion-summary-list">
+                {compactSummary.map((item) => (
+                  <div key={item.id}>
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <details className="submitted-complaint-details">
+                <summary>
+                  {hi
+                    ? "शिकायत की पूरी जानकारी देखें"
+                    : "View complaint details"}
+                </summary>
+                <div className="submitted-complaint-details-content">
+                  <dl className="companion-summary-list">
+                    {summary.map((item) => (
+                      <div key={`full-${item.id}`}>
+                        <dt>{item.label}</dt>
+                        <dd>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {draft.incident.narrative ? (
+                    <div className="submitted-statement">
+                      <h3>{hi ? "बयान" : "Statement"}</h3>
+                      <p>{draft.incident.narrative}</p>
+                    </div>
+                  ) : null}
+                  {draft.transactions.length > 0 ? (
+                    <div className="submitted-transaction-details">
+                      <h3>{hi ? "लेन-देन" : "Transactions"}</h3>
+                      <div className="submitted-transaction-list">
+                        {draft.transactions.map((transaction, index) => (
+                          <article key={transaction.id}>
+                            <h4>
+                              {transaction.direction === "CREDIT"
+                                ? hi
+                                  ? `वापस मिला क्रेडिट ${index + 1}`
+                                  : `Credit received ${index + 1}`
+                                : hi
+                                  ? `लेन-देन ${index + 1}`
+                                  : `Transaction ${index + 1}`}
+                            </h4>
+                            <dl>
+                              {transaction.amount ? (
+                                <div>
+                                  <dt>{hi ? "राशि" : "Amount"}</dt>
+                                  <dd>
+                                    ₹
+                                    {transaction.amount.toLocaleString("en-IN")}
+                                  </dd>
+                                </div>
+                              ) : null}
+                              {citizenVisibleValue(transaction.institution) ? (
+                                <div>
+                                  <dt>
+                                    {hi
+                                      ? "बैंक या भुगतान ऐप"
+                                      : "Bank or payment app"}
+                                  </dt>
+                                  <dd>
+                                    {citizenVisibleValue(
+                                      transaction.institution,
+                                    )}
+                                  </dd>
+                                </div>
+                              ) : null}
+                              {transaction.transactionDate ? (
+                                <div>
+                                  <dt>{hi ? "तारीख" : "Date"}</dt>
+                                  <dd>
+                                    {formatIndiaShortDateWithYear(
+                                      transaction.transactionDate,
+                                      locale,
+                                    )}
+                                  </dd>
+                                </div>
+                              ) : null}
+                              {citizenVisibleValue(
+                                transaction.approximateTime,
+                              ) ? (
+                                <div>
+                                  <dt>{hi ? "समय" : "Time"}</dt>
+                                  <dd>
+                                    {citizenVisibleValue(
+                                      transaction.approximateTime,
+                                    )}
+                                  </dd>
+                                </div>
+                              ) : null}
+                              {citizenVisibleValue(
+                                transaction.transactionIdOrUtr ??
+                                  transaction.referenceNumber,
+                              ) ? (
+                                <div>
+                                  <dt>
+                                    {hi
+                                      ? "लेन-देन संदर्भ / UTR"
+                                      : "Transaction reference / UTR"}
+                                  </dt>
+                                  <dd>
+                                    {citizenVisibleValue(
+                                      transaction.transactionIdOrUtr ??
+                                        transaction.referenceNumber,
+                                    )}
+                                  </dd>
+                                </div>
+                              ) : null}
+                            </dl>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {keepReady.length > 0 ? (
+                    <div className="case-keep-ready">
+                      <h3>
+                        {hi
+                          ? "ये जानकारी तैयार रखें"
+                          : "Keep these details ready"}
+                      </h3>
+                      <ul>
+                        {keepReady.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {missingReferenceIndex >= 0 || followUpSaved ? (
+                    <div
+                      className="prototype-follow-up"
+                      aria-labelledby="follow-up-heading"
+                    >
+                      <h3 id="follow-up-heading">
+                        {followUpSaved
+                          ? hi
+                            ? "जानकारी अपडेट हो गई"
+                            : "Detail updated"
+                          : hi
+                            ? "लेन-देन संदर्भ जोड़ें"
+                            : "Add transaction reference"}
+                      </h3>
+                      {followUpSaved ? (
+                        <p>
+                          {hi
+                            ? "लेन-देन संदर्भ की पुष्टि आपने की है।"
+                            : "The transaction reference is now confirmed by you."}
+                        </p>
+                      ) : (
+                        <>
+                          <p>
+                            {hi
+                              ? `लेन-देन ${missingReferenceIndex + 1} का UTR या संदर्भ उपलब्ध हो तो जोड़ें।`
+                              : `Add the UTR or reference for transaction ${missingReferenceIndex + 1} if it is available.`}
+                          </p>
+                          {followUpOpen ? (
+                            <div className="prototype-follow-up-form">
+                              <label htmlFor="post-report-transaction-reference">
+                                {hi
+                                  ? "लेन-देन संदर्भ / UTR"
+                                  : "Transaction reference / UTR"}
+                              </label>
+                              <input
+                                id="post-report-transaction-reference"
+                                value={followUpValue}
+                                onChange={(event) =>
+                                  setFollowUpValue(event.target.value)
+                                }
+                                autoFocus
+                              />
+                              <div className="entry-actions">
+                                <button
+                                  className="primary-button"
+                                  type="button"
+                                  disabled={!followUpValue.trim()}
+                                  onClick={() =>
+                                    saveTransactionReference(
+                                      followUpValue.trim(),
+                                    )
+                                  }
+                                >
+                                  {hi ? "जानकारी जोड़ें" : "Add detail"}
+                                </button>
+                                <button
+                                  className="secondary-button"
+                                  type="button"
+                                  onClick={() =>
+                                    saveTransactionReference(
+                                      CITIZEN_DOES_NOT_HAVE,
+                                    )
+                                  }
+                                >
+                                  {hi
+                                    ? "यह मेरे पास नहीं है"
+                                    : "I don’t have this"}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => setFollowUpOpen(true)}
+                            >
+                              {hi ? "जानकारी जोड़ें" : "Add detail"}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </details>
+            </section>
           </div>
 
-          <section className="companion-section" aria-labelledby="post-report-process-heading">
-            <h2 id="post-report-process-heading">{hi ? "आगे क्या हो सकता है" : "What may happen next"}</h2>
+          <section
+            className="companion-section"
+            aria-labelledby="post-report-process-heading"
+          >
+            <h2 id="post-report-process-heading">
+              {hi ? "आगे क्या हो सकता है" : "What may happen next"}
+            </h2>
             <ol className="post-report-stage-list compact-process-list">
               {process.possibleNextStages.map((stage, index) => (
                 <li key={stage.id}>
@@ -660,7 +1119,9 @@ export function PostSubmissionCaseHome({
               ))}
             </ol>
             <details className="process-boundaries-disclosure">
-              <summary>{hi ? "इसका क्या अर्थ नहीं है" : "What this does not mean"}</summary>
+              <summary>
+                {hi ? "इसका क्या अर्थ नहीं है" : "What this does not mean"}
+              </summary>
               <ul className="post-report-boundary-list">
                 {processBoundaries.map((boundary) => (
                   <li key={boundary}>{boundary}</li>
@@ -669,93 +1130,271 @@ export function PostSubmissionCaseHome({
             </details>
           </section>
 
-          <section className="companion-section stay-informed" aria-labelledby="stay-informed-heading">
+          <section
+            className="companion-section stay-informed"
+            aria-labelledby="stay-informed-heading"
+          >
             <div>
-              <h2 id="stay-informed-heading">{hi ? "अपनी शिकायत पर नज़र रखें" : "Stay on top of your complaint"}</h2>
-              <p>{hi ? "जरूरी कार्रवाई, छूटी हुई जानकारी, सबूत और सुरक्षा के बारे में रिमाइंडर पाएँ।" : "Get reminders about actions you may need to take, missing complaint details, evidence and safety."}</p>
+              <h2 id="stay-informed-heading">
+                {hi
+                  ? "अपनी शिकायत पर नज़र रखें"
+                  : "Stay on top of your complaint"}
+              </h2>
+              <p>
+                {hi
+                  ? "जरूरी कार्रवाई, छूटी हुई जानकारी, सबूत और सुरक्षा के बारे में रिमाइंडर पाएँ।"
+                  : "Get reminders about actions you may need to take, missing complaint details, evidence and safety."}
+              </p>
             </div>
             {reminderPreferences.enabled && !managingReminders ? (
               <div className="reminders-confirmed" role="status">
-                <span className="success-mark" aria-hidden="true">✓</span>
+                <span className="success-mark" aria-hidden="true">
+                  ✓
+                </span>
                 <div>
                   <h3>{hi ? "रिमाइंडर चालू हैं" : "Reminders on"}</h3>
-                  <strong>{reminderPreferences.channel === "EMAIL" ? (hi ? "ईमेल" : "Email") : "WhatsApp"} · {maskedRecipient}</strong>
+                  <strong>
+                    {reminderPreferences.channel === "EMAIL"
+                      ? hi
+                        ? "ईमेल"
+                        : "Email"
+                      : "WhatsApp"}{" "}
+                    · {maskedRecipient}
+                  </strong>
                   <p>
                     {reminderPreferences.sentAt
                       ? hi
                         ? `सिंथेटिक रिमाइंडर भेजा गया · ${new Intl.DateTimeFormat("hi-IN", { timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(reminderPreferences.sentAt))}`
                         : `Synthetic reminder sent · ${new Intl.DateTimeFormat("en-IN", { timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(reminderPreferences.sentAt))}`
                       : isDemoIncident
-                        ? hi ? "अगला सिंथेटिक रिमाइंडर · 2 मिनट में" : "Next synthetic reminder · in 2 minutes"
-                        : hi ? "सचेत रिमाइंडर इस प्रोटोटाइप सत्र में सहेजा गया" : "Sachet reminder saved in this prototype session"}
+                        ? hi
+                          ? "अगला सिंथेटिक रिमाइंडर · 2 मिनट में"
+                          : "Next synthetic reminder · in 2 minutes"
+                        : hi
+                          ? "सचेत रिमाइंडर इस प्रोटोटाइप सत्र में सहेजा गया"
+                          : "Sachet reminder saved in this prototype session"}
                   </p>
                   <ul className="reminder-enabled-categories">
-                    {Object.entries(reminderPreferences.categories).filter(([, enabled]) => enabled).map(([category]) => <li key={category}>{reminderCategoryLabels[category as ReminderCategory]}</li>)}
+                    {Object.entries(reminderPreferences.categories)
+                      .filter(([, enabled]) => enabled)
+                      .map(([category]) => (
+                        <li key={category}>
+                          {reminderCategoryLabels[category as ReminderCategory]}
+                        </li>
+                      ))}
                   </ul>
                   <div className="entry-actions">
-                    <button className="text-button" type="button" onClick={() => setManagingReminders(true)}>{hi ? "रिमाइंडर प्रबंधित करें" : "Manage reminders"}</button>
-                    <button className="text-button" type="button" onClick={() => updateReminderPreferences({ enabled: false, scheduledAt: null, sentAt: null })}>{hi ? "रिमाइंडर बंद करें" : "Turn off reminders"}</button>
+                    <button
+                      className="text-button"
+                      type="button"
+                      onClick={() => setManagingReminders(true)}
+                    >
+                      {hi ? "रिमाइंडर प्रबंधित करें" : "Manage reminders"}
+                    </button>
+                    <button
+                      className="text-button"
+                      type="button"
+                      onClick={() =>
+                        updateReminderPreferences({
+                          enabled: false,
+                          scheduledAt: null,
+                          sentAt: null,
+                        })
+                      }
+                    >
+                      {hi ? "रिमाइंडर बंद करें" : "Turn off reminders"}
+                    </button>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="reminder-setup">
                 <fieldset className="reminder-channel-options">
-                  <legend>{hi ? "रिमाइंडर का माध्यम" : "Reminder channel"}</legend>
+                  <legend>
+                    {hi ? "रिमाइंडर का माध्यम" : "Reminder channel"}
+                  </legend>
                   <label>
-                    <input type="radio" name="notification-channel" value="EMAIL" checked={reminderPreferences.channel === "EMAIL"} onChange={() => updateReminderPreferences({ channel: "EMAIL" })} />
+                    <input
+                      type="radio"
+                      name="notification-channel"
+                      value="EMAIL"
+                      checked={reminderPreferences.channel === "EMAIL"}
+                      onChange={() =>
+                        updateReminderPreferences({ channel: "EMAIL" })
+                      }
+                    />
                     <span>{hi ? "ईमेल" : "Email"}</span>
                   </label>
                   <label>
-                    <input type="radio" name="notification-channel" value="WHATSAPP" checked={reminderPreferences.channel === "WHATSAPP"} onChange={() => updateReminderPreferences({ channel: "WHATSAPP" })} />
+                    <input
+                      type="radio"
+                      name="notification-channel"
+                      value="WHATSAPP"
+                      checked={reminderPreferences.channel === "WHATSAPP"}
+                      onChange={() =>
+                        updateReminderPreferences({ channel: "WHATSAPP" })
+                      }
+                    />
                     <span>WhatsApp</span>
                   </label>
                 </fieldset>
                 <label className="reminder-contact-field">
-                  <span>{reminderPreferences.channel === "EMAIL" ? (hi ? "ईमेल पता" : "Email address") : (hi ? "WhatsApp नंबर" : "WhatsApp number")}</span>
+                  <span>
+                    {reminderPreferences.channel === "EMAIL"
+                      ? hi
+                        ? "ईमेल पता"
+                        : "Email address"
+                      : hi
+                        ? "WhatsApp नंबर"
+                        : "WhatsApp number"}
+                  </span>
                   <input
-                    type={reminderPreferences.channel === "EMAIL" ? "email" : "tel"}
-                    inputMode={reminderPreferences.channel === "EMAIL" ? "email" : "tel"}
-                    autoComplete={reminderPreferences.channel === "EMAIL" ? "email" : "tel"}
-                    value={reminderPreferences.channel === "EMAIL" ? reminderPreferences.email : reminderPreferences.whatsapp}
-                    onChange={(event) => updateReminderPreferences(reminderPreferences.channel === "EMAIL" ? { email: event.target.value } : { whatsapp: event.target.value })}
-                    placeholder={reminderPreferences.channel === "EMAIL" ? "name@example.com" : "+91 98765 43210"}
+                    type={
+                      reminderPreferences.channel === "EMAIL" ? "email" : "tel"
+                    }
+                    inputMode={
+                      reminderPreferences.channel === "EMAIL" ? "email" : "tel"
+                    }
+                    autoComplete={
+                      reminderPreferences.channel === "EMAIL" ? "email" : "tel"
+                    }
+                    value={
+                      reminderPreferences.channel === "EMAIL"
+                        ? reminderPreferences.email
+                        : reminderPreferences.whatsapp
+                    }
+                    onChange={(event) =>
+                      updateReminderPreferences(
+                        reminderPreferences.channel === "EMAIL"
+                          ? { email: event.target.value }
+                          : { whatsapp: event.target.value },
+                      )
+                    }
+                    placeholder={
+                      reminderPreferences.channel === "EMAIL"
+                        ? "name@example.com"
+                        : "+91 98765 43210"
+                    }
                   />
                 </label>
                 <fieldset className="reminder-category-options">
-                  <legend>{hi ? "इनके बारे में याद दिलाएँ" : "Remind me about"}</legend>
-                  {(Object.keys(reminderPreferences.categories) as ReminderCategory[]).map((category) => (
+                  <legend>
+                    {hi ? "इनके बारे में याद दिलाएँ" : "Remind me about"}
+                  </legend>
+                  {(
+                    Object.keys(
+                      reminderPreferences.categories,
+                    ) as ReminderCategory[]
+                  ).map((category) => (
                     <label key={category}>
-                      <input type="checkbox" checked={reminderPreferences.categories[category]} onChange={(event) => updateReminderPreferences({ categories: { ...reminderPreferences.categories, [category]: event.target.checked } })} />
+                      <input
+                        type="checkbox"
+                        checked={reminderPreferences.categories[category]}
+                        onChange={(event) =>
+                          updateReminderPreferences({
+                            categories: {
+                              ...reminderPreferences.categories,
+                              [category]: event.target.checked,
+                            },
+                          })
+                        }
+                      />
                       <span>{reminderCategoryLabels[category]}</span>
                     </label>
                   ))}
                 </fieldset>
-                <p className="source-note">{hi ? "आधिकारिक स्थिति अपडेट के लिए NCRP या एजेंसी का इंटीग्रेशन जरूरी है।" : "Official case-status updates require an NCRP or agency integration."}</p>
-                {reminderError ? <p className="form-error" role="alert">{reminderError}</p> : null}
-                <button className="secondary-button" type="button" onClick={enableReminders}>
+                <p className="source-note">
+                  {hi
+                    ? "आधिकारिक स्थिति अपडेट के लिए NCRP या एजेंसी का इंटीग्रेशन जरूरी है।"
+                    : "Official case-status updates require an NCRP or agency integration."}
+                </p>
+                {reminderError ? (
+                  <p className="form-error" role="alert">
+                    {reminderError}
+                  </p>
+                ) : null}
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={enableReminders}
+                >
                   {hi ? "रिमाइंडर चालू करें" : "Turn on reminders"}
                 </button>
-                {managingReminders ? <button className="text-button" type="button" onClick={() => setManagingReminders(false)}>{hi ? "रद्द करें" : "Cancel"}</button> : null}
+                {managingReminders ? (
+                  <button
+                    className="text-button"
+                    type="button"
+                    onClick={() => setManagingReminders(false)}
+                  >
+                    {hi ? "रद्द करें" : "Cancel"}
+                  </button>
+                ) : null}
                 <p className="source-note">
                   {isDemoIncident
-                    ? hi ? "सिंथेटिक संपर्क · केवल डेमो पूर्वावलोकन" : "Synthetic contact · Demo preview only"
-                    : hi ? "यह संपर्क केवल आपके द्वारा चालू किए गए प्रोटोटाइप रिमाइंडर के लिए इस सत्र में उपयोग होता है। कोई असली संदेश नहीं भेजा जाएगा।" : "This contact is used only in this session for the prototype reminders you enable. No real message will be sent."}
+                    ? hi
+                      ? "सिंथेटिक संपर्क · केवल डेमो पूर्वावलोकन"
+                      : "Synthetic contact · Demo preview only"
+                    : hi
+                      ? "यह संपर्क केवल आपके द्वारा चालू किए गए प्रोटोटाइप रिमाइंडर के लिए इस सत्र में उपयोग होता है। कोई असली संदेश नहीं भेजा जाएगा।"
+                      : "This contact is used only in this session for the prototype reminders you enable. No real message will be sent."}
                 </p>
               </div>
             )}
             {reminderPreferences.enabled ? (
-              <div className="reminder-preview" aria-label={hi ? "आने वाले रिमाइंडर" : "Upcoming reminders"}>
-                <h3>{reminderPreferences.sentAt ? (hi ? "रिमाइंडर भेजा गया" : "Reminder sent") : (hi ? "आने वाले रिमाइंडर" : "Upcoming reminders")}</h3>
+              <div
+                className="reminder-preview"
+                aria-label={hi ? "आने वाले रिमाइंडर" : "Upcoming reminders"}
+              >
+                <h3>
+                  {reminderPreferences.sentAt
+                    ? hi
+                      ? "रिमाइंडर भेजा गया"
+                      : "Reminder sent"
+                    : hi
+                      ? "आने वाले रिमाइंडर"
+                      : "Upcoming reminders"}
+                </h3>
                 {nudges.slice(0, 2).map((nudge) => (
                   <article key={nudge.id}>
-                    <span>{nudge.deliveryState === "SENT" ? (hi ? "भेजा गया" : "Sent") : nudge.schedule === "TODAY" ? (hi ? "आज" : "Today") : (hi ? "कल" : "Tomorrow")}</span>
+                    <span>
+                      {nudge.deliveryState === "SENT"
+                        ? hi
+                          ? "भेजा गया"
+                          : "Sent"
+                        : nudge.schedule === "TODAY"
+                          ? hi
+                            ? "आज"
+                            : "Today"
+                          : hi
+                            ? "कल"
+                            : "Tomorrow"}
+                    </span>
                     <strong>{nudge.title}</strong>
                     <p>{nudge.body}</p>
                   </article>
                 ))}
-                {isDemoIncident && !reminderPreferences.sentAt ? <button className="secondary-button" type="button" onClick={() => updateReminderPreferences({ sentAt: new Date().toISOString() })}>{hi ? "डेमो समय आगे बढ़ाएँ" : "Advance demo reminder"}</button> : null}
-                <p className="source-note">{isDemoIncident ? (hi ? "सिंथेटिक डेमो · NCRP से जुड़ा नहीं · कोई असली संदेश नहीं भेजा गया" : "Synthetic demo · Not connected to NCRP · No real message was sent") : (hi ? "इस प्रोटोटाइप सत्र में रिमाइंडर सहेजा गया · कोई बाहरी संदेश नहीं भेजा गया" : "Reminder saved in this prototype session · No external message was sent")}</p>
+                {isDemoIncident && !reminderPreferences.sentAt ? (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() =>
+                      updateReminderPreferences({
+                        sentAt: new Date().toISOString(),
+                      })
+                    }
+                  >
+                    {hi ? "डेमो समय आगे बढ़ाएँ" : "Advance demo reminder"}
+                  </button>
+                ) : null}
+                <p className="source-note">
+                  {isDemoIncident
+                    ? hi
+                      ? "सिंथेटिक डेमो · NCRP से जुड़ा नहीं · कोई असली संदेश नहीं भेजा गया"
+                      : "Synthetic demo · Not connected to NCRP · No real message was sent"
+                    : hi
+                      ? "इस प्रोटोटाइप सत्र में रिमाइंडर सहेजा गया · कोई बाहरी संदेश नहीं भेजा गया"
+                      : "Reminder saved in this prototype session · No external message was sent"}
+                </p>
               </div>
             ) : null}
           </section>
@@ -768,22 +1407,36 @@ export function PostSubmissionCaseHome({
             />
           </section>
 
-        <EvidenceIncluded
-          draft={draft}
-          screenshots={screenshots}
-          isDemoIncident={isDemoIncident}
-          demoCase={demoCase}
-        />
+          <EvidenceIncluded
+            draft={draft}
+            screenshots={screenshots}
+            isDemoIncident={isDemoIncident}
+            demoCase={demoCase}
+          />
 
-          <section className="companion-section case-copy-section" aria-labelledby="complaint-actions-heading">
-            <h2 id="complaint-actions-heading">{hi ? "शिकायत के विकल्प" : "Complaint actions"}</h2>
+          <section
+            className="companion-section case-copy-section"
+            aria-labelledby="complaint-actions-heading"
+          >
+            <h2 id="complaint-actions-heading">
+              {hi ? "शिकायत के विकल्प" : "Complaint actions"}
+            </h2>
             <div className="case-copy-actions">
-              <button className="text-button" type="button" onClick={onStartNewReport}>
+              <button
+                className="text-button"
+                type="button"
+                onClick={onStartNewReport}
+              >
                 {hi ? "नई शिकायत शुरू करें" : "Start new complaint"}
               </button>
             </div>
           </section>
-          <PrintableCaseReport draft={draft} prototypeReference={prototypeReference} milestones={milestones} transcription={transcription} />
+          <PrintableCaseReport
+            draft={draft}
+            prototypeReference={prototypeReference}
+            milestones={milestones}
+            transcription={transcription}
+          />
         </div>
       </div>
     </section>

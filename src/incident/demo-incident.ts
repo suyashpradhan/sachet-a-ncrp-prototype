@@ -425,6 +425,7 @@ const jobOfferDraft: IncidentDraft = {
   transactions: [
     {
       id: "meera-registration-payment",
+      evidenceId: "demo-evidence-2",
       institution: "UPI",
       currency: "INR",
       paymentMethod: "Registration fee",
@@ -438,6 +439,7 @@ const jobOfferDraft: IncidentDraft = {
     },
     {
       id: "meera-verification-payment",
+      evidenceId: "demo-evidence-3",
       institution: "UPI",
       currency: "INR",
       paymentMethod: "Verification fee",
@@ -553,6 +555,7 @@ const amountMismatchDraft: IncidentDraft = {
   transactions: [
     {
       id: "asha-transaction-1",
+      evidenceId: "demo-evidence-1",
       institution: "SBI",
       currency: "INR",
       paymentMethod: "Bank debit",
@@ -566,6 +569,7 @@ const amountMismatchDraft: IncidentDraft = {
     },
     {
       id: "asha-transaction-2",
+      evidenceId: "demo-evidence-2",
       institution: "SBI",
       currency: "INR",
       paymentMethod: "Bank debit",
@@ -983,6 +987,38 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     reference: "सचेत-DEMO-EXTORTION-004",
   },
 ];
+
+function assertDemoCaseIntegrity(demoCase: DemoCaseDefinition) {
+  if (demoCase.evidence.length !== demoCase.draft.evidence.length) {
+    throw new Error(
+      `${demoCase.id}: visible and structured evidence counts must match.`,
+    );
+  }
+
+  const evidenceIds = new Set(demoCase.evidence.map((item) => item.id));
+  if (evidenceIds.size !== demoCase.evidence.length) {
+    throw new Error(`${demoCase.id}: evidence IDs must be unique.`);
+  }
+
+  for (const transaction of demoCase.draft.transactions) {
+    if (!transaction.evidenceId || !evidenceIds.has(transaction.evidenceId)) {
+      throw new Error(
+        `${demoCase.id}: transaction ${transaction.id} must link to visible evidence.`,
+      );
+    }
+  }
+
+  if (
+    demoCase.draft.incident.financialLossState !== "YES" &&
+    demoCase.draft.transactions.length > 0
+  ) {
+    throw new Error(
+      `${demoCase.id}: a no-loss or unknown-loss demo cannot contain transactions.`,
+    );
+  }
+}
+
+for (const demoCase of DEMO_CASES) assertDemoCaseIntegrity(demoCase);
 
 export const DEFAULT_DEMO_CASE_ID: DemoCaseId = "BANK_OTP";
 

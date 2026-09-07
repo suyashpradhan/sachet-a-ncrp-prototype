@@ -1,7 +1,10 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { IncidentExtractionSchema } from "../../../incident/schema";
-import { normalizeIncidentDraft } from "../../../incident/normalization";
+import {
+  alignEvidenceToUploadedFiles,
+  normalizeIncidentDraft,
+} from "../../../incident/normalization";
 
 export const runtime = "nodejs";
 
@@ -80,7 +83,8 @@ Rules:
 66. Leave entityRelationship null when different source and affected platforms are mentioned without a clear causal relationship. Set RELATED_BOTH_AFFECTED only when the narrative clearly establishes a linked multi-account chain.
 67. Propagate an event's supported date, approximate time and payment service into the matching transaction. Do not leave a transaction field empty when the same payment event states it.
 68. A bank or organisation being impersonated is not the transaction institution. Populate transactions[].institution only when the source supports the bank or payment service actually used for that payment.
-69. incident.citizenConfirmedLoss is application-owned correction metadata. Always return null during initial extraction.`;
+69. incident.citizenConfirmedLoss is application-owned correction metadata. Always return null during initial extraction.
+70. Return exactly one non-voice evidence entry for each supplied screenshot, in the same order. Do not turn multiple facts from one screenshot into multiple evidence entries. When no screenshots are supplied, evidence must be empty; the transcript and typed account are not attachments.`;
 
 type InputContent =
   | { type: "input_text"; text: string }
@@ -153,9 +157,10 @@ export async function POST(request: Request) {
     });
 
     if (!response.output_parsed) throw new Error("No structured incident draft returned.");
-    const normalizedDraft = normalizeIncidentDraft(response.output_parsed, {
-      reportingDate,
-    });
+    const normalizedDraft = alignEvidenceToUploadedFiles(
+      normalizeIncidentDraft(response.output_parsed, { reportingDate }),
+      screenshots.length,
+    );
     return Response.json(normalizedDraft, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json(

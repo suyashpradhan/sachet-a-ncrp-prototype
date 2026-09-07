@@ -26,7 +26,7 @@ export function LandingPage({
       >
         <div className="shell landing-public-hero-simple">
           <p className="eyebrow landing-welcome">
-            {hi ? "सचेत में आपका स्वागत है" : "Welcome to Sachet"}
+            {hi ? "सचेत में आपका स्वागत है" : "Welcome to सचेत"}
           </p>
           <h1 id="landing-heading">
             {hi
@@ -36,13 +36,9 @@ export function LandingPage({
           <p className="landing-public-lede">
             {hi
               ? "बताएं कि क्या हुआ। सचेत शिकायत तैयार करने, सही जानकारी सुरक्षित रखने और अगले कदम समझने में मदद करता है।"
-              : "Tell us what happened. Sachet helps you prepare the complaint, keep the right information safe, and understand the next steps."}
+              : "Tell us what happened. सचेत helps you prepare the complaint, keep the right information safe, and understand the next steps."}
           </p>
-          <p className="landing-reassurance-copy">
-            {hi
-              ? "शुरू करने से पहले आपको साइबर अपराध की श्रेणी जानने की जरूरत नहीं है।"
-              : "You do not need to know the cybercrime category before you start."}
-          </p>
+
           <div className="landing-primary-actions">
             <button
               className="primary-button"
@@ -66,15 +62,7 @@ export function LandingPage({
             >
               {hi ? "डेमो मामला इस्तेमाल करें" : "Use demo case"}
             </button>
-            <a className="landing-text-action" href="#how-sachet-works">
-              {hi ? "यह कैसे काम करता है" : "How it works"}
-            </a>
           </div>
-          <p className="landing-prototype-boundary">
-            {hi
-              ? "स्वतंत्र हैकाथॉन प्रोटोटाइप · NCRP से जुड़ा नहीं"
-              : "Independent hackathon prototype · Not connected to NCRP"}
-          </p>
         </div>
       </section>
 
@@ -188,7 +176,7 @@ function HowSachetWorks({ hi }: { hi: boolean }) {
           "Speak, type, or add the information you already have.",
         ],
         [
-          "Review what Sachet understood",
+          "Review what सचेत understood",
           "Check the incident, transactions, evidence, and important details.",
         ],
         [
@@ -206,7 +194,7 @@ function HowSachetWorks({ hi }: { hi: boolean }) {
       <div className="shell">
         <div className="landing-section-intro">
           <h2 id="landing-how-heading">
-            {hi ? "सचेत कैसे काम करता है" : "How Sachet works"}
+            {hi ? "सचेत कैसे काम करता है" : "How सचेत works"}
           </h2>
         </div>
         <ol>
@@ -334,7 +322,7 @@ function AfterReporting({ hi }: { hi: boolean }) {
           <p>
             {hi
               ? "सचेत आपको समझने में मदद करता है कि आगे क्या हो सकता है और किन बातों पर अभी ध्यान देना है।"
-              : "Sachet helps you understand what may happen next and what still needs your attention."}
+              : "सचेत helps you understand what may happen next and what still needs your attention."}
           </p>
         </div>
         <div className="landing-after-grid">
@@ -359,12 +347,12 @@ function WhySachetExists({ hi }: { hi: boolean }) {
       <div className="shell landing-trust-grid">
         <div>
           <h2 id="why-sachet-heading">
-            {hi ? "सचेत क्यों बनाया गया" : "Why Sachet exists"}
+            {hi ? "सचेत क्यों बनाया गया" : "Why सचेत exists"}
           </h2>
           <p>
             {hi
               ? "जब आप पहले से ही हुई घटना के तनाव से जूझ रहे हों, तब साइबर अपराध की रिपोर्ट करना मुश्किल हो सकता है। सचेत रिपोर्टिंग प्रणाली को पहले समझे बिना शिकायत तैयार करने और अगले कदम समझने में मदद करता है।"
-              : "Reporting cybercrime can be difficult when you are already dealing with the stress of what happened. Sachet helps you prepare the complaint and understand the next steps without first learning the reporting system."}
+              : "Reporting cybercrime can be difficult when you are already dealing with the stress of what happened. सचेत helps you prepare the complaint and understand the next steps without first learning the reporting system."}
           </p>
         </div>
         <div className="landing-boundary-note">
@@ -374,7 +362,7 @@ function WhySachetExists({ hi }: { hi: boolean }) {
           <p>
             {hi
               ? "सचेत एक स्वतंत्र हैकाथॉन प्रोटोटाइप है। यह NCRP, गृह मंत्रालय, पुलिस, बैंकों या किसी सरकारी एजेंसी से जुड़ा नहीं है।"
-              : "Sachet is an independent hackathon prototype. It is not connected to NCRP, the Ministry of Home Affairs, police, banks, or any government agency."}
+              : "सचेत is an independent hackathon prototype. It is not connected to NCRP, the Ministry of Home Affairs, police, banks, or any government agency."}
           </p>
           <p>
             {hi

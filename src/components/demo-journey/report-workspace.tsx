@@ -2619,7 +2619,11 @@ function ReportGroup({
         <section className="evidence-prepared-summary">
           <p className="report-field-label">{t("field.evidenceSupplied")}</p>
           <strong>
-            {t("workspace.evidenceItems", { count: evidenceFields.length })}
+            {isDemoIncident
+              ? t("workspace.evidenceItems", { count: evidenceFields.length })
+              : locale === "hi"
+                ? `${evidenceFields.length} अपलोड किए गए सबूत`
+                : `${evidenceFields.length} uploaded evidence ${evidenceFields.length === 1 ? "item" : "items"}`}
           </strong>
         </section>
         <EvidenceContributions

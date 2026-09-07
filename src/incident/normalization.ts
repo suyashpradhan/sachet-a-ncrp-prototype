@@ -47,6 +47,24 @@ export type MonetaryMention = {
   role: MonetaryRole;
 };
 
+/** Keep structured evidence aligned one-to-one with files actually supplied. */
+export function alignEvidenceToUploadedFiles(
+  draft: IncidentDraft,
+  uploadedFileCount: number,
+): IncidentDraft {
+  const count = Math.max(0, Math.floor(uploadedFileCount));
+  if (count === 0) return { ...draft, evidence: [] };
+
+  const extractedEvidence = draft.evidence.filter(
+    (item) => item.type !== "VOICE_STATEMENT",
+  );
+  const alignedEvidence = Array.from({ length: count }, (_, index) =>
+    extractedEvidence[index] ?? { type: "OTHER" as const, extractedFacts: [] },
+  );
+
+  return { ...draft, evidence: alignedEvidence };
+}
+
 export type DeterministicFinancialFacts = {
   financialLossState: FinancialLossState;
   financialExposure: FinancialExposure;
