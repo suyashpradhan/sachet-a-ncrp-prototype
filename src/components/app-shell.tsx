@@ -41,13 +41,18 @@ export function AppShell({ children }: AppShellProps) {
             <SachetLogo />
           </Link>
           <div className="header-actions">
-            <Link className="header-view-case" href="/view-case">
-              {t("case.view")}
-            </Link>
             {!controls ? (
-              <nav className="landing-header-nav" aria-label={locale === "hi" ? "मुख्य पेज" : "Landing page"}>
-                <a href="/#how-sachet-works">{locale === "hi" ? "यह कैसे काम करता है" : "How it works"}</a>
-                <a href="/#after-you-report">{locale === "hi" ? "रिपोर्ट के बाद" : "After you report"}</a>
+              <nav
+                className="landing-header-nav"
+                aria-label={locale === "hi" ? "मुख्य पेज" : "Landing page"}
+              >
+                <a href="/view-case">{t("case.view")}</a>
+                <a href="/#how-sachet-works">
+                  {locale === "hi" ? "यह कैसे काम करता है" : "How it works"}
+                </a>
+                <a href="/#after-you-report">
+                  {locale === "hi" ? "रिपोर्ट के बाद" : "After you report"}
+                </a>
                 <Link href="/about">{locale === "hi" ? "परिचय" : "About"}</Link>
               </nav>
             ) : null}
