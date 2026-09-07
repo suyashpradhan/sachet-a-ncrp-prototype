@@ -6264,11 +6264,9 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 }
 
 .case-home-anchor-nav {
-  position: sticky;
-  z-index: 4;
-  top: 64px;
+  position: static;
   margin-inline: -1px;
-  padding: 9px 0;
+  padding: 8px 0 10px;
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -6303,7 +6301,16 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 .secondary-process-section,
 .case-copy-section,
 .stay-informed {
-  scroll-margin-top: 124px;
+  scroll-margin-top: 20px;
+}
+
+.post-submission-shell > .journey-progress {
+  margin-bottom: 14px;
+  padding-block: 3px;
+}
+
+.post-submission-shell > .journey-progress li {
+  min-height: 52px;
 }
 
 #case-updates .case-updates-section {
@@ -6358,7 +6365,7 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 }
 
 .prepared-handoff-header h2 {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .handoff-action-list {
@@ -6403,7 +6410,7 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
 .stay-informed > div:first-child h2 {
   margin-bottom: 4px;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .stay-informed > div:first-child p {
@@ -6589,7 +6596,6 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
 @media (max-width: 720px) {
   .case-home-anchor-nav {
-    top: 64px;
     margin-inline: -4px;
   }
 

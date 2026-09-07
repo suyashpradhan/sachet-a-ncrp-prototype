@@ -860,11 +860,15 @@ export function PostSubmissionCaseHome({
   const recipientIsValid =
     reminderPreferences.channel === "EMAIL"
       ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activeRecipient)
-      : /^\+?91\s?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
+      : isDemoIncident && activeRecipient === "0000"
+        ? true
+        : /^\+?91\s?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
   const maskedRecipient =
     reminderPreferences.channel === "EMAIL"
       ? activeRecipient.replace(/^(.{1,2}).*(@.*)$/, "$1••••$2")
-      : `+91 ••••• ${activeRecipient.replace(/\D/g, "").slice(-4)}`;
+      : isDemoIncident
+        ? `Demo · ${activeRecipient}`
+        : `+91 ••••• ${activeRecipient.replace(/\D/g, "").slice(-4)}`;
   function updateReminderPreferences(update: Partial<ReminderPreferences>) {
     onReminderPreferencesChange({ ...reminderPreferences, ...update });
   }
@@ -884,10 +888,12 @@ export function PostSubmissionCaseHome({
     }
     setReminderError(null);
     setManagingReminders(false);
-    const normalizedWhatsapp = `+91 ${activeRecipient
-      .replace(/\D/g, "")
-      .slice(-10)
-      .replace(/(\d{5})(\d{5})/, "$1 $2")}`;
+    const normalizedWhatsapp = isDemoIncident
+      ? "0000"
+      : `+91 ${activeRecipient
+          .replace(/\D/g, "")
+          .slice(-10)
+          .replace(/(\d{5})(\d{5})/, "$1 $2")}`;
     updateReminderPreferences({
       enabled: true,
       email: reminderPreferences.email.trim(),
@@ -1411,7 +1417,7 @@ export function PostSubmissionCaseHome({
               <h2 id="stay-informed-heading">
                 {hi
                   ? "अपनी शिकायत पर नज़र रखें"
-                  : "Stay on top of your complaint"}
+                  : "Stay on top of your case"}
               </h2>
               <p>
                 {hi
@@ -1536,7 +1542,9 @@ export function PostSubmissionCaseHome({
                     placeholder={
                       reminderPreferences.channel === "EMAIL"
                         ? "name@example.com"
-                        : "+91 98765 43210"
+                        : isDemoIncident
+                          ? "0000"
+                          : "+91 98765 43210"
                     }
                   />
                 </label>

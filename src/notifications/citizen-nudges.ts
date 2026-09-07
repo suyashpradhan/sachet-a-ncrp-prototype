@@ -57,7 +57,7 @@ export function createReminderPreferences(
     enabled: false,
     channel: "WHATSAPP",
     email: isDemo ? destination?.email ?? "demo@example.invalid" : "",
-    whatsapp: isDemo ? destination?.whatsapp ?? "+91 98765 43210" : "",
+    whatsapp: isDemo ? destination?.whatsapp ?? "0000" : "",
     categories: {
       IMPORTANT_ACTIONS: true,
       MISSING_DETAILS: true,

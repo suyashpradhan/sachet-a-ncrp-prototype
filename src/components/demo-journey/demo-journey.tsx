@@ -655,7 +655,7 @@ export function DemoJourney({
         preparedAtRef.current = restoredMilestones?.preparedAt ?? null;
         setReminderPreferences(
           isReminderPreferences(candidate.reminderPreferences)
-            ? candidate.reminderPreferences
+            ? { ...candidate.reminderPreferences, whatsapp: "0000" }
             : createReminderPreferences(true),
         );
       } else {
@@ -1031,7 +1031,7 @@ export function DemoJourney({
     setReminderPreferences(
       createReminderPreferences(true, {
         email: demoCase.citizen.email,
-        whatsapp: demoCase.citizen.registeredMobile,
+        whatsapp: "0000",
       }),
     );
     setIsDemoIncident(true);
@@ -1118,11 +1118,10 @@ export function DemoJourney({
         statementProvidedBy: "VICTIM",
       },
     );
-    const mobileSuffix = demoCase.citizen.registeredMobile.replace(/\D/g, "").slice(-4);
     setReminderPreferences(
       createReminderPreferences(true, {
         email: demoCase.citizen.email,
-        whatsapp: `+91 98765 6${mobileSuffix || "3210"}`,
+        whatsapp: "0000",
       }),
     );
     setDraft(structuredClone(demoCase.draft));
