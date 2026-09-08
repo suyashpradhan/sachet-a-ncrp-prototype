@@ -228,7 +228,7 @@ const rajeshBankOtpDraft: IncidentDraft = {
     {
       id: "rajesh-debit-12000",
       direction: "DEBIT",
-      evidenceId: "demo-evidence-1",
+      evidenceId: "demo-evidence-0",
       institution: "Synthetic bank",
       currency: "INR",
       paymentMethod: "Unauthorized debit",
@@ -243,7 +243,7 @@ const rajeshBankOtpDraft: IncidentDraft = {
     {
       id: "rajesh-debit-18000",
       direction: "DEBIT",
-      evidenceId: "demo-evidence-2",
+      evidenceId: "demo-evidence-1",
       institution: "Synthetic bank",
       currency: "INR",
       paymentMethod: "Unauthorized debit",
@@ -258,15 +258,6 @@ const rajeshBankOtpDraft: IncidentDraft = {
   ],
   suspectIdentifiers: [],
   evidence: [
-    {
-      type: "OTHER",
-      extractedFacts: [
-        "Rajesh remembered that the incoming call happened in the evening; the exact time was not known",
-        "Caller claimed to represent the bank's card-security team",
-        "Caller used Rajesh's name and basic banking context",
-        "Caller identity was not independently verified",
-      ],
-    },
     {
       type: "TRANSACTION_SCREENSHOT",
       extractedFacts: [
@@ -1148,14 +1139,6 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
     evidence: [
       {
         id: "demo-evidence-0",
-        src: "/demo/evidence/rajesh-call-details.svg",
-        label: "Call details",
-        labelHi: "कॉल की जानकारी",
-        typeLabel: "Call record",
-        typeLabelHi: "कॉल रिकॉर्ड",
-      },
-      {
-        id: "demo-evidence-1",
         src: "/demo/evidence/rajesh-debit-12000.svg",
         label: "₹12,000 bank SMS alert",
         labelHi: "₹12,000 का बैंक SMS",
@@ -1163,7 +1146,7 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
         typeLabelHi: "संदेश का स्क्रीनशॉट",
       },
       {
-        id: "demo-evidence-2",
+        id: "demo-evidence-1",
         src: "/demo/evidence/rajesh-debit-18000.svg",
         label: "₹18,000 bank SMS alert",
         labelHi: "₹18,000 का बैंक SMS",
@@ -1171,7 +1154,7 @@ export const DEMO_CASES: readonly DemoCaseDefinition[] = [
         typeLabelHi: "संदेश का स्क्रीनशॉट",
       },
       {
-        id: "demo-evidence-3",
+        id: "demo-evidence-2",
         src: "/demo/evidence/rajesh-bank-statement.svg",
         label: "Bank statement",
         labelHi: "बैंक स्टेटमेंट",
