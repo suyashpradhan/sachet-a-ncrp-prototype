@@ -6380,11 +6380,11 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 .post-submission-content > .post-submission-header { order: 1; }
 .post-submission-content > .case-home-anchor-nav { order: 2; }
 .post-submission-content > #case-updates { order: 3; }
-.post-submission-content > #case-overview { order: 4; }
-.post-submission-content > .stay-informed { order: 5; }
-.post-submission-content > .post-submission-priority-grid { order: 6; }
-.post-submission-content > .post-report-evidence { order: 7; }
-.post-submission-content > .post-report-timeline-section { order: 8; }
+.post-submission-content > .post-submission-priority-grid { order: 4; }
+.post-submission-content > .post-report-evidence { order: 5; }
+.post-submission-content > .stay-informed { order: 6; }
+.post-submission-content > .post-report-timeline-section { order: 7; }
+.post-submission-content > .post-report-next-actions { order: 8; }
 .post-submission-content > .secondary-process-section { order: 9; }
 .post-submission-content > .case-copy-section { order: 10; }
 .post-submission-content > .complaint-packet { order: 11; }
@@ -6456,6 +6456,7 @@ html[data-ui-locale="hi"] .companion-eyebrow {
 
 #case-updates,
 #case-overview,
+.post-report-next-actions,
 .post-submission-priority-grid,
 .post-report-evidence,
 .post-report-timeline-section,

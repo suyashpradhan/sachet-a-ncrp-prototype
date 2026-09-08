@@ -1117,7 +1117,7 @@ export function PostSubmissionCaseHome({
           </div>
 
           {showPreparedFinancialHandoff ? (
-            <div id="case-overview">
+            <div className="post-report-next-actions">
               <ImmediateHandoff
                 draft={draft}
                 complaint={complaint}
@@ -1144,7 +1144,7 @@ export function PostSubmissionCaseHome({
           ) : null}
 
           <div
-            id={showPreparedFinancialHandoff ? undefined : "case-overview"}
+            id="case-overview"
             className={`post-submission-priority-grid${showPreparedFinancialHandoff ? " post-submission-priority-grid-single" : ""}`}
           >
             {!showPreparedFinancialHandoff ? (
