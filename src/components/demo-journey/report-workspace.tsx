@@ -2887,7 +2887,7 @@ function ReportReview(props: ReportWorkspaceProps) {
   const { locale, t } = useI18n();
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
   const [openGroups, setOpenGroups] = useState<Set<string>>(
-    () => new Set(["INCIDENT", "TRANSACTIONS"]),
+    () => new Set(),
   );
   if (!props.draft) return null;
   const groups = deriveReportGroups(props.draft, {
@@ -2955,6 +2955,60 @@ function ReportReview(props: ReportWorkspaceProps) {
       : props.screenshots.map((file) => file.name),
     demoEvidence: props.demoCase?.evidence,
   });
+  const hi = locale === "hi";
+  const reviewLossConfirmed = props.draft.citizenConfirmedFields.includes(
+    "incident.citizenConfirmedLoss",
+  );
+  const reviewIncidentLabel =
+    props.draft.classification.subCategory ??
+    props.draft.classification.category ??
+    props.draft.citizenSummary.incidentLabel;
+  const reviewEvidenceLabels = props.isDemoIncident
+    ? (props.demoCase?.evidence.map((item) => item.label) ?? [])
+    : props.screenshots.map((file) => file.name);
+  const reviewKeyFacts = [
+    { label: hi ? "धोखाधड़ी" : "Fraud", value: reviewIncidentLabel },
+    reviewTotal
+      ? { label: hi ? "नुकसान" : "Loss", value: formatCurrency(reviewTotal) }
+      : null,
+    props.draft.transactions.length > 0
+      ? {
+          label: hi ? "लेन-देन" : "Transactions",
+          value: String(props.draft.transactions.length),
+        }
+      : null,
+    props.draft.incident.incidentDate
+      ? {
+          label: hi ? "घटना की तारीख" : "Incident date",
+          value: new Intl.DateTimeFormat(hi ? "hi-IN" : "en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            timeZone: "Asia/Kolkata",
+          }).format(
+            new Date(`${props.draft.incident.incidentDate}T12:00:00+05:30`),
+          ),
+        }
+      : null,
+    props.draft.adaptiveFacts.communicationChannels[0]
+      ? {
+          label: hi ? "संपर्क का माध्यम" : "Contact channel",
+          value: props.draft.adaptiveFacts.communicationChannels[0],
+        }
+      : null,
+    props.draft.adaptiveFacts.impersonatedEntity
+      ? {
+          label: hi ? "दावा की गई पहचान" : "Claimed identity",
+          value: props.draft.adaptiveFacts.impersonatedEntity,
+        }
+      : null,
+    props.draft.adaptiveFacts.impersonation
+      ? {
+          label: hi ? "असल पहचान" : "Actual identity",
+          value: hi ? "स्वतंत्र रूप से पुष्टि नहीं हुई" : "Not independently verified",
+        }
+      : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item));
   const editGroup = (groupId: string) => {
     props.onBackToEdit();
     let attempts = 0;
@@ -2985,107 +3039,104 @@ function ReportReview(props: ReportWorkspaceProps) {
 
   return (
     <>
-      <div className="report-pane-heading">
-        <h2>{locale === "hi" ? "आपकी शिकायत" : "Your complaint"}</h2>
-        <p>{t("workspace.reviewSupport")}</p>
+      <div className="report-pane-heading review-compact-heading">
+        <p className="case-file-column-label">
+          {hi ? "अंतिम जाँच" : "Final review"}
+        </p>
+        <h2>{hi ? "जाँच के लिए तैयार" : "Ready for review"}</h2>
+        <p>
+          {hi
+            ? "आगे बढ़ने से पहले जरूरी जानकारी जाँच लें।"
+            : "Check the important details before moving forward."}
+        </p>
+        <p className="review-summary-line">
+          {[
+            reviewTotal ? `${formatCurrency(reviewTotal)} ${hi ? "हानि" : "loss"}` : null,
+            props.draft.transactions.length > 0
+              ? `${props.draft.transactions.length} ${hi ? "लेन-देन" : props.draft.transactions.length === 1 ? "transaction" : "transactions"}`
+              : null,
+            reviewEvidenceLabels.length > 0
+              ? `${reviewEvidenceLabels.length} ${hi ? "सबूत" : reviewEvidenceLabels.length === 1 ? "evidence item" : "evidence items"}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        {reviewLossConfirmed && reviewTotal ? (
+          <p className="review-confirmed-line">
+            <span aria-hidden="true">✓</span>{" "}
+            {hi
+              ? `${formatCurrency(reviewTotal)} की नागरिक ने पुष्टि की`
+              : `${formatCurrency(reviewTotal)} confirmed by citizen`}
+          </p>
+        ) : null}
       </div>
-      <PreparedComplaintSummary
-        draft={props.draft}
-        reporterName={
-          props.draft.reportingPeople?.reportingFor === "SOMEONE_ELSE"
-            ? props.draft.reportingPeople.victimName ?? props.reporterProfile.displayName
-            : props.reporterProfile.displayName
-        }
-      />
       <section
-        className="case-integrity-summary"
+        className="review-key-facts"
         aria-labelledby="case-check-heading"
       >
-        <h2 id="case-check-heading">
-          {integrity.unresolvedConflictCount > 0
-            ? locale === "hi" ? "एक बात पर ध्यान देना है" : "Needs your attention"
-            : locale === "hi" ? "जाँचने के लिए तैयार" : "Ready for you to review"}
-        </h2>
-        <ul>
-          {integrity.transactionCount > 0 ? (
-            <li>
-              <span aria-hidden="true">✓</span>{" "}
-              {locale === "hi"
-                ? `${integrity.transactionCount} लेन-देन व्यवस्थित किए गए`
-                : `${integrity.transactionCount} ${integrity.transactionCount === 1 ? "transaction" : "transactions"} organised`}
-            </li>
-          ) : null}
-          {integrity.importantFactsLinkedToEvidence > 0 ? (
-            <li>
-              <span aria-hidden="true">✓</span>{" "}
-              {locale === "hi"
-                ? `सबूत ${integrity.importantFactsLinkedToEvidence} जरूरी जानकारियों से जुड़ा है`
-                : `Evidence linked to ${integrity.importantFactsLinkedToEvidence} important details`}
-            </li>
-          ) : null}
-          {integrity.unresolvedConflictCount === 0 ? (
-            <li>
-              <span aria-hidden="true">✓</span>{" "}
-              {locale === "hi"
-                ? "कोई अनसुलझा विरोध नहीं"
-                : "Important complaint details are consistent"}
-            </li>
-          ) : (
-            <li>
-              {locale === "hi"
-                ? `${integrity.unresolvedConflictCount} विरोध की पुष्टि बाकी है`
-                : `${integrity.unresolvedConflictCount} ${integrity.unresolvedConflictCount === 1 ? "conflict needs" : "conflicts need"} confirmation`}
-            </li>
-          )}
-        </ul>
-        {integrity.unresolvedConflictCount === 0 ? (
-          <p>
-            {locale === "hi"
-              ? "शिकायत की जरूरी जानकारी आपस में मेल खाती है। जो जानकारी आपके पास नहीं है, वह अनुपलब्ध के रूप में ही दर्ज रहेगी।"
-              : "Important complaint details are consistent. Anything you don’t know remains marked as unavailable."}
-          </p>
-        ) : null}
-        {integrity.unavailableImportantDetails.length > 0 ? (
-          <p>
-            <strong>
-              {locale === "hi" ? "आपके पास नहीं" : "You don’t have"}
-            </strong>
-            <br />
-            {integrity.unavailableImportantDetails.join(", ")}
-          </p>
-        ) : null}
-      </section>
-      <section
-        className="case-knowledge-summary"
-        aria-labelledby="what-we-know-heading"
-      >
-        <div>
-          <h2 id="what-we-know-heading">
-            {locale === "hi" ? "उपलब्ध जानकारी" : "Available information"}
-          </h2>
-          <ul>
-            {integrity.knownFacts.map((fact) => (
-              <li key={fact}>{fact}</li>
-            ))}
-          </ul>
+        <div className="review-section-heading-row">
+          <h2 id="case-check-heading">{hi ? "शिकायत की जरूरी जानकारी" : "Key complaint facts"}</h2>
+          <button className="text-button" type="button" onClick={() => editGroup("INCIDENT")}>
+            {t("field.edit")}
+          </button>
         </div>
-        {integrity.stillUnknown.length > 0 ? (
-          <div>
-            <h2>
-              {locale === "hi"
-                ? "जानकारी उपलब्ध नहीं"
-                : "Information not available"}
-            </h2>
-            <ul>
-              {integrity.stillUnknown.map((fact) => (
-                <li key={fact}>{fact}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+        <dl>
+          {reviewKeyFacts.slice(0, 8).map((fact) => (
+            <div key={fact.label}>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
-      <div className="report-review-groups">
-        {groups.filter((group) => group.id !== "REPORTER").map((group) => (
+      {integrity.stillUnknown.length > 0 || integrity.unavailableImportantDetails.length > 0 ? (
+        <section className="review-unknowns" aria-labelledby="review-unknowns-heading">
+          <h2 id="review-unknowns-heading">{hi ? "जो अभी पता नहीं है" : "Still not known"}</h2>
+          <p>
+            {hi
+              ? "ये जानकारियाँ उपलब्ध नहीं के रूप में रहेंगी। सचेत इनका अनुमान नहीं लगाएगा।"
+              : "These will remain marked as not known. Sachet will not guess them."}
+          </p>
+          <ul>
+            {[...new Set([...integrity.stillUnknown, ...integrity.unavailableImportantDetails])]
+              .slice(0, 6)
+              .map((fact) => <li key={fact}>{fact}</li>)}
+          </ul>
+        </section>
+      ) : null}
+      {reviewEvidenceLabels.length > 0 ? (
+        <section className="review-evidence-summary" aria-labelledby="review-evidence-heading">
+          <div className="review-section-heading-row">
+            <div>
+              <h2 id="review-evidence-heading">{hi ? "जुड़े हुए सबूत" : "Evidence attached"}</h2>
+              <p>{reviewEvidenceLabels.length} {hi ? "आइटम" : reviewEvidenceLabels.length === 1 ? "item" : "items"}</p>
+            </div>
+            <button className="text-button" type="button" onClick={() => editGroup("EVIDENCE")}>
+              {hi ? "सबूत जाँचें" : "Review evidence"}
+            </button>
+          </div>
+          <ul>
+            {reviewEvidenceLabels.slice(0, 4).map((label) => <li key={label}>{label}</li>)}
+          </ul>
+        </section>
+      ) : null}
+      <details className="review-full-complaint-details">
+        <summary>
+          <span>
+            <strong>{hi ? "पूरी शिकायत" : "Full complaint"}</strong>
+            <small>
+              {hi
+                ? "यदि चाहें तो शिकायत की हर जानकारी जाँचें।"
+                : "Review every complaint detail if you want to."}
+            </small>
+          </span>
+          <span className="coverage-action">
+            {hi ? "पूरी शिकायत देखें" : "View full complaint"}
+          </span>
+        </summary>
+        <div className="report-review-groups">
+          {groups.filter((group) => group.id !== "REPORTER").map((group) => (
           <details
             key={group.id}
             className="report-review-group"
@@ -3128,9 +3179,10 @@ function ReportReview(props: ReportWorkspaceProps) {
                   </div>
                 ))}
             </div>
-          </details>
-        ))}
-      </div>
+            </details>
+          ))}
+        </div>
+      </details>
       <section className="review-reporter-details" aria-labelledby="review-reporter-heading">
         <div>
           <h2 id="review-reporter-heading">
@@ -3267,13 +3319,26 @@ function ReportReview(props: ReportWorkspaceProps) {
           </p>
         </div>
       </details>
-      <ComplaintPacket
-        complaint={complaint}
-        draft={props.draft}
-        reference={props.reportReference}
-        locale={locale}
-        isDemoIncident={props.isDemoIncident}
-      />
+      <details className="review-full-complaint-details review-packet-details">
+        <summary>
+          <span>
+            <strong>{hi ? "शिकायत की कॉपी और प्रिंट" : "Complaint copy and print"}</strong>
+            <small>
+              {hi
+                ? "पूरी तैयार शिकायत खोलें, कॉपी करें या प्रिंट करें।"
+                : "Open, copy or print the complete prepared complaint."}
+            </small>
+          </span>
+          <span className="coverage-action">{hi ? "खोलें" : "Open"}</span>
+        </summary>
+        <ComplaintPacket
+          complaint={complaint}
+          draft={props.draft}
+          reference={props.reportReference}
+          locale={locale}
+          isDemoIncident={props.isDemoIncident}
+        />
+      </details>
       <section
         className="before-submit-checkpoint"
         aria-labelledby="submit-checkpoint-heading"
@@ -3957,6 +4022,9 @@ function PreparedComplaintSummary({
   const representativeDebits = hasEvidenceReconciliation
     ? knownDebits.slice(-3)
     : knownDebits;
+  const callerPhone = draft.suspectIdentifiers.find(
+    (identifier) => identifier.type === "PHONE",
+  )?.value;
   const reconciliationEvidenceId = draft.transactions.find(
     (transaction) => transaction.evidenceId,
   )?.evidenceId;
@@ -4061,7 +4129,7 @@ function PreparedComplaintSummary({
         </section>
       ) : null}
       <dl>
-        {summaryItems.map((item) => (
+        {summaryItems.slice(0, 4).map((item) => (
           <div key={item.label}>
             <dt>{item.label}</dt>
             <dd>{item.value}</dd>
@@ -4086,6 +4154,33 @@ function PreparedComplaintSummary({
               </div>
             ))}
           </div>
+        </div>
+      ) : null}
+      {draft.adaptiveFacts.impersonatedEntity || callerPhone ? (
+        <div className="reconstruction-contact">
+          <p className="report-field-label">
+            {hi ? "किसने संपर्क किया" : "Who contacted you"}
+          </p>
+          <dl>
+            {draft.adaptiveFacts.impersonatedEntity ? (
+              <div>
+                <dt>{hi ? "दावा की गई पहचान" : "Claimed identity"}</dt>
+                <dd>{draft.adaptiveFacts.impersonatedEntity}</dd>
+              </div>
+            ) : null}
+            {draft.adaptiveFacts.impersonation ? (
+              <div>
+                <dt>{hi ? "असल पहचान" : "Actual identity"}</dt>
+                <dd>{hi ? "स्वतंत्र रूप से पुष्टि नहीं हुई" : "Not independently verified"}</dd>
+              </div>
+            ) : null}
+            {callerPhone ? (
+              <div>
+                <dt>{hi ? "फोन नंबर" : "Phone number"}</dt>
+                <dd>{callerPhone}</dd>
+              </div>
+            ) : null}
+          </dl>
         </div>
       ) : null}
       {representativeDebits.length > 0 ? (
@@ -4956,14 +5051,21 @@ function ReportDetailsPane({
           </details>
 
           {props.complaint ? (
-            <ImmediateHandoff
-              draft={props.draft}
-              complaint={props.complaint}
-              amountResolution={props.amountResolution}
-              reference={props.reportReference}
-              isDemoIncident={props.isDemoIncident}
-              sourceLanguageCode={props.transcription?.languageCode}
-            />
+            <details className="prepared-complaint-disclosure report-next-step-disclosure">
+              <summary>
+                {locale === "hi"
+                  ? "तुरंत उठाए जा सकने वाले कदम देखें"
+                  : "View immediate steps you can take"}
+              </summary>
+              <ImmediateHandoff
+                draft={props.draft}
+                complaint={props.complaint}
+                amountResolution={props.amountResolution}
+                reference={props.reportReference}
+                isDemoIncident={props.isDemoIncident}
+                sourceLanguageCode={props.transcription?.languageCode}
+              />
+            </details>
           ) : null}
         </>
       ) : null}

@@ -2607,15 +2607,15 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 .prepared-complaint-summary > div > p {
   margin: 0;
   color: var(--secondary);
-  font-size: 17px;
-  line-height: 1.65;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .prepared-complaint-summary dl {
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 28px;
+  gap: 12px 24px;
 }
 
 .prepared-complaint-summary dl > div {
@@ -2635,11 +2635,12 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 }
 
 .reconstruction-flow,
+.reconstruction-contact,
 .reconstruction-payments,
 .reconstruction-requested,
 .reconstruction-evidence-count {
-  margin-top: 22px;
-  padding-top: 18px;
+  margin-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid var(--border);
 }
 
@@ -2667,6 +2668,14 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
   color: var(--muted);
 }
 
+.reconstruction-contact dl {
+  margin-top: 8px;
+}
+
+.reconstruction-contact dd {
+  font-size: 0.98rem;
+}
+
 .reconstruction-payments {
   display: grid;
   gap: 0;
@@ -2677,7 +2686,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 }
 
 .reconstruction-payments article {
-  padding: 14px 0;
+  padding: 11px 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px 16px;
@@ -2726,7 +2735,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 
 .reconstruction-total {
   margin-top: 4px;
-  padding: 16px 0 2px;
+  padding: 13px 0 2px;
   border-top: 1px solid var(--border);
 }
 
@@ -2916,7 +2925,7 @@ html[data-ui-locale="hi"] .landing-case-check h2 {
 }
 
 .prepared-complaint-disclosure {
-  margin-top: 24px;
+  margin-top: 18px;
   border-top: 1px solid var(--border);
 }
 
@@ -4584,6 +4593,158 @@ dd {
 .report-review-groups {
   display: grid;
   gap: 10px;
+}
+
+.review-compact-heading {
+  margin-bottom: 18px;
+}
+
+.review-compact-heading > p:not(.case-file-column-label) {
+  margin-block: 4px 0;
+}
+
+.review-summary-line {
+  color: var(--text) !important;
+  font-size: 16px !important;
+  font-weight: 700;
+}
+
+.review-confirmed-line {
+  color: var(--success) !important;
+  font-size: 14px !important;
+  font-weight: 700;
+}
+
+.review-key-facts,
+.review-unknowns,
+.review-evidence-summary {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.review-section-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.review-section-heading-row h2,
+.review-unknowns h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.review-section-heading-row p,
+.review-unknowns p {
+  margin: 4px 0 0;
+  color: var(--secondary);
+  font-size: 14px !important;
+}
+
+.review-key-facts dl {
+  margin: 13px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+
+.review-key-facts dl > div {
+  padding-block: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.review-key-facts dd {
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.review-unknowns ul,
+.review-evidence-summary ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
+.review-unknowns li,
+.review-evidence-summary li {
+  margin-block: 4px;
+}
+
+.review-full-complaint-details {
+  margin-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.review-full-complaint-details > summary {
+  min-height: 54px;
+  padding: 13px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.review-full-complaint-details > summary > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.review-full-complaint-details > summary small {
+  color: var(--secondary);
+  font-weight: 400;
+}
+
+.review-full-complaint-details[open] > summary .coverage-action {
+  visibility: hidden;
+}
+
+.review-full-complaint-details > .report-review-groups,
+.review-packet-details > .complaint-packet {
+  padding: 8px 0 4px;
+}
+
+.report-next-step-disclosure > summary {
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+.amount-conflict[data-report-field-id="financial-loss-confirmation"] {
+  padding: 20px;
+  border-color: var(--primary-100);
+  background: var(--primary-050);
+}
+
+.amount-conflict[data-report-field-id="financial-loss-confirmation"] h3 {
+  color: var(--primary);
+  font-size: 20px;
+}
+
+@media (max-width: 700px) {
+  .review-key-facts dl {
+    grid-template-columns: 1fr;
+  }
+
+  .review-section-heading-row,
+  .review-full-complaint-details > summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .review-section-heading-row .text-button {
+    min-height: 44px;
+    padding-inline: 0;
+  }
+
+  .review-full-complaint-details > summary {
+    padding-block: 14px;
+  }
+
+  .amount-conflict[data-report-field-id="financial-loss-confirmation"] {
+    padding: 16px;
+  }
 }
 
 .report-review-group {
