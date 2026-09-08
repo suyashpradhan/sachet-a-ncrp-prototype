@@ -805,7 +805,40 @@ export function PostSubmissionCaseHome({
       ],
     }),
   );
-  const timeline = [...baseTimeline, ...updateTimeline];
+  const inferredReminderCreationTime = reminderPreferences.scheduledAt
+    ? new Date(
+        new Date(reminderPreferences.scheduledAt).getTime() - 2 * 60_000,
+      ).toISOString()
+    : null;
+  const reminderCreatedAt =
+    reminderPreferences.enabledAt ?? inferredReminderCreationTime;
+  const reminderCreatedChannel =
+    reminderPreferences.enabledChannel ?? reminderPreferences.channel;
+  const reminderTimeline: IncidentTimelineEvent[] = reminderCreatedAt
+    ? [
+        {
+          id: "case-reminders-enabled",
+          timeLabel: formatCaseTimestamp(reminderCreatedAt, hi).replace(",", " ·"),
+          title:
+            reminderCreatedChannel === "WHATSAPP"
+              ? hi
+                ? "WhatsApp रिमाइंडर बनाया गया"
+                : "WhatsApp reminder created"
+              : hi
+                ? "ईमेल रिमाइंडर बनाया गया"
+                : "Email reminder created",
+          sourceRefs: [
+            {
+              type: "USER_CONFIRMED" as const,
+              label: hi
+                ? "स्रोत: सचेत में रिमाइंडर सेटिंग"
+                : "Source: Reminder settings in सचेत",
+            },
+          ],
+        },
+      ]
+    : [];
+  const timeline = [...baseTimeline, ...updateTimeline, ...reminderTimeline];
   const stateExplanation = getCaseStateExplanation(
     missingReferenceIndex >= 0 ? "ADDITIONAL_INFO_REQUESTED" : "SUBMITTED",
     locale,
@@ -904,9 +937,7 @@ export function PostSubmissionCaseHome({
   const recipientIsValid =
     reminderPreferences.channel === "EMAIL"
       ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activeRecipient)
-      : isDemoIncident && activeRecipient === "0000"
-        ? true
-        : /^\+?91\s?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
+      : /^(?:\+?91[\s-]?)?[6-9](?:[\s-]?\d){9}$/.test(activeRecipient);
   const maskedRecipient =
     reminderPreferences.channel === "EMAIL"
       ? activeRecipient.replace(/^(.{1,2}).*(@.*)$/, "$1••••$2")
@@ -932,6 +963,7 @@ export function PostSubmissionCaseHome({
     }
     setReminderError(null);
     setManagingReminders(false);
+    const enabledAt = new Date();
     const normalizedWhatsapp = isDemoIncident
       ? "90000 00000"
       : `+91 ${activeRecipient
@@ -945,7 +977,9 @@ export function PostSubmissionCaseHome({
         reminderPreferences.channel === "WHATSAPP"
           ? normalizedWhatsapp
           : reminderPreferences.whatsapp.trim(),
-      scheduledAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+      enabledAt: enabledAt.toISOString(),
+      enabledChannel: reminderPreferences.channel,
+      scheduledAt: new Date(enabledAt.getTime() + 2 * 60 * 1000).toISOString(),
       sentAt: null,
     });
   }

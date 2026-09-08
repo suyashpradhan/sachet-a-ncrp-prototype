@@ -677,7 +677,7 @@ export function DemoJourney({
         preparedAtRef.current = currentMilestones.preparedAt;
         setReminderPreferences(
           isReminderPreferences(candidate.reminderPreferences)
-            ? { ...candidate.reminderPreferences, whatsapp: "0000" }
+            ? { ...candidate.reminderPreferences, whatsapp: "90000 00000" }
             : createReminderPreferences(true),
         );
       } else {

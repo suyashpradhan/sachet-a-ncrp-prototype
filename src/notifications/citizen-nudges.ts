@@ -16,6 +16,8 @@ export type ReminderPreferences = {
   email: string;
   whatsapp: string;
   categories: Record<ReminderCategory, boolean>;
+  enabledAt?: string | null;
+  enabledChannel?: NotificationChannel | null;
   scheduledAt: string | null;
   sentAt: string | null;
 };
@@ -57,13 +59,15 @@ export function createReminderPreferences(
     enabled: false,
     channel: "WHATSAPP",
     email: isDemo ? destination?.email ?? "demo@example.invalid" : "",
-    whatsapp: isDemo ? destination?.whatsapp ?? "0000" : "",
+    whatsapp: isDemo ? destination?.whatsapp ?? "90000 00000" : "",
     categories: {
       IMPORTANT_ACTIONS: true,
       MISSING_DETAILS: true,
       EVIDENCE_SAFETY: true,
       FOLLOW_UP: false,
     },
+    enabledAt: null,
+    enabledChannel: null,
     scheduledAt: null,
     sentAt: null,
   };
