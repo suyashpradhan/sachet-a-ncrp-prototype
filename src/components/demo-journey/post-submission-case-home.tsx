@@ -1102,6 +1102,9 @@ export function PostSubmissionCaseHome({
             <a href="#post-report-evidence-heading">
               {hi ? "सबूत" : "Evidence"}
             </a>
+            <a href="#case-reminders">
+              {hi ? "रिमाइंडर" : "Reminders"}
+            </a>
             <a href="#incident-timeline-heading">{hi ? "इतिहास" : "History"}</a>
           </nav>
 
@@ -1515,6 +1518,7 @@ export function PostSubmissionCaseHome({
           </section>
 
           <section
+            id="case-reminders"
             className="companion-section stay-informed"
             aria-labelledby="stay-informed-heading"
           >
