@@ -89,11 +89,23 @@ type JourneyView =
 
 const DEMO_SESSION_KEY = "sachet-deterministic-demo-v3";
 const UNFINISHED_REPORT_KEY = "sachet-unfinished-report-v1";
-const DEMO_POST_REPORT_MILESTONES: PostReportMilestones = {
-  preparedAt: "2026-09-04T04:30:00.000Z",
-  reviewedAt: "2026-09-04T04:33:00.000Z",
-  submittedAt: "2026-09-04T04:35:00.000Z",
-};
+function currentDemoMilestones(now = new Date()): PostReportMilestones {
+  const submittedAt = now.getTime();
+  return {
+    preparedAt: new Date(submittedAt - 5 * 60_000).toISOString(),
+    reviewedAt: new Date(submittedAt - 2 * 60_000).toISOString(),
+    submittedAt: now.toISOString(),
+  };
+}
+
+function migrateLegacyDemoMilestones(
+  milestones: PostReportMilestones,
+): PostReportMilestones {
+  return milestones.submittedAt === "2026-09-04T04:35:00.000Z"
+    ? currentDemoMilestones()
+    : milestones;
+}
+
 const DEMO_RESTORABLE_VIEWS = new Set<JourneyView>([
   "ANALYSIS_RESULT",
   "REVIEW",
@@ -143,9 +155,9 @@ function isPostReportMilestones(
 ): value is PostReportMilestones {
   return Boolean(
     value &&
-      typeof value.preparedAt === "string" &&
-      typeof value.reviewedAt === "string" &&
-      typeof value.submittedAt === "string",
+    typeof value.preparedAt === "string" &&
+    typeof value.reviewedAt === "string" &&
+    typeof value.submittedAt === "string",
   );
 }
 
@@ -154,16 +166,17 @@ function isReminderPreferences(value: unknown): value is ReminderPreferences {
   const candidate = value as Partial<ReminderPreferences>;
   return Boolean(
     typeof candidate.enabled === "boolean" &&
-      (candidate.channel === "EMAIL" || candidate.channel === "WHATSAPP") &&
-      typeof candidate.email === "string" &&
-      typeof candidate.whatsapp === "string" &&
-      candidate.categories &&
-      typeof candidate.categories.IMPORTANT_ACTIONS === "boolean" &&
-      typeof candidate.categories.MISSING_DETAILS === "boolean" &&
-      typeof candidate.categories.EVIDENCE_SAFETY === "boolean" &&
-      typeof candidate.categories.FOLLOW_UP === "boolean" &&
-      (candidate.scheduledAt === null || typeof candidate.scheduledAt === "string") &&
-      (candidate.sentAt === null || typeof candidate.sentAt === "string"),
+    (candidate.channel === "EMAIL" || candidate.channel === "WHATSAPP") &&
+    typeof candidate.email === "string" &&
+    typeof candidate.whatsapp === "string" &&
+    candidate.categories &&
+    typeof candidate.categories.IMPORTANT_ACTIONS === "boolean" &&
+    typeof candidate.categories.MISSING_DETAILS === "boolean" &&
+    typeof candidate.categories.EVIDENCE_SAFETY === "boolean" &&
+    typeof candidate.categories.FOLLOW_UP === "boolean" &&
+    (candidate.scheduledAt === null ||
+      typeof candidate.scheduledAt === "string") &&
+    (candidate.sentAt === null || typeof candidate.sentAt === "string"),
   );
 }
 
@@ -243,7 +256,7 @@ function readUnfinishedReport(): PersistedUnfinishedReport | null {
       reportingPeople: parsedReportingPeople?.success
         ? parsedReportingPeople.data
         : parsedDraft?.success
-          ? parsedDraft.data.reportingPeople ?? null
+          ? (parsedDraft.data.reportingPeople ?? null)
           : null,
       narrative: candidate.narrative,
       transcription: parsedTranscription?.success
@@ -264,10 +277,10 @@ function readUnfinishedReport(): PersistedUnfinishedReport | null {
         (item): item is PersistedEvidenceMetadata =>
           Boolean(
             item &&
-              typeof item.name === "string" &&
-              typeof item.type === "string" &&
-              typeof item.size === "number" &&
-              typeof item.lastModified === "number",
+            typeof item.name === "string" &&
+            typeof item.type === "string" &&
+            typeof item.size === "number" &&
+            typeof item.lastModified === "number",
           ),
       ),
       preparedSourceSignature:
@@ -388,8 +401,8 @@ export function DemoJourney({
   const [audio, setAudio] = useState<Blob | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [recordingLevels, setRecordingLevels] = useState<number[]>(
-    () => Array.from({ length: 24 }, () => 0.08),
+  const [recordingLevels, setRecordingLevels] = useState<number[]>(() =>
+    Array.from({ length: 24 }, () => 0.08),
   );
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState(
@@ -415,10 +428,13 @@ export function DemoJourney({
   const [submittedReference, setSubmittedReference] = useState("");
   const [postReportMilestones, setPostReportMilestones] =
     useState<PostReportMilestones | null>(null);
-  const [submittedDraft, setSubmittedDraft] = useState<IncidentDraft | null>(null);
+  const [submittedDraft, setSubmittedDraft] = useState<IncidentDraft | null>(
+    null,
+  );
   const [submittedComplaint, setSubmittedComplaint] =
     useState<NcrpCompatibleComplaint | null>(null);
-  const [submittedTranscription, setSubmittedTranscription] = useState<TranscriptionResult | null>(null);
+  const [submittedTranscription, setSubmittedTranscription] =
+    useState<TranscriptionResult | null>(null);
   const [reminderPreferences, setReminderPreferences] =
     useState<ReminderPreferences>(() => createReminderPreferences(false));
   const [recoverableReport, setRecoverableReport] =
@@ -428,9 +444,13 @@ export function DemoJourney({
   >([]);
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [hasSavedLiveCases, setHasSavedLiveCases] = useState(false);
-  const [reopenedEvidenceNames, setReopenedEvidenceNames] = useState<string[]>([]);
+  const [reopenedEvidenceNames, setReopenedEvidenceNames] = useState<string[]>(
+    [],
+  );
   const [caseUpdates, setCaseUpdates] = useState<CaseUpdate[]>([]);
-  const [caseUpdateEvidenceFiles, setCaseUpdateEvidenceFiles] = useState<File[]>([]);
+  const [caseUpdateEvidenceFiles, setCaseUpdateEvidenceFiles] = useState<
+    File[]
+  >([]);
   const preparedAtRef = useRef<string | null>(null);
   const [preparedSourceSignature, setPreparedSourceSignature] = useState<
     string | null
@@ -452,9 +472,10 @@ export function DemoJourney({
     draft.incident.financialLossState === "YES"
       ? resolveReportedAmount(draft, selectedReportedAmount)
       : null;
-  const baseProfile = experienceMode === "LIVE_TEST"
-    ? reporterProfile ?? createEmptyTestProfile()
-    : reporterProfile ?? SYNTHETIC_NCRP_PROFILE;
+  const baseProfile =
+    experienceMode === "LIVE_TEST"
+      ? (reporterProfile ?? createEmptyTestProfile())
+      : (reporterProfile ?? SYNTHETIC_NCRP_PROFILE);
   const activeProfile =
     experienceMode === "LIVE_TEST"
       ? {
@@ -473,9 +494,9 @@ export function DemoJourney({
   });
   const isReportStale = Boolean(
     !isDemoIncident &&
-      draft &&
-      preparedSourceSignature &&
-      currentSourceSignature !== preparedSourceSignature,
+    draft &&
+    preparedSourceSignature &&
+    currentSourceSignature !== preparedSourceSignature,
   );
   const hasSubmittedCase = Boolean(submittedDraft && postReportMilestones);
 
@@ -500,11 +521,11 @@ export function DemoJourney({
     }
     const meaningful = Boolean(
       reportingPeople ||
-        narrative.trim() ||
-        transcription ||
-        draft ||
-        screenshots.length > 0 ||
-        audio,
+      narrative.trim() ||
+      transcription ||
+      draft ||
+      screenshots.length > 0 ||
+      audio,
     );
     if (!meaningful) return;
     setIsDraftSaved(false);
@@ -627,9 +648,8 @@ export function DemoJourney({
       }
 
       const restoredMilestones = candidate.postReportMilestones;
-      const validRestoredMilestones = isPostReportMilestones(
-        restoredMilestones,
-      );
+      const validRestoredMilestones =
+        isPostReportMilestones(restoredMilestones);
       if (candidate.view === "SUCCESS" && !validRestoredMilestones) {
         clearPersistedDemoSession();
         return;
@@ -649,10 +669,12 @@ export function DemoJourney({
       setRecordingSeconds(candidate.recordingSeconds);
       setSubmittedReference(candidate.submittedReference);
       if (candidate.view === "SUCCESS" && validRestoredMilestones) {
-        setPostReportMilestones(restoredMilestones);
+        const currentMilestones =
+          migrateLegacyDemoMilestones(restoredMilestones);
+        setPostReportMilestones(currentMilestones);
         setSubmittedDraft(structuredClone(restoredDraft.data));
         setSubmittedTranscription(structuredClone(restoredTranscription.data));
-        preparedAtRef.current = restoredMilestones?.preparedAt ?? null;
+        preparedAtRef.current = currentMilestones.preparedAt;
         setReminderPreferences(
           isReminderPreferences(candidate.reminderPreferences)
             ? { ...candidate.reminderPreferences, whatsapp: "0000" }
@@ -663,7 +685,7 @@ export function DemoJourney({
         setSubmittedDraft(null);
         setSubmittedComplaint(null);
         setSubmittedTranscription(null);
-        preparedAtRef.current = DEMO_POST_REPORT_MILESTONES.preparedAt;
+        preparedAtRef.current = new Date().toISOString();
       }
       setIsDemoIncident(true);
       setPreparedSourceSignature(
@@ -790,7 +812,9 @@ export function DemoJourney({
   useEffect(() => {
     if (view !== "SUCCESS") return;
     const frame = window.requestAnimationFrame(() => {
-      const caseHome = document.querySelector<HTMLElement>(".post-submission-case");
+      const caseHome = document.querySelector<HTMLElement>(
+        ".post-submission-case",
+      );
       const heading = caseHome?.querySelector<HTMLElement>("h1");
       caseHome?.scrollIntoView({ behavior: "auto", block: "start" });
       heading?.focus({ preventScroll: true });
@@ -799,14 +823,19 @@ export function DemoJourney({
   }, [view]);
 
   useEffect(() => {
-    if (view !== "ANALYSIS_RESULT" || !draft || !pendingReportFocusRef.current) return;
+    if (view !== "ANALYSIS_RESULT" || !draft || !pendingReportFocusRef.current)
+      return;
     pendingReportFocusRef.current = false;
     const frame = window.requestAnimationFrame(() => {
-      const heading = document.querySelector<HTMLElement>("#report-details-heading");
+      const heading = document.querySelector<HTMLElement>(
+        "#report-details-heading",
+      );
       if (!heading) return;
       heading.focus({ preventScroll: true });
       if (window.matchMedia("(max-width: 820px)").matches) {
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
         heading.scrollIntoView({
           behavior: reduceMotion ? "auto" : "smooth",
           block: "start",
@@ -1026,12 +1055,12 @@ export function DemoJourney({
     setSubmittedComplaint(complaint);
     setTranscription(demoTranscription);
     setSubmittedTranscription(demoTranscription);
-    setPostReportMilestones(DEMO_POST_REPORT_MILESTONES);
+    setPostReportMilestones(currentDemoMilestones());
     setSubmittedReference(demoCase.reference);
     setReminderPreferences(
       createReminderPreferences(true, {
         email: demoCase.citizen.email,
-        whatsapp: "0000",
+        whatsapp: "90000 00000",
       }),
     );
     setIsDemoIncident(true);
@@ -1048,9 +1077,18 @@ export function DemoJourney({
     if (!original) throw new Error("CASE_NOT_AVAILABLE");
     const preparedFile = await compressScreenshot(file).catch(() => file);
     const data = new FormData();
-    data.append("narrative", original.incident.narrative ?? original.citizenSummary.shortSummary);
-    data.append("englishTranscript", submittedTranscription?.englishTranscript ?? "");
-    data.append("reportingFor", original.reportingPeople?.reportingFor ?? "SELF");
+    data.append(
+      "narrative",
+      original.incident.narrative ?? original.citizenSummary.shortSummary,
+    );
+    data.append(
+      "englishTranscript",
+      submittedTranscription?.englishTranscript ?? "",
+    );
+    data.append(
+      "reportingFor",
+      original.reportingPeople?.reportingFor ?? "SELF",
+    );
     data.append("reportingDate", currentIndiaDate());
     data.append("screenshots", preparedFile, preparedFile.name);
     const response = await fetch("/api/analyze-incident", {
@@ -1121,12 +1159,12 @@ export function DemoJourney({
     setReminderPreferences(
       createReminderPreferences(true, {
         email: demoCase.citizen.email,
-        whatsapp: "0000",
+        whatsapp: "90000 00000",
       }),
     );
     setDraft(structuredClone(demoCase.draft));
     setSubmittedReference(demoCase.reference);
-    preparedAtRef.current = DEMO_POST_REPORT_MILESTONES.preparedAt;
+    preparedAtRef.current = new Date().toISOString();
     setPreparedSourceSignature(
       reportSourceSignature({
         narrative: demoCase.statement,
@@ -1202,9 +1240,7 @@ export function DemoJourney({
       );
     }
     journeyHistoryRef.current =
-      restoredView === "REVIEW"
-        ? ["ENTRY", "ANALYSIS_RESULT"]
-        : ["ENTRY"];
+      restoredView === "REVIEW" ? ["ENTRY", "ANALYSIS_RESULT"] : ["ENTRY"];
     setRecoverableReport(null);
     setCurrentView(restoredView);
   }
@@ -1400,9 +1436,7 @@ export function DemoJourney({
         : current,
     );
     setUnavailableEvidenceNames((current) =>
-      current.filter(
-        (name) => !prepared.some((file) => file.name === name),
-      ),
+      current.filter((name) => !prepared.some((file) => file.name === name)),
     );
     event.target.value = "";
   }
@@ -1630,12 +1664,14 @@ export function DemoJourney({
       );
       return;
     }
-    setDraft(applyMissingAnswer(
-      draft,
-      question.field,
-      answer,
-      question.transactionIndex ?? 0,
-    ));
+    setDraft(
+      applyMissingAnswer(
+        draft,
+        question.field,
+        answer,
+        question.transactionIndex ?? 0,
+      ),
+    );
     if (question.transactionIndex !== undefined) {
       setSelectedReportedAmount(null);
     }
@@ -1698,18 +1734,16 @@ export function DemoJourney({
       if (complaint.groups.declaration.accepted.status !== "CONFIRMED") {
         throw new Error("Confirm the synthetic declaration before submitting.");
       }
-      const submissionTime = isDemoIncident
-        ? DEMO_POST_REPORT_MILESTONES.submittedAt
-        : new Date().toISOString();
+      const submissionTime = new Date().toISOString();
       const milestones: PostReportMilestones = {
         preparedAt: preparedAtRef.current ?? submissionTime,
-        reviewedAt: isDemoIncident
-          ? DEMO_POST_REPORT_MILESTONES.reviewedAt
-          : submissionTime,
+        reviewedAt: submissionTime,
         submittedAt: submissionTime,
       };
       const submittedCaseDraft = structuredClone(draft);
-      const submittedCaseTranscription = transcription ? structuredClone(transcription) : null;
+      const submittedCaseTranscription = transcription
+        ? structuredClone(transcription)
+        : null;
       const reference = isDemoIncident
         ? activeDemoCase.reference
         : createSachetCaseReference();
@@ -1767,7 +1801,9 @@ export function DemoJourney({
     content = (
       <LandingPage
         hasSubmittedCase={hasSubmittedCase}
-        hasRecoverableComplaint={Boolean(recoverableReport && !hasSubmittedCase)}
+        hasRecoverableComplaint={Boolean(
+          recoverableReport && !hasSubmittedCase,
+        )}
         onStartComplaint={startReport}
         onContinueComplaint={continueRecoveredReport}
         onViewDemo={() => useDemoIncident()}
@@ -1802,7 +1838,9 @@ export function DemoJourney({
               : "INPUT";
     content = (
       <ReportWorkspace
-        key={isDemoIncident ? `${selectedDemoCaseId}-${demoCaseRevision}` : "live"}
+        key={
+          isDemoIncident ? `${selectedDemoCaseId}-${demoCaseRevision}` : "live"
+        }
         mode={mode}
         reportMethod={reportMethod}
         narrative={narrative}
@@ -1847,12 +1885,18 @@ export function DemoJourney({
             current?.reportingPeople?.reportingFor === "SOMEONE_ELSE"
               ? {
                   ...current,
-                  reportingPeople: { ...current.reportingPeople, helperName: value || null },
+                  reportingPeople: {
+                    ...current.reportingPeople,
+                    helperName: value || null,
+                  },
                 }
               : current?.reportingPeople
                 ? {
                     ...current,
-                    reportingPeople: { ...current.reportingPeople, victimName: value || null },
+                    reportingPeople: {
+                      ...current.reportingPeople,
+                      victimName: value || null,
+                    },
                   }
                 : current,
           );
@@ -1930,14 +1974,23 @@ export function DemoJourney({
         }}
         onReportedAmountSelect={(amount) => {
           setSelectedReportedAmount(amount);
-          setDraft((current) => current ? {
-            ...current,
-            incident: { ...current.incident, citizenConfirmedLoss: amount },
-            citizenConfirmedFields: Array.from(new Set([
-              ...current.citizenConfirmedFields,
-              "incident.citizenConfirmedLoss",
-            ])),
-          } : current);
+          setDraft((current) =>
+            current
+              ? {
+                  ...current,
+                  incident: {
+                    ...current.incident,
+                    citizenConfirmedLoss: amount,
+                  },
+                  citizenConfirmedFields: Array.from(
+                    new Set([
+                      ...current.citizenConfirmedFields,
+                      "incident.citizenConfirmedLoss",
+                    ]),
+                  ),
+                }
+              : current,
+          );
         }}
         onReportFamilyChange={changeReportFamily}
         onDemoNarrationLanguageChange={chooseDemoNarration}

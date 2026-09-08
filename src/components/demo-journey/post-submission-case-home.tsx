@@ -23,7 +23,10 @@ import {
 } from "../../presentation/post-report-case";
 import { IncidentTimeline } from "./incident-timeline";
 import { JourneyProgress } from "./journey-progress";
-import { formatCurrency, formatIndiaShortDateWithYear } from "../../presentation/format";
+import {
+  formatCurrency,
+  formatIndiaShortDateWithYear,
+} from "../../presentation/format";
 import type { DemoCaseDefinition } from "../../incident/demo-incident";
 import {
   deriveCitizenNudges,
@@ -158,7 +161,11 @@ function PrintableCaseReport({
               <dd>{draft.reportingPeople.victimName}</dd>
             </div>
             <div>
-              <dt>{hi ? "रिपोर्ट करने में मदद करने वाला व्यक्ति" : "Person helping to report"}</dt>
+              <dt>
+                {hi
+                  ? "रिपोर्ट करने में मदद करने वाला व्यक्ति"
+                  : "Person helping to report"}
+              </dt>
               <dd>
                 {draft.reportingPeople.helperName}
                 {draft.reportingPeople.relationship
@@ -183,11 +190,14 @@ function PrintableCaseReport({
       {displayedStatement ? (
         <section>
           <h2>
-            {draft.reportingPeople?.reportingFor === "SOMEONE_ELSE" && draft.reportingPeople.victimName
+            {draft.reportingPeople?.reportingFor === "SOMEONE_ELSE" &&
+            draft.reportingPeople.victimName
               ? hi
                 ? `${draft.reportingPeople.victimName} ने हमें क्या बताया`
                 : `What ${draft.reportingPeople.victimName} told us`
-              : hi ? "घटना का विवरण" : "Incident summary"}
+              : hi
+                ? "घटना का विवरण"
+                : "Incident summary"}
           </h2>
           <p>{sanitizeDerivedText(displayedStatement)}</p>
         </section>
@@ -402,7 +412,12 @@ function EvidenceIncluded({
   demoCase,
 }: Pick<
   PostSubmissionCaseHomeProps,
-  "draft" | "screenshots" | "caseUpdateEvidenceFiles" | "caseUpdates" | "isDemoIncident" | "demoCase"
+  | "draft"
+  | "screenshots"
+  | "caseUpdateEvidenceFiles"
+  | "caseUpdates"
+  | "isDemoIncident"
+  | "demoCase"
 > & { unavailableEvidenceNames?: string[] }) {
   const { locale, t } = useI18n();
   const hi = locale === "hi";
@@ -419,7 +434,9 @@ function EvidenceIncluded({
   const sourceEvidence = draft.evidence.filter(
     (item) => item.type !== "VOICE_STATEMENT",
   );
-  const originalEvidenceNames = new Set(originalItems.map((item) => item.evidenceLabel));
+  const originalEvidenceNames = new Set(
+    originalItems.map((item) => item.evidenceLabel),
+  );
   const updateEvidenceNames = Array.from(
     new Set(caseUpdates.flatMap((update) => update.addedEvidenceNames)),
   ).filter((name) => !originalEvidenceNames.has(name));
@@ -448,7 +465,8 @@ function EvidenceIncluded({
   ];
   const keptLabel = (value: string) => {
     if (value === "Authentication code") return t("privacy.authenticationCode");
-    if (value === "Full account or card details") return t("privacy.fullIdentifier");
+    if (value === "Full account or card details")
+      return t("privacy.fullIdentifier");
     if (value === "Unrelated balance") return t("privacy.unrelatedBalance");
     return value;
   };
@@ -458,17 +476,16 @@ function EvidenceIncluded({
   );
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const activeItem = items.find((item) => item.evidenceId === activeEvidenceId);
-  const demoEvidencePath = demoCase?.evidence.find(
-    (item) => item.id === activeEvidenceId,
-  )?.src ?? (
-    activeItem?.updateEvidence &&
+  const demoEvidencePath =
+    demoCase?.evidence.find((item) => item.id === activeEvidenceId)?.src ??
+    (activeItem?.updateEvidence &&
     demoCase?.caseUpdateFixture &&
-    activeItem.evidenceLabel === (hi
-      ? demoCase.caseUpdateFixture.evidenceNameHi
-      : demoCase.caseUpdateFixture.evidenceName)
+    activeItem.evidenceLabel ===
+      (hi
+        ? demoCase.caseUpdateFixture.evidenceNameHi
+        : demoCase.caseUpdateFixture.evidenceName)
       ? demoCase.caseUpdateFixture.evidenceSrc
-      : undefined
-  );
+      : undefined);
 
   useEffect(() => {
     if (!activeEvidenceId || isDemoIncident) {
@@ -479,13 +496,22 @@ function EvidenceIncluded({
     const file = match
       ? screenshots[Number(match[1])]
       : activeItem?.updateEvidence
-        ? caseUpdateEvidenceFiles.find((item) => item.name === activeItem.evidenceLabel)
+        ? caseUpdateEvidenceFiles.find(
+            (item) => item.name === activeItem.evidenceLabel,
+          )
         : null;
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
     setUploadedPreviewUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
-  }, [activeEvidenceId, activeItem?.evidenceLabel, activeItem?.updateEvidence, caseUpdateEvidenceFiles, isDemoIncident, screenshots]);
+  }, [
+    activeEvidenceId,
+    activeItem?.evidenceLabel,
+    activeItem?.updateEvidence,
+    caseUpdateEvidenceFiles,
+    isDemoIncident,
+    screenshots,
+  ]);
 
   useEffect(() => {
     if (activeItem && dialogRef.current && !dialogRef.current.open) {
@@ -549,10 +575,12 @@ function EvidenceIncluded({
                   {hi ? "देखें" : "View"} →
                 </button>
               </div>
-              {item.updateEvidence && demoCase?.caseUpdateFixture &&
-              item.evidenceLabel === (hi
-                ? demoCase.caseUpdateFixture.evidenceNameHi
-                : demoCase.caseUpdateFixture.evidenceName) ? (
+              {item.updateEvidence &&
+              demoCase?.caseUpdateFixture &&
+              item.evidenceLabel ===
+                (hi
+                  ? demoCase.caseUpdateFixture.evidenceNameHi
+                  : demoCase.caseUpdateFixture.evidenceName) ? (
                 <button
                   className="update-evidence-thumbnail-button"
                   type="button"
@@ -569,7 +597,9 @@ function EvidenceIncluded({
               ) : null}
               {item.updateEvidence && item.contributions.length > 0 ? (
                 <div className="update-evidence-findings">
-                  <strong>{hi ? "इस सबूत में मिला" : "Found in this evidence"}</strong>
+                  <strong>
+                    {hi ? "इस सबूत में मिला" : "Found in this evidence"}
+                  </strong>
                   <dl>
                     {item.contributions.slice(0, 3).map((fact) => (
                       <div key={`finding-${item.evidenceId}-${fact.fieldKey}`}>
@@ -606,12 +636,17 @@ function EvidenceIncluded({
                         </li>
                       ))}
                     </ul>
-                    {derivePrivacyFirewallSummary(item.rawFacts).keptOnlyInOriginal.length > 0 ? (
+                    {derivePrivacyFirewallSummary(item.rawFacts)
+                      .keptOnlyInOriginal.length > 0 ? (
                       <>
                         <h4>{t("privacy.kept")}</h4>
                         <ul>
-                          {derivePrivacyFirewallSummary(item.rawFacts).keptOnlyInOriginal.map((detail) => (
-                            <li key={`${item.evidenceId}-${detail}`}>{keptLabel(detail)}</li>
+                          {derivePrivacyFirewallSummary(
+                            item.rawFacts,
+                          ).keptOnlyInOriginal.map((detail) => (
+                            <li key={`${item.evidenceId}-${detail}`}>
+                              {keptLabel(detail)}
+                            </li>
                           ))}
                         </ul>
                       </>
@@ -717,20 +752,23 @@ export function PostSubmissionCaseHome({
   const [copiedValue, setCopiedValue] = useState<
     "REFERENCE" | "SUMMARY" | null
   >(null);
-  const missingReferenceIndex = draft.transactions.findIndex((transaction, index) => {
-    if (transaction.transactionIdOrUtr === CITIZEN_DOES_NOT_HAVE) return false;
-    const resolvedByUpdate = caseUpdates.some((update) =>
-      update.changes.some(
-        (change) =>
-          change.fieldId === `transactions.${index}.transactionIdOrUtr`,
-      ),
-    );
-    return (
-      !resolvedByUpdate &&
-      !transaction.transactionIdOrUtr &&
-      !transaction.referenceNumber
-    );
-  });
+  const missingReferenceIndex = draft.transactions.findIndex(
+    (transaction, index) => {
+      if (transaction.transactionIdOrUtr === CITIZEN_DOES_NOT_HAVE)
+        return false;
+      const resolvedByUpdate = caseUpdates.some((update) =>
+        update.changes.some(
+          (change) =>
+            change.fieldId === `transactions.${index}.transactionIdOrUtr`,
+        ),
+      );
+      return (
+        !resolvedByUpdate &&
+        !transaction.transactionIdOrUtr &&
+        !transaction.referenceNumber
+      );
+    },
+  );
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [followUpValue, setFollowUpValue] = useState("");
   const [followUpSaved, setFollowUpSaved] = useState(false);
@@ -744,7 +782,8 @@ export function PostSubmissionCaseHome({
     prototypeReference,
   ).filter(
     (nudge) =>
-      missingReferenceIndex >= 0 || nudge.id !== "missing-transaction-reference",
+      missingReferenceIndex >= 0 ||
+      nudge.id !== "missing-transaction-reference",
   );
   const updateTimeline: IncidentTimelineEvent[] = caseUpdates.map(
     (update, index) => ({
@@ -791,7 +830,8 @@ export function PostSubmissionCaseHome({
   const latestUpdateValues = new Map<string, string>();
   caseUpdates.forEach((update) =>
     update.changes.forEach((change) => {
-      if (change.fieldId) latestUpdateValues.set(change.fieldId, change.newValue);
+      if (change.fieldId)
+        latestUpdateValues.set(change.fieldId, change.newValue);
     }),
   );
   const currentCaseSummary = compactSummary.map((item) => {
@@ -807,26 +847,28 @@ export function PostSubmissionCaseHome({
     return {
       ...item,
       value:
-        item.id === "incident-date" && updatedValue && /^\d{4}-\d{2}-\d{2}$/.test(updatedValue)
+        item.id === "incident-date" &&
+        updatedValue &&
+        /^\d{4}-\d{2}-\d{2}$/.test(updatedValue)
           ? formatIndiaShortDateWithYear(updatedValue, locale)
-          : updatedValue ?? item.value,
+          : (updatedValue ?? item.value),
       updated: Boolean(updatedValue),
     };
   });
-  const currentIncidentTime = latestUpdateValues.get("incident.approximateTime");
+  const currentIncidentTime = latestUpdateValues.get(
+    "incident.approximateTime",
+  );
   if (currentIncidentTime) {
-    currentCaseSummary.splice(
-      Math.min(4, currentCaseSummary.length),
-      0,
-      {
-        id: "incident-time",
-        label: hi ? "घटना का समय" : "Incident time",
-        value: currentIncidentTime,
-        updated: true,
-      },
-    );
+    currentCaseSummary.splice(Math.min(4, currentCaseSummary.length), 0, {
+      id: "incident-time",
+      label: hi ? "घटना का समय" : "Incident time",
+      value: currentIncidentTime,
+      updated: true,
+    });
   }
-  const reportedLoss = summary.find((item) => item.id === "reported-loss")?.value;
+  const reportedLoss = summary.find(
+    (item) => item.id === "reported-loss",
+  )?.value;
   const evidenceToKeep = isDemoIncident
     ? (demoCase?.evidence.map((item) => (hi ? item.labelHi : item.label)) ?? [])
     : screenshots.length > 0
@@ -837,7 +879,9 @@ export function PostSubmissionCaseHome({
   );
   const totalEvidenceCount = evidenceToKeep.length + updateEvidenceNames.length;
   const caseAtAGlance = [
-    reportedLoss ? `${reportedLoss} ${hi ? "रिपोर्ट किया गया" : "reported"}` : null,
+    reportedLoss
+      ? `${reportedLoss} ${hi ? "रिपोर्ट किया गया" : "reported"}`
+      : null,
     draft.transactions.length > 0
       ? hi
         ? `${draft.transactions.length} लेन-देन`
@@ -889,7 +933,7 @@ export function PostSubmissionCaseHome({
     setReminderError(null);
     setManagingReminders(false);
     const normalizedWhatsapp = isDemoIncident
-      ? "0000"
+      ? "90000 00000"
       : `+91 ${activeRecipient
           .replace(/\D/g, "")
           .slice(-10)
@@ -968,7 +1012,9 @@ export function PostSubmissionCaseHome({
         <JourneyProgress current="RESOLUTION" completeCurrent />
         <div className="reading-shell post-submission-content">
           <header className="post-submission-header">
-            <p className="companion-eyebrow">{hi ? "आपका मामला" : "Your case"}</p>
+            <p className="companion-eyebrow">
+              {hi ? "आपका मामला" : "Your case"}
+            </p>
             <div className="post-submission-title-row">
               <h1 tabIndex={-1}>{prototypeReference}</h1>
               <button
@@ -977,24 +1023,30 @@ export function PostSubmissionCaseHome({
                 onClick={() => void copyText(prototypeReference, "REFERENCE")}
               >
                 {copiedValue === "REFERENCE"
-                  ? hi ? "कॉपी हो गया" : "Copied"
+                  ? hi
+                    ? "कॉपी हो गया"
+                    : "Copied"
                   : t("case.copyReference")}
               </button>
             </div>
             <p className="case-at-a-glance">{caseAtAGlance.join(" · ")}</p>
             <div className="prototype-reference-line">
-              <span className="success-mark" aria-hidden="true">✓</span>
+              <span className="success-mark" aria-hidden="true">
+                ✓
+              </span>
               <strong>
                 {isDemoIncident
-                  ? hi ? "डेमो शिकायत जमा हो गई" : "Demo complaint submitted"
-                  : hi ? "शिकायत सचेत में तैयार है" : "Complaint ready in Sachet"}
+                  ? hi
+                    ? "डेमो शिकायत जमा हो गई"
+                    : "Demo complaint submitted"
+                  : hi
+                    ? "शिकायत सचेत में तैयार है"
+                    : "Complaint ready in Sachet"}
               </strong>
               <span>· {formatCaseTimestamp(milestones.submittedAt, hi)}</span>
             </div>
             {!isDemoIncident ? (
-              <p className="source-note">
-                {t("case.keepReference")}
-              </p>
+              <p className="source-note">{t("case.keepReference")}</p>
             ) : null}
             <p className="prototype-boundary">
               {isDemoIncident
@@ -1007,10 +1059,15 @@ export function PostSubmissionCaseHome({
             </p>
           </header>
 
-          <nav className="case-home-anchor-nav" aria-label={hi ? "मामले के हिस्से" : "Case sections"}>
+          <nav
+            className="case-home-anchor-nav"
+            aria-label={hi ? "मामले के हिस्से" : "Case sections"}
+          >
             <a href="#case-overview">{hi ? "सारांश" : "Overview"}</a>
             <a href="#case-updates-heading">{hi ? "अपडेट" : "Updates"}</a>
-            <a href="#post-report-evidence-heading">{hi ? "सबूत" : "Evidence"}</a>
+            <a href="#post-report-evidence-heading">
+              {hi ? "सबूत" : "Evidence"}
+            </a>
             <a href="#incident-timeline-heading">{hi ? "इतिहास" : "History"}</a>
           </nav>
 
@@ -1039,7 +1096,9 @@ export function PostSubmissionCaseHome({
                     "#post-submission-case-summary",
                   );
                   target?.scrollIntoView({
-                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    behavior: window.matchMedia(
+                      "(prefers-reduced-motion: reduce)",
+                    ).matches
                       ? "auto"
                       : "smooth",
                     block: "start",
@@ -1056,47 +1115,47 @@ export function PostSubmissionCaseHome({
           >
             {!showPreparedFinancialHandoff ? (
               <section
-              className="companion-section immediate-action-section"
-              aria-labelledby="post-report-actions-heading"
+                className="companion-section immediate-action-section"
+                aria-labelledby="post-report-actions-heading"
               >
-              <h2 id="post-report-actions-heading">
-                {hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}
-              </h2>
-              {primaryAction ? (
-                <article className="post-report-primary-action">
-                  <p className="companion-eyebrow">
-                    {hi ? "सबसे पहले" : "First"}
-                  </p>
-                  <h3>{primaryAction.title}</h3>
-                  <p>{primaryAction.description}</p>
-                  {primaryAction.href ? (
-                    <a className="primary-button" href={primaryAction.href}>
-                      {primaryAction.title}
-                    </a>
-                  ) : null}
-                </article>
-              ) : null}
-              {secondaryActions.length > 0 ? (
-                <ol className="post-report-action-list post-report-secondary-actions">
-                  {secondaryActions.map((action, index) => (
-                    <li key={action.id}>
-                      <span aria-hidden="true">
-                        {String(index + 2).padStart(2, "0")}
-                      </span>
-                      <div>
-                        <h3>
-                          {action.href ? (
-                            <a href={action.href}>{action.title}</a>
-                          ) : (
-                            action.title
-                          )}
-                        </h3>
-                        <p>{action.description}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              ) : null}
+                <h2 id="post-report-actions-heading">
+                  {hi ? "अब मुझे क्या करना चाहिए?" : "What should I do now?"}
+                </h2>
+                {primaryAction ? (
+                  <article className="post-report-primary-action">
+                    <p className="companion-eyebrow">
+                      {hi ? "सबसे पहले" : "First"}
+                    </p>
+                    <h3>{primaryAction.title}</h3>
+                    <p>{primaryAction.description}</p>
+                    {primaryAction.href ? (
+                      <a className="primary-button" href={primaryAction.href}>
+                        {primaryAction.title}
+                      </a>
+                    ) : null}
+                  </article>
+                ) : null}
+                {secondaryActions.length > 0 ? (
+                  <ol className="post-report-action-list post-report-secondary-actions">
+                    {secondaryActions.map((action, index) => (
+                      <li key={action.id}>
+                        <span aria-hidden="true">
+                          {String(index + 2).padStart(2, "0")}
+                        </span>
+                        <div>
+                          <h3>
+                            {action.href ? (
+                              <a href={action.href}>{action.title}</a>
+                            ) : (
+                              action.title
+                            )}
+                          </h3>
+                          <p>{action.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                ) : null}
               </section>
             ) : null}
 
@@ -1117,7 +1176,9 @@ export function PostSubmissionCaseHome({
                       {item.value}
                       {item.updated ? (
                         <small className="updated-after-report">
-                          {hi ? "मूल रिपोर्ट के बाद अपडेट हुआ" : "Updated after original report"}
+                          {hi
+                            ? "मूल रिपोर्ट के बाद अपडेट हुआ"
+                            : "Updated after original report"}
                         </small>
                       ) : null}
                     </dd>
@@ -1125,7 +1186,11 @@ export function PostSubmissionCaseHome({
                 ))}
               </dl>
               <details className="submitted-complaint-details current-case-details">
-                <summary>{hi ? "मौजूदा मामले की पूरी जानकारी देखें" : "View full complaint"}</summary>
+                <summary>
+                  {hi
+                    ? "मौजूदा मामले की पूरी जानकारी देखें"
+                    : "View full complaint"}
+                </summary>
                 <dl className="companion-summary-list">
                   {currentCaseSummary.map((item) => (
                     <div key={`current-${item.id}`}>
@@ -1136,7 +1201,9 @@ export function PostSubmissionCaseHome({
                 </dl>
               </details>
               <details className="keep-safe-details">
-                <summary>{hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}</summary>
+                <summary>
+                  {hi ? "इन्हें सुरक्षित रखें" : "Keep these safe"}
+                </summary>
                 <ul className="post-submit-keep-list">
                   {[...evidenceToKeep, ...updateEvidenceNames].map((item) => (
                     <li key={item}>{item}</li>
@@ -1146,12 +1213,12 @@ export function PostSubmissionCaseHome({
               </details>
               <details className="submitted-complaint-details">
                 <summary>
-                  {hi
-                    ? "मूल शिकायत देखें"
-                    : "View original complaint"}
+                  {hi ? "मूल शिकायत देखें" : "View original complaint"}
                 </summary>
                 <div className="submitted-complaint-details-content">
-                  <h3 className="post-submit-summary-heading">{t("updates.originalComplaint")}</h3>
+                  <h3 className="post-submit-summary-heading">
+                    {t("updates.originalComplaint")}
+                  </h3>
                   <dl className="companion-summary-list">
                     {summary.map((item) => (
                       <div key={`full-${item.id}`}>
@@ -1361,7 +1428,9 @@ export function PostSubmissionCaseHome({
             <details className="secondary-process-disclosure">
               <summary>
                 <span id="post-report-process-heading">
-                  <strong>{hi ? "आगे क्या हो सकता है" : "What may happen next"}</strong>
+                  <strong>
+                    {hi ? "आगे क्या हो सकता है" : "What may happen next"}
+                  </strong>
                   <small>
                     {hi
                       ? "आधिकारिक पावती, शिकायत की प्रक्रिया और वित्तीय धोखाधड़ी की कार्रवाई आगे हो सकती है।"
@@ -1372,15 +1441,17 @@ export function PostSubmissionCaseHome({
               </summary>
               <div className="secondary-process-content">
                 <ol className="post-report-stage-list compact-process-list">
-                  {process.possibleNextStages.slice(0, 3).map((stage, index) => (
-                    <li key={stage.id}>
-                      <span aria-hidden="true">{index + 1}</span>
-                      <div>
-                        <strong>{stage.title}</strong>
-                        <p>{stage.description}</p>
-                      </div>
-                    </li>
-                  ))}
+                  {process.possibleNextStages
+                    .slice(0, 3)
+                    .map((stage, index) => (
+                      <li key={stage.id}>
+                        <span aria-hidden="true">{index + 1}</span>
+                        <div>
+                          <strong>{stage.title}</strong>
+                          <p>{stage.description}</p>
+                        </div>
+                      </li>
+                    ))}
                 </ol>
                 <p className="source-note">
                   {hi
@@ -1415,9 +1486,7 @@ export function PostSubmissionCaseHome({
           >
             <div>
               <h2 id="stay-informed-heading">
-                {hi
-                  ? "अपनी शिकायत पर नज़र रखें"
-                  : "Stay on top of your case"}
+                {hi ? "अपनी शिकायत पर नज़र रखें" : "Stay on top of your case"}
               </h2>
               <p>
                 {hi
@@ -1543,7 +1612,7 @@ export function PostSubmissionCaseHome({
                       reminderPreferences.channel === "EMAIL"
                         ? "name@example.com"
                         : isDemoIncident
-                          ? "0000"
+                          ? "90000 00000"
                           : "+91 98765 43210"
                     }
                   />
@@ -1655,10 +1724,18 @@ export function PostSubmissionCaseHome({
                 }
               >
                 {copiedValue === "SUMMARY"
-                  ? hi ? "सार कॉपी हो गया" : "Summary copied"
-                  : hi ? "मामले का सार कॉपी करें" : "Copy case summary"}
+                  ? hi
+                    ? "सार कॉपी हो गया"
+                    : "Summary copied"
+                  : hi
+                    ? "मामले का सार कॉपी करें"
+                    : "Copy case summary"}
               </button>
-              <button className="secondary-button" type="button" onClick={printReport}>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={printReport}
+              >
                 {hi ? "प्रिंट करें या PDF सहेजें" : "Print or save PDF"}
               </button>
               <button
